@@ -1,4 +1,5 @@
 import { notify } from './notifications.js';
+import { escapeHTML } from './utils.js';
 
 export class Navigation {
     constructor(mapEngine) {
@@ -13,6 +14,16 @@ export class Navigation {
 
         this.initUI();
         this.initDashboardUI();
+
+        // Camera State
+        this.isFreeLook = false; 
+        
+        // Map Interaction Listeners (to enable Free Look)
+        if (this.map && this.map.map) {
+            this.map.map.on('dragstart', () => { if(this.isNavigating) this.isFreeLook = true; });
+            this.map.map.on('touchstart', () => { if(this.isNavigating) this.isFreeLook = true; });
+            this.map.map.on('pitchstart', () => { if(this.isNavigating) this.isFreeLook = true; });
+        }
     }
 
     initUI() {
@@ -109,6 +120,18 @@ export class Navigation {
                 this.startInput.value = "My Location";
                 this.destInput.focus(); 
                 
+                // Reset Free Look
+                this.isFreeLook = false;
+                if (this.isNavigating && this.navMarker) {
+                     const coords = this.navMarker.getLngLat();
+                     this.map.map.flyTo({
+                        center: coords,
+                        zoom: 18.5,
+                        pitch: 60,
+                        bearing: this.lastBearing || 0
+                     });
+                }
+                
                 const clearBtn = document.getElementById('btn-clear-start');
                 if(clearBtn) clearBtn.classList.remove('hidden');
 
@@ -181,8 +204,8 @@ export class Navigation {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 </div>
                 <div class="result-text">
-                    <div class="result-main">${mainText} ${badgeHtml}</div>
-                    <div class="result-sub">${subText || ''}</div>
+                    <div class="result-main">${escapeHTML(mainText)} ${badgeHtml}</div>
+                    <div class="result-sub">${escapeHTML(subText || '')}</div>
                 </div>
             </div>
             `;
@@ -252,7 +275,7 @@ export class Navigation {
                 <div class="instruction-step" data-index="${index}">
                     <div class="step-icon">${icon}</div>
                     <div class="step-content">
-                        <div class="step-text">${text}</div>
+                        <div class="step-text">${escapeHTML(text)}</div>
                         <div class="step-dist">${dist}</div>
                     </div>
                 </div>
@@ -414,19 +437,49 @@ export class Navigation {
         }
 
         // 2. Camera Tracking (Strict Follow Mode)
-        if (this.map && this.map.map) {
+        if (this.map && this.map.map && !this.isFreeLook) {
              this.map.map.easeTo({
                 center: coords,
                 zoom: 18.5,
                 pitch: 60,
                 bearing: bearing, 
-                duration: 1000, 
-                easing: (t) => t // Linear
+                duration: 1500, // Slower for smoothness
+                easing: (t) => t * (2 - t) // EaseOutQuad-ish
             });
         }
 
         // 3. Logic: Check progress
         this.checkRouteProgress(coords, speed || 0);
+    }
+
+    updateDashboardUI(step, currentStepDist) {
+        if (!step) return;
+        const { text, rawIcon } = this.formatStep(step);
+        
+        // 1. Icon Update
+        const iconContainer = document.getElementById('nav-step-icon');
+        if (iconContainer) {
+            let svgContent = '';
+            // Basic mapping
+            if (['left', 'sharp-left'].includes(rawIcon)) svgContent = '<path d="M19 12H5M5 12L12 19M5 12L12 5"/>';
+            else if (['right', 'sharp-right'].includes(rawIcon)) svgContent = '<path d="M5 12H19M19 12L12 5M19 12L12 19"/>';
+            else if (rawIcon === 'arrive') svgContent = '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>';
+            else svgContent = '<line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline>'; // Straight/Up
+            
+            iconContainer.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${svgContent}</svg>`;
+        }
+
+        // 2. Text Update
+        const textEl = document.getElementById('nav-step-text');
+        if (textEl) textEl.innerHTML = escapeHTML(text);
+
+        // 3. Distance Update
+        const distEl = document.getElementById('nav-step-dist');
+        if (distEl) {
+             distEl.innerText = currentStepDist < 1000 
+                ? `${Math.round(currentStepDist)} m` 
+                : `${(currentStepDist / 1000).toFixed(1)} km`;
+        }
     }
 
     checkRouteProgress(userCoords, speed) {
