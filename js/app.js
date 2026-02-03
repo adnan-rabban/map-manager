@@ -1,6 +1,7 @@
 import { Store } from './store.js';
 import { MapEngine } from './map.js';
-import { Navigation } from './navigation.js'; // Import
+import { Navigation } from './navigation.js'; 
+import { SettingsManager } from './settings.js';
 import { notify } from './notifications.js';
 import { CustomTooltip } from './tooltip.js';
 
@@ -12,6 +13,7 @@ class App {
         this.map = new MapEngine('map-container');
         this.nav = new Navigation(this.map); // Init Navigation
         this.layers = new LayerSwitcher(this.map); // Init Layer Switcher
+        this.settings = new SettingsManager();
         this.tooltip = new CustomTooltip();
 
         this.initUI();
