@@ -12,6 +12,7 @@
 @import 'components/map.css';
 @import 'components/map-controls.css';
 @import 'components/notifications.css';
+@import 'components/icons.css';
 
 /* 3. Legacy / Other */
 /* Theme toggle items are in buttons.css or sidebar.css */

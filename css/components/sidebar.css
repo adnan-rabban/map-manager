@@ -119,6 +119,55 @@
   outline: none;
 }
 
+/* Make location action buttons transparent (icon only) */
+.location-item .btn,
+.location-item .btn-icon {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    border-radius: 8px;
+    background: transparent !important; /* No shape */
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--text-secondary); /* or adapt to theme */
+    transition: all 0.2s;
+}
+
+.location-item .btn:hover,
+.location-item .btn-icon:hover {
+    background: rgba(128, 128, 128, 0.15) !important; /* Visible on hover */
+    color: var(--text-main);
+    transform: scale(1.1);
+}
+
+/* Distinct Hover Colors */
+.location-item .js-nav:hover {
+    background: rgba(0, 122, 255, 0.15) !important;
+    color: var(--primary);
+}
+
+.location-item .js-edit:hover {
+    background: rgba(255, 149, 0, 0.15) !important;
+    color: var(--color-orange);
+}
+
+.location-item .js-menu:hover {
+    background: rgba(175, 82, 222, 0.15) !important;
+    color: var(--color-purple);
+}
+
+/* Remove any potential text */
+.location-item .btn span,
+.location-item .btn-icon span {
+    display: none;
+}
+
+
+
 .location-info h3 {
   font-size: 16px;
   font-weight: 600;

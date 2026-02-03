@@ -26,7 +26,9 @@ export class MapEngine {
             terrainControl: true,
             scaleControl: true,
             navigationControl: true,
-            logoControl: false // Disable default logo
+            logoControl: false, // Disable default logo
+            maxPitch: 60, // Limit pitch to improve performance
+            antialias: true // Ensure smooth edges, but maxPitch is key
         });
 
         // Store control instances for access later
@@ -44,7 +46,7 @@ export class MapEngine {
 
     init() {
         this.map.on('load', () => {
-             this.map.setPitch(60); 
+             this.map.setPitch(50); // Reduced from 60 for performance
 
              // Apply Custom Tooltips to Map Controls
              this.applyCustomTooltipsToControls();
@@ -68,12 +70,17 @@ export class MapEngine {
         updateTooltips();
 
         // Observe for new controls (e.g. if added lazily)
+        // Observe for new controls or attribute changes (dynamic tooltips)
         const observer = new MutationObserver((mutations) => {
             let shouldUpdate = false;
             for (const mutation of mutations) {
-                if (mutation.addedNodes.length > 0) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                     shouldUpdate = true;
-                    break;
+                } else if (mutation.type === 'attributes' && mutation.attributeName === 'title') {
+                    // Only update if the title is actually present (avoid loop when we remove it)
+                    if (mutation.target.getAttribute('title')) {
+                        shouldUpdate = true;
+                    }
                 }
             }
             if (shouldUpdate) updateTooltips();
@@ -81,7 +88,12 @@ export class MapEngine {
 
         const ctrlContainer = this.map.getContainer().querySelector('.maplibregl-ctrl-top-right') || this.map.getContainer();
         if (ctrlContainer) {
-            observer.observe(ctrlContainer, { childList: true, subtree: true });
+            observer.observe(ctrlContainer, { 
+                childList: true, 
+                subtree: true, 
+                attributes: true, 
+                attributeFilter: ['title'] 
+            });
         }
 
 
@@ -504,7 +516,7 @@ export class MapEngine {
             
             this.map.flyTo({
                 zoom: 17,
-                pitch: 60,
+                pitch: 50,
                 essential: true
             });
             
@@ -535,7 +547,13 @@ export class MapEngine {
         closeBtn.className = 'maplibregl-popup-close-button custom-popup-close';
         closeBtn.type = 'button';
         closeBtn.setAttribute('aria-label', 'Close popup');
-        closeBtn.innerHTML = '×';
+        closeBtn.innerHTML = `
+            <svg class="icon-circlex" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line class="line1" x1="9" y1="15" x2="15" y2="9"></line>
+                <line class="line2" x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+        `;
         
         // Attach listener immediately (no setTimeout needed)
         closeBtn.addEventListener('click', (e) => {

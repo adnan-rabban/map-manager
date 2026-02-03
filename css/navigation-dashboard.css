@@ -1,22 +1,27 @@
 /* Navigation Dashboard Overlay (Apple Maps Style) */
 :root {
-    --nav-bg: rgba(255, 255, 255, 0.95);
+    --nav-bg: var(--glass-bg);
     --nav-text: #1c1c1e;
     --nav-accent: #007AFF;
     --nav-danger: #FF3B30;
     --nav-secondary: #8E8E93;
-    --nav-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    --nav-radius: 16px;
-    --nav-border: 1px solid transparent;
+    --nav-shadow: var(--glass-shadow);
+    --nav-radius: 20px; /* Match new radius */
+    --nav-border: var(--glass-border);
 }
 
 /* Dark Mode Override (Matches Global Toggle) */
+/* Dark Mode Override (Matches Global Toggle) */
 [data-theme="dark"] {
-    --nav-bg: rgba(28, 28, 30, 0.95);
     --nav-text: #FFFFFF;
     --nav-secondary: #98989D;
-    --nav-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    --nav-border: 1px solid rgba(255, 255, 255, 0.1);
+    /* nav-bg, nav-border, nav-shadow handled by glass vars automatically if mapped in root, 
+       but we need to re-map if they are defined in :root. 
+       Actually, standard CSS vars don't update automatically if assigned to another var in :root.
+       We should just use var(--glass-bg) directly in the classes or re-declare here. */
+     --nav-bg: var(--glass-bg);
+     --nav-border: var(--glass-border);
+     --nav-shadow: var(--glass-shadow);
 }
 
 #nav-dashboard {
@@ -209,4 +214,13 @@ body.nav-active .search-container {
 
 .nav-voice-control:active {
     transform: scale(0.95);
+}
+
+[data-theme="dark"] .btn-end-nav {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FF453A;
+}
+
+[data-theme="dark"] .btn-end-nav:hover {
+    background: rgba(255, 255, 255, 0.15);
 }

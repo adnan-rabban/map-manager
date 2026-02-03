@@ -227,3 +227,19 @@
     color: #FF453A;
     border: 1px solid rgba(255,255,255,0.1);
 }
+
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-outline {
+    background: rgba(0, 0, 0, 0.2); /* Darker than glass */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+[data-theme="dark"] .btn-secondary:hover,
+[data-theme="dark"] .btn-outline:hover {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+}

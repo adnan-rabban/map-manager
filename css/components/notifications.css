@@ -13,7 +13,7 @@
 
 .notification-toast {
   /* Glassmorphism */
-  background: rgba(255, 255, 255, 0.82); 
+  background: var(--glass-bg); 
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   
@@ -22,9 +22,9 @@
   width: 340px;
   max-width: 90vw;
   
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border: var(--glass-border);
   box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.08), 
+    var(--glass-shadow), 
     0 0 0 1px rgba(255, 255, 255, 0.4) inset;
   
   color: var(--text-main);
@@ -127,16 +127,16 @@
 .dropdown-menu {
   position: fixed;
   margin-top: 0;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: var(--glass-shadow);
   min-width: 140px;
   z-index: 50;
   padding: 6px;
   transform-origin: top right;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: var(--glass-border);
   opacity: 0;
   transform: scale(0.95);
   pointer-events: none;
@@ -178,10 +178,10 @@
 }
 
 [data-theme="dark"] .notification-toast {
-    background: rgba(44, 44, 46, 0.95);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--glass-bg);
+    border: var(--glass-border);
     color: white;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    box-shadow: var(--glass-shadow);
 }
 
 [data-theme="dark"] .notification-title {
@@ -193,9 +193,9 @@
 }
 
 [data-theme="dark"] .dropdown-menu {
-    background: #1c1c1e;
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    background: var(--glass-bg);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
 }
 
 [data-theme="dark"] .dropdown-item {
