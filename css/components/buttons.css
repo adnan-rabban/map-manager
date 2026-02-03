@@ -1,0 +1,228 @@
+/* Buttons */
+.btn {
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  width: auto;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.6);
+  color: var(--text-main);
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.btn-icon {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 6px;
+  border: none;
+  cursor: pointer; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  color: var(--text-main);
+  background: rgba(0,0,0,0.05);
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.1);
+  color: var(--text-main);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-outline:hover {
+  background: rgba(0,0,0,0.02);
+  border-color: rgba(0,0,0,0.2);
+}
+
+.btn-destructive {
+  background: #ff3b30;
+  color: white;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+.btn-destructive:hover {
+  background: #d63329;
+}
+
+/* Floating Action Button */
+.fab-add {
+  position: absolute;
+  bottom: 50px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+  font-size: 24px;
+  cursor: pointer;
+  z-index: var(--z-ui);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fab-add:hover {
+  transform: scale(1.1);
+}
+
+/* Settings Button */
+.fab-settings {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-main);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: var(--z-ui);
+  transition: transform 0.2s;
+}
+
+.fab-settings:hover {
+  transform: rotate(45deg);
+}
+
+/* Toggle Buttons (Sidebar/Nav) */
+.btn-toggle-sidebar,
+.btn-toggle-nav {
+  position: absolute;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  background: white;
+  color: var(--text-main);
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+  z-index: var(--z-ui);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-toggle-sidebar {
+  top: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+}
+
+.btn-toggle-nav {
+  top: 74px;
+  color: var(--primary);
+  transform: scale(1);
+}
+
+.btn-toggle-nav:hover {
+  transform: scale(1.15);
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.25);
+}
+
+/* Clear Route Button */
+.btn-clear-route {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: white;
+  color: #ff3b30;
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  z-index: 5;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-clear-route.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] .fab-add {
+    background: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .fab-settings {
+    background: #2c2c2e;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .btn-toggle-sidebar,
+[data-theme="dark"] .btn-toggle-nav {
+    background: #2c2c2e;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+[data-theme="dark"] .btn-clear-route {
+    background: rgba(44, 44, 46, 0.9);
+    color: #FF453A;
+    border: 1px solid rgba(255,255,255,0.1);
+}

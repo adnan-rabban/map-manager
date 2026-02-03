@@ -1,0 +1,67 @@
+:root {
+  /* Apple Design System Variables */
+  --primary: #007AFF;
+  --primary-hover: #0062cc;
+  --bg-color: #F5F5F7; /* Apple gray bg */
+  --glass-bg: rgba(255, 255, 255, 0.72); /* Saturation boost */
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); /* Softer shadow */
+  --text-main: #1D1D1F;
+  --text-secondary: #86868B;
+  --radius-lg: 24px; /* More rounded */
+  --radius-md: 14px;
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --z-map: 0;
+  --z-ui: 10;
+  
+  /* New System Colors */
+  --color-teal: #30B0C7;
+  --color-orange: #FF9500;
+  --color-purple: #AF52DE;
+}
+
+[data-theme="dark"] {
+  --bg-color: #000000; /* True Black for OLED/Modern feel */
+  --glass-bg: rgba(28, 28, 30, 0.75); /* More transparent */
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --text-main: #FFFFFF;
+  --text-secondary: #8E8E93; /* Apple Gray */
+  --primary: #0A84FF; /* macOS Dark Blue */
+  --primary-hover: #0071e3;
+  --danger: #FF453A;
+  
+  /* Input Customization */
+  --input-bg: rgba(118, 118, 128, 0.24);
+  --input-border: transparent;
+  --input-text: #fff;
+  
+  /* Panel Overrides */
+  --panel-bg: rgba(28, 28, 30, 0.85);
+  --panel-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+/* Force dark mode styles on inputs/buttons when theme is dark */
+[data-theme="dark"] input,
+[data-theme="dark"] .form-control {
+    background: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--input-text);
+}
+
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-icon,
+[data-theme="dark"] .fab-settings {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-main);
+    border-color: rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .location-item:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .panel {
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+}

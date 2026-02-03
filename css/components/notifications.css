@@ -1,0 +1,185 @@
+/* Custom Notifications */
+.notification-container {
+  position: fixed;
+  top: 15px;
+  right: 55px; 
+  z-index: 5; 
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+  align-items: flex-end;
+}
+
+.notification-toast {
+  /* Glassmorphism */
+  background: rgba(255, 255, 255, 0.82); 
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  
+  border-radius: 14px;
+  padding: 14px 16px;
+  width: 340px;
+  max-width: 90vw;
+  
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.08), 
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  
+  color: var(--text-main);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  pointer-events: auto;
+  cursor: default;
+
+  opacity: 0;
+  transform: translateX(80px) scale(0.95);
+  transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.notification-toast.show {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.notification-toast.info .notification-icon {
+  background: linear-gradient(135deg, #007AFF, #00C6FF);
+  color: white;
+}
+.notification-toast.success .notification-icon {
+  background: linear-gradient(135deg, #34C759, #30D158);
+  color: white;
+}
+.notification-toast.error .notification-icon {
+  background: linear-gradient(135deg, #FF3B30, #FF453A);
+  color: white;
+}
+
+.notification-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 36px;
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+  color: #000;
+}
+
+.notification-message {
+  color: #3a3a3c;
+  font-weight: 400;
+}
+
+/* Tooltip */
+.ios-tooltip {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 0.5px solid rgba(255, 255, 255, 0.4);
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2);
+    opacity: 0;
+    transform: scale(0.9) translateY(4px); 
+    transform-origin: center top; 
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out, visibility 0.15s;
+    visibility: hidden; 
+}
+
+.ios-tooltip.visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    visibility: visible;
+    transition: opacity 0.2s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), visibility 0s linear 0s;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: fixed;
+  margin-top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.1);
+  min-width: 140px;
+  z-index: 50;
+  padding: 6px;
+  transform-origin: top right;
+  border: 1px solid rgba(0,0,0,0.05);
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.dropdown-menu.active {
+  display: block;
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  animation: dropdown-enter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+@keyframes dropdown-enter {
+  0% { opacity: 0; transform: scale(0.8); }
+  60% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+[data-theme="dark"] .notification-toast {
+    background: rgba(44, 44, 46, 0.95);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
