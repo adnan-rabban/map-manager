@@ -9,12 +9,12 @@
     --nav-radius: 16px;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --nav-bg: rgba(28, 28, 30, 0.95);
-        --nav-text: #FFFFFF;
-        --nav-secondary: #98989D;
-    }
+/* Dark Mode Override (Matches Global Toggle) */
+[data-theme="dark"] {
+    --nav-bg: rgba(28, 28, 30, 0.95);
+    --nav-text: #FFFFFF;
+    --nav-secondary: #98989D;
+    --nav-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
 #nav-dashboard {

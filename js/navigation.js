@@ -389,6 +389,46 @@ export class Navigation {
         }
     }
     
+    handlePositionUpdate(pos) {
+        if(!this.isNavigating) return;
+
+        // Valid coords?
+        if (!pos || !pos.coords) return;
+
+        const { longitude, latitude, heading, speed } = pos.coords;
+        const coords = [longitude, latitude];
+
+        // 1. Update Marker Position (The "Puck")
+        if (this.navMarker) {
+             this.navMarker.setLngLat(coords);
+        }
+
+        // Bearing/Heading Logic
+        // Use heading if available, else usage last known
+        const bearing = heading !== null && !isNaN(heading) ? heading : (this.lastBearing || 0);
+        this.lastBearing = bearing;
+
+        // Rotate Puck Icon
+        if (this.navPuckEl) {
+             this.navPuckEl.style.transform = `rotate(${bearing}deg)`;
+        }
+
+        // 2. Camera Tracking (Strict Follow Mode)
+        if (this.map && this.map.map) {
+             this.map.map.easeTo({
+                center: coords,
+                zoom: 18.5,
+                pitch: 60,
+                bearing: bearing, 
+                duration: 1000, 
+                easing: (t) => t // Linear
+            });
+        }
+
+        // 3. Logic: Check progress
+        this.checkRouteProgress(coords, speed || 0);
+    }
+
     checkRouteProgress(userCoords, speed) {
         if (!this.steps || !this.currentRoute) return;
         

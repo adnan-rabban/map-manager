@@ -4,7 +4,7 @@ import { Navigation } from './navigation.js';
 import { SettingsManager } from './settings.js';
 import { notify } from './notifications.js';
 import { CustomTooltip } from './tooltip.js';
-
+import { escapeHTML } from './utils.js'; // Import Sanitizer
 import { LayerSwitcher } from './layers.js';
 
 class App {
@@ -527,8 +527,8 @@ class App {
         listEl.innerHTML = locations.map((loc, index) => `
             <div class="location-item" data-id="${loc.id}" style="animation-delay: ${index * 0.05}s">
                     <div class="location-info">
-                    <h3>${loc.name}</h3>
-                    <p>${loc.desc || 'No description'}</p>
+                    <h3>${escapeHTML(loc.name)}</h3>
+                    <p>${escapeHTML(loc.desc || 'No description')}</p>
                 </div>
                 <div style="display: flex; gap: 4px;">
                      <button class="btn btn-icon js-nav" data-id="${loc.id}" data-tooltip="View Location" aria-label="View Location">

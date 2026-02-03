@@ -29,6 +29,16 @@
     color: white;
 }
 
+[data-theme="dark"] .btn-toggle-layers {
+    background: #2c2c2e;
+    color: #f5f5f7;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+[data-theme="dark"] .btn-toggle-layers.active {
+    background: var(--primary); /* Keep blue when active */
+    color: white;
+}
+
 /* Layer Panel (Glassmorphism) */
 .layer-panel {
   position: absolute;
