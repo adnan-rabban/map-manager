@@ -126,12 +126,12 @@ class App {
             menu.classList.remove('active');
             menu.dataset.currentId = '';
             
-            const onEnd = () => {
+            // Use timeout instead of animationend for reliability
+            setTimeout(() => {
                 menu.classList.remove('closing');
                 menu.classList.add('hidden');
-                menu.removeEventListener('animationend', onEnd);
-            };
-            menu.addEventListener('animationend', onEnd, { once: true });
+                menu.style.display = 'none'; // Ensure it's hidden
+            }, 200); // Match CSS transition time
         };
 
         // Helper to handle actions (Edit, Delete, Nav)
@@ -405,7 +405,7 @@ class App {
             debounceTimer = setTimeout(async () => {
                 const results = await this.map.searchPlaces(query);
                 // Fix: Discard if input has changed
-                if (input.value !== query) return;
+                if (input.value.trim() !== query.trim()) return;
                 this.renderSearchResults(results);
             }, 300);
         });
@@ -577,7 +577,24 @@ class App {
             const lng = parseFloat(document.getElementById('loc-lng').value);
             const lat = parseFloat(document.getElementById('loc-lat').value);
 
-            // Validation
+            // Manual Validation check for required fields
+            if (!name || isNaN(lng) || isNaN(lat)) {
+                notify.show('Please fill out all required fields.', 'error');
+                
+                // Highlight empty fields
+                if (!name) document.getElementById('loc-name').style.borderColor = 'var(--danger)';
+                if (isNaN(lng)) document.getElementById('loc-lng').style.borderColor = 'var(--danger)';
+                if (isNaN(lat)) document.getElementById('loc-lat').style.borderColor = 'var(--danger)';
+                
+                // Reset border after 2 seconds
+                setTimeout(() => {
+                    document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '');
+                }, 2000);
+
+                return;
+            }
+
+            // Validation (Type check redundant with above, but kept for logic flow)
             if (isNaN(lng) || isNaN(lat)) {
                 notify.show('Invalid coordinates', 'error');
                 return;
@@ -617,6 +634,12 @@ class App {
 
     deleteLocation(id) {
         this.store.delete(id);
+        
+        // Close any open popup to ensure no stale UI remains
+        if (this.map.currentPopup) {
+            this.map.currentPopup.remove();
+        }
+        
         this.map.removeMarker(id);
         this.renderList();
     }

@@ -405,10 +405,12 @@ export class Navigation {
         );
         
         // WAKE LOCK (Keep screen on)
-        try {
-            this.wakeLock = await navigator.wakeLock.request('screen');
-        } catch (err) {
-            console.log("Wake Lock not supported");
+        if (navigator.wakeLock) {
+            try {
+                this.wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                console.log("Wake Lock not supported or denied:", err);
+            }
         }
     }
     
@@ -506,22 +508,32 @@ export class Navigation {
         // Zones: 1km, 500m, 200m
         // We use a Set to ensure we only say it once per step
         
-        // 1 KM Warning
-        if (distToTurn < 1100 && distToTurn > 900 && !this.spokenAnnouncements.has(1000)) {
-            this.speak(`In 1 kilometer, ${text}`);
-            this.spokenAnnouncements.add(1000);
+        // Logic: Check largest to smallest. If we passed the threshold and haven't spoken, speak it.
+        // We do not check "dist > X" because if we jump from 1200m to 800m, we should still say "In 1 km" or just skip to "500m" if closer?
+        // Better: Say the most relevant one.
+        
+        if (distToTurn < 1000 && !this.spokenAnnouncements.has(1000)) {
+             // If we are already very close (e.g. < 600m), maybe skipping 1km is fine? 
+             // Let's just say it if we haven't.
+             if (distToTurn > 600) {
+                 this.speak(`In 1 kilometer, ${text}`);
+                 this.spokenAnnouncements.add(1000);
+             }
         }
         
-        // 500m Warning
-        if (distToTurn < 550 && distToTurn > 450 && !this.spokenAnnouncements.has(500)) {
-            this.speak(`In 500 meters, ${text}`);
-            this.spokenAnnouncements.add(500);
+        if (distToTurn < 500 && !this.spokenAnnouncements.has(500)) {
+             if (distToTurn > 250) {
+                this.speak(`In 500 meters, ${text}`);
+                this.spokenAnnouncements.add(500);
+                this.spokenAnnouncements.add(1000); // Mark previous as "handled"
+             }
         }
 
-        // 200m Warning (Prepare)
-        if (distToTurn < 250 && distToTurn > 150 && !this.spokenAnnouncements.has(200)) {
-            this.speak(`In 200 meters, ${text}`);
-            this.spokenAnnouncements.add(200);
+        if (distToTurn < 200 && !this.spokenAnnouncements.has(200)) {
+             this.speak(`In 200 meters, ${text}`);
+             this.spokenAnnouncements.add(200);
+             this.spokenAnnouncements.add(500);
+             this.spokenAnnouncements.add(1000);
         }
         
         // --- STEP ADVANCE ---
@@ -667,7 +679,9 @@ export class Navigation {
         }
         
         if(this.wakeLock) {
-            this.wakeLock.release();
+            try {
+                this.wakeLock.release();
+            } catch(e) { console.error(e); }
             this.wakeLock = null;
         }
 

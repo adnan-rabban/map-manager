@@ -20,6 +20,7 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   will-change: transform;
+  z-index: 10;
 }
 
 .marker-wrapper:hover .custom-marker {
@@ -53,17 +54,7 @@
 }
 
 /* Map Popups */
-.glass-popup .maplibregl-popup-content, 
-.glass-popup .mapboxgl-popup-content {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-  border: 0.5px solid rgba(0, 0, 0, 0.05);
-  padding: 0; 
-  font-family: var(--font-family);
-}
+
 
 .glass-popup .maplibregl-popup-tip,
 .glass-popup .mapboxgl-popup-tip {
@@ -77,6 +68,57 @@
 .glass-popup {
   z-index: 200;
 }
+
+.glass-popup .maplibregl-popup-content, 
+.glass-popup .mapboxgl-popup-content {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  border: 0.5px solid rgba(0, 0, 0, 0.05);
+  padding: 0; 
+  font-family: var(--font-family);
+  
+  /* Animation moved here */
+  transform-origin: center bottom;
+  animation: popup-enter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.glass-popup.closing .maplibregl-popup-content,
+.glass-popup.closing .mapboxgl-popup-content {
+  animation: popup-exit 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+}
+
+/* Also animate the tip if we want it to look connected, or just let it be. 
+   The tip is usually a separate sibling. Let's animate it too for completeness or hide it during animation? 
+   Simpler to just animate opacity/scale on the content matching the tip.
+   But let's start with just content.
+*/
+
+@keyframes popup-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popup-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+}
+
 
 /* iOS Apple Maps Style Popup */
 .poi-popup {
@@ -193,4 +235,54 @@
   font-size: 16px;
   font-weight: 600;
   z-index: 10;
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] .glass-popup .maplibregl-popup-content,
+[data-theme="dark"] .glass-popup .mapboxgl-popup-content {
+    background: #1c1c1e;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+[data-theme="dark"] .glass-popup .maplibregl-popup-tip,
+[data-theme="dark"] .glass-popup .mapboxgl-popup-tip {
+    border-top-color: #1c1c1e;
+}
+
+[data-theme="dark"] .poi-popup h3 {
+    color: white;
+}
+
+[data-theme="dark"] .poi-subtitle,
+[data-theme="dark"] .poi-coords {
+    color: #98989D;
+}
+
+[data-theme="dark"] .poi-desc {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .poi-divider {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn-ios-secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #0a84ff; /* Lighter blue for dark mode */
+}
+
+[data-theme="dark"] .btn-ios-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .glass-popup .maplibregl-popup-close-button,
+[data-theme="dark"] .glass-popup .mapboxgl-popup-close-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+[data-theme="dark"] .glass-popup .maplibregl-popup-close-button:hover,
+[data-theme="dark"] .glass-popup .mapboxgl-popup-close-button:hover {
+    background: rgba(255, 255, 255, 0.2);
 }

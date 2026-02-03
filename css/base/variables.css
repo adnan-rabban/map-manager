@@ -18,6 +18,7 @@
   --color-teal: #30B0C7;
   --color-orange: #FF9500;
   --color-purple: #AF52DE;
+  --danger: #FF3B30;
 }
 
 [data-theme="dark"] {

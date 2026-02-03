@@ -113,3 +113,14 @@
     background: var(--bg-color);
     border: 1px solid var(--glass-border);
 }
+
+[data-theme="dark"] .form-control {
+    background: rgba(255, 255, 255, 0.05); /* Slightly lighter than bg */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+[data-theme="dark"] .form-control:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary);
+}

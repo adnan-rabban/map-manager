@@ -21,12 +21,20 @@ export class MapEngine {
             zoom: 15.5,
             pitch: 45,
             bearing: -17.6,
-            geolocate: true,
+            geolocate: false, 
+            geolocateControl: false, // Ensure it's disabled
             terrainControl: true,
             scaleControl: true,
             navigationControl: true,
             logoControl: false // Disable default logo
         });
+
+        // Store control instances for access later
+        this.geolocateControl = new maptilersdk.GeolocateControl({
+            positionOptions: { enableHighAccuracy: true },
+            trackUserLocation: true
+        });
+        this.map.addControl(this.geolocateControl);
 
         this.markers = {}; // Store markers BY ID
         this.clickCallback = null;
@@ -94,8 +102,6 @@ export class MapEngine {
             // ... existing click logic ...
             // Check for POIs first
             const features = this.map.queryRenderedFeatures(e.point);
-            // Filter features that look like POIs (have a name, not our route line)
-            const poi = features.find(f => f.properties && f.properties.name && f.source !== 'route' && f.source !== 'composite'); 
             
              const viableFeature = features.find(f => 
                 f.properties && 
@@ -502,9 +508,8 @@ export class MapEngine {
                 essential: true
             });
             
-            const geolocateControl = this.map._controls.find(c => c instanceof maptilersdk.GeolocateControl);
-            if (geolocateControl) {
-                geolocateControl.trigger();
+            if (this.geolocateControl) {
+                this.geolocateControl.trigger();
             }
         }
     }
@@ -566,10 +571,12 @@ export class MapEngine {
             
             // Wait for animation
             const onEnd = () => {
-                popup.remove(); // This triggers the 'close' event
-                el.removeEventListener('animationend', onEnd);
+                popup.remove(); 
             };
             el.addEventListener('animationend', onEnd, { once: true });
+            
+            // Safety fallback
+            setTimeout(onEnd, 300);
         } else {
             popup.remove();
         }
