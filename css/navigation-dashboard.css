@@ -216,6 +216,53 @@ body.nav-active .search-container {
     transform: scale(0.95);
 }
 
+/* Recenter Control */
+.nav-recenter-control {
+    position: absolute;
+    right: 20px;
+    bottom: 180px; /* Above Voice Control (120 + ~50 + 10) */
+    padding: 10px 16px;
+    border-radius: 30px;
+    background: white; /* Strong contrast */
+    color: var(--nav-accent);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+    cursor: pointer;
+    z-index: 2001;
+    pointer-events: auto;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.nav-recenter-control:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+.nav-recenter-control:active {
+    transform: scale(0.95);
+}
+
+.nav-recenter-control.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    display: flex; /* Keep flex for layout, just hide visually */
+}
+
+/* Dark mode for recenter */
+[data-theme="dark"] .nav-recenter-control {
+    background: #2c2c2e;
+    color: #0A84FF; /* iOS Dark Mode Blue */
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
 [data-theme="dark"] .btn-end-nav {
     background: rgba(255, 255, 255, 0.1);
     color: #FF453A;

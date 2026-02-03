@@ -18,12 +18,36 @@ export class Navigation {
         // Camera State
         this.isFreeLook = false; 
         
-        // Map Interaction Listeners (to enable Free Look)
-        if (this.map && this.map.map) {
-            this.map.map.on('dragstart', () => { if(this.isNavigating) this.isFreeLook = true; });
-            this.map.map.on('touchstart', () => { if(this.isNavigating) this.isFreeLook = true; });
-            this.map.map.on('pitchstart', () => { if(this.isNavigating) this.isFreeLook = true; });
+        // Camera State
+        this.isFreeLook = false; 
+        
+        this.setupMapListeners();
+    }
+
+    setupMapListeners() {
+        if (!this.map || !this.map.map) {
+            // Retry if map not ready yet
+            setTimeout(() => this.setupMapListeners(), 500);
+            return;
         }
+
+        const enableFreeLook = () => {
+             if (this.isNavigating) {
+                 this.isFreeLook = true;
+                 this.toggleRecenterBtn(true);
+             }
+        };
+
+        const map = this.map.map;
+        
+        map.on('dragstart', enableFreeLook);
+        map.on('touchstart', enableFreeLook);
+        map.on('pitchstart', enableFreeLook);
+        map.on('wheel', enableFreeLook);
+        map.on('zoomstart', enableFreeLook);
+        
+        // Also handle moveend to check if it was user-initiated? 
+        // No, moveend fires on flyTo as well. The 'start' events are safers for user intent.
     }
 
     initUI() {
@@ -86,6 +110,35 @@ export class Navigation {
                 this.speak("Voice guidance enabled.");
             }
         });
+
+
+        // Recenter Button
+        this.recenterBtn = document.getElementById('btn-recenter');
+        if(this.recenterBtn) {
+            this.recenterBtn.addEventListener('click', () => {
+                this.isFreeLook = false;
+                this.toggleRecenterBtn(false);
+                
+                // Immediately snap back
+                if (this.navMarker) {
+                    const coords = this.navMarker.getLngLat();
+                    const bearing = this.lastBearing || 0;
+                     this.map.map.flyTo({
+                        center: coords,
+                        zoom: 18.5,
+                        pitch: 60,
+                        bearing: bearing,
+                        essential: true
+                    });
+                }
+            });
+        }
+    }
+
+    toggleRecenterBtn(show) {
+        if(!this.recenterBtn) return;
+        if(show) this.recenterBtn.classList.remove('hidden');
+        else this.recenterBtn.classList.add('hidden');
     }
 
     togglePanel(show) {
@@ -369,6 +422,10 @@ export class Navigation {
         // Show Dashboard
         this.dashboard.classList.add('active');
         document.body.classList.add('nav-active');
+        
+        // Reset state
+        this.isFreeLook = false;
+        this.toggleRecenterBtn(false);
         
         // Speak First Instruction
         if(this.steps && this.steps.length > 0) {
