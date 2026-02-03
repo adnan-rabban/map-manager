@@ -27,51 +27,51 @@ class App {
 
         // POI Click Handler (Map Features)
         this.map.onPoiClick((poi) => {
-             const popupHtml = `
-                <div class="poi-popup">
-                    <div class="poi-header">
-                        <h3>${poi.name}</h3>
-                        <div class="poi-subtitle">${poi.category}</div>
+            const container = document.createElement('div');
+            container.className = 'poi-popup';
+            container.innerHTML = `
+                <div class="poi-header">
+                    <h3>${poi.name}</h3>
+                    <div class="poi-subtitle">${poi.category}</div>
+                </div>
+                <div class="poi-divider"></div>
+                <div class="poi-body">
+                    <div class="poi-coords">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                        ${poi.lngLat.lat.toFixed(6)}, ${poi.lngLat.lng.toFixed(6)}
                     </div>
-                    <div class="poi-divider"></div>
-                    <div class="poi-body">
-                        <div class="poi-coords">
-                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-                             ${poi.lngLat.lat.toFixed(6)}, ${poi.lngLat.lng.toFixed(6)}
-                        </div>
-                        <div class="poi-actions">
-                            <button class="btn-ios-primary" id="btn-poi-nav-${poi.id}">Navigate</button>
-                            <button class="btn-ios-secondary" id="btn-poi-save-${poi.id}">Save</button>
-                        </div>
+                    <div class="poi-actions">
+                        <button class="btn-ios-primary" id="btn-poi-nav-${poi.id}">Navigate</button>
+                        <button class="btn-ios-secondary" id="btn-poi-save-${poi.id}">Save</button>
                     </div>
                 </div>
             `;
-            this.map.showPopup(poi.lngLat, popupHtml);
+
+            // Bind events directly
+            const btnNav = container.querySelector(`#btn-poi-nav-${poi.id}`);
+            const btnSave = container.querySelector(`#btn-poi-save-${poi.id}`);
             
-            setTimeout(() => {
-                const btnNav = document.getElementById(`btn-poi-nav-${poi.id}`);
-                const btnSave = document.getElementById(`btn-poi-save-${poi.id}`);
-                
-                if (btnNav) {
-                    btnNav.addEventListener('click', () => {
-                         this.nav.setDestination({ lat: poi.lngLat.lat, lng: poi.lngLat.lng, name: poi.name });
-                         if (this.map.currentPopup) this.map.currentPopup.remove();
+            if (btnNav) {
+                btnNav.addEventListener('click', () => {
+                        this.nav.setDestination({ lat: poi.lngLat.lat, lng: poi.lngLat.lng, name: poi.name });
+                        if (this.map.currentPopup) this.map.currentPopup.remove();
+                });
+            }
+            
+            if (btnSave) {
+                    btnSave.addEventListener('click', () => {
+                        document.getElementById('btn-add').click();
+                        // Auto-fill form
+                        document.getElementById('loc-lng').value = poi.lngLat.lng.toFixed(6);
+                        document.getElementById('loc-lat').value = poi.lngLat.lat.toFixed(6);
+                        document.getElementById('loc-name').value = poi.name;
+                        document.getElementById('loc-desc').value = poi.category;
+                        
+                        if (this.map.currentPopup) this.map.currentPopup.remove();
                     });
-                }
-                
-                if (btnSave) {
-                     btnSave.addEventListener('click', () => {
-                         document.getElementById('btn-add').click();
-                         // Auto-fill form
-                         document.getElementById('loc-lng').value = poi.lngLat.lng.toFixed(6);
-                         document.getElementById('loc-lat').value = poi.lngLat.lat.toFixed(6);
-                         document.getElementById('loc-name').value = poi.name;
-                         document.getElementById('loc-desc').value = poi.category;
-                         
-                         if (this.map.currentPopup) this.map.currentPopup.remove();
-                     });
-                }
-            }, 50);
+            }
+
+            this.map.showPopup(poi.lngLat, container);
         });
 
         // Load markers when map loads
@@ -453,35 +453,35 @@ class App {
                 this.map.flyTo(lngLat.lng, lngLat.lat);
                 
                 // Show Identity Popup
-                const popupHtml = `
-                    <div class="poi-popup">
-                        <div class="poi-header">
-                            <h3>${item.text}</h3>
-                            <div class="poi-subtitle">${item.place_name}</div>
-                        </div>
-                        <div class="poi-divider"></div>
-                        <div class="poi-body">
-                             <button class="btn-ios-primary" id="btn-add-from-search" style="width:100%;">
-                                Add to Locations
-                            </button>
-                        </div>
+                const container = document.createElement('div');
+                container.className = 'poi-popup';
+                container.innerHTML = `
+                    <div class="poi-header">
+                        <h3>${item.text}</h3>
+                        <div class="poi-subtitle">${item.place_name}</div>
+                    </div>
+                    <div class="poi-divider"></div>
+                    <div class="poi-body">
+                            <button class="btn-ios-primary" id="btn-add-from-search" style="width:100%;">
+                            Add to Locations
+                        </button>
                     </div>
                 `;
-                this.map.showPopup(lngLat, popupHtml);
-                
-                // Bind Add Button (Delegation or timeout)
-                setTimeout(() => {
-                    const btn = document.getElementById('btn-add-from-search');
-                    if (btn) {
-                        btn.addEventListener('click', () => {
-                            document.getElementById('btn-add').click(); // Open Sidebar/Modal
-                            document.getElementById('loc-lng').value = lngLat.lng.toFixed(6);
-                            document.getElementById('loc-lat').value = lngLat.lat.toFixed(6);
-                            document.getElementById('loc-name').value = item.text;
-                            document.getElementById('loc-desc').value = item.place_name;
-                        });
-                    }
-                }, 100);
+
+                const btn = container.querySelector('#btn-add-from-search');
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        document.getElementById('btn-add').click(); // Open Sidebar/Modal
+                        document.getElementById('loc-lng').value = lngLat.lng.toFixed(6);
+                        document.getElementById('loc-lat').value = lngLat.lat.toFixed(6);
+                        document.getElementById('loc-name').value = item.text;
+                        document.getElementById('loc-desc').value = item.place_name;
+                        
+                        if (this.map.currentPopup) this.map.currentPopup.remove();
+                    });
+                }
+
+                this.map.showPopup(lngLat, container);
 
                 container.classList.add('hidden');
                 document.getElementById('search-input').value = ''; // Optional: keep or clear? Clearing usually better for "jump to"
@@ -662,52 +662,49 @@ class App {
         this.map.flyTo(location.lng, location.lat);
         
         // Show Popup with Actions
-        const popupHtml = `
-            <div class="poi-popup">
-                <div class="poi-header">
-                    <h3>${location.name}</h3>
-                    <div class="poi-subtitle">${location.desc || 'Marked Location'}</div>
+        const container = document.createElement('div');
+        container.className = 'poi-popup';
+        container.innerHTML = `
+            <div class="poi-header">
+                <h3>${location.name}</h3>
+                <div class="poi-subtitle">${location.desc || 'Marked Location'}</div>
+            </div>
+            <div class="poi-divider"></div>
+            <div class="poi-body">
+                <div class="poi-coords">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                    ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}
                 </div>
-                <div class="poi-divider"></div>
-                <div class="poi-body">
-                    <div class="poi-coords">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-                        ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}
-                    </div>
-                    
-                    <div class="poi-actions">
-                        <button class="btn-ios-primary" id="btn-popup-nav-${location.id}">
-                            Navigate
-                        </button>
-                        <button class="btn-ios-secondary" id="btn-popup-edit-${location.id}">
-                            Edit
-                        </button>
-                    </div>
+                
+                <div class="poi-actions">
+                    <button class="btn-ios-primary" id="btn-popup-nav-${location.id}">
+                        Navigate
+                    </button>
+                    <button class="btn-ios-secondary" id="btn-popup-edit-${location.id}">
+                        Edit
+                    </button>
                 </div>
             </div>
         `;
+
+        const btnNav = container.querySelector(`#btn-popup-nav-${location.id}`);
+        const btnEdit = container.querySelector(`#btn-popup-edit-${location.id}`);
+
+        if (btnNav) {
+            btnNav.addEventListener('click', () => {
+                this.nav.setDestination(location);
+                if (this.map.currentPopup) this.map.currentPopup.remove();
+            });
+        }
+
+        if (btnEdit) {
+            btnEdit.addEventListener('click', () => {
+                this.editLocation(location.id);
+                if (this.map.currentPopup) this.map.currentPopup.remove();
+            });
+        }
         
-        this.map.showPopup({ lng: location.lng, lat: location.lat }, popupHtml);
-
-        // Bind Popup Buttons (Delayed to ensure DOM presence)
-        setTimeout(() => {
-            const btnNav = document.getElementById(`btn-popup-nav-${location.id}`);
-            const btnEdit = document.getElementById(`btn-popup-edit-${location.id}`);
-
-            if (btnNav) {
-                btnNav.addEventListener('click', () => {
-                    this.nav.setDestination(location);
-                    if (this.map.currentPopup) this.map.currentPopup.remove();
-                });
-            }
-
-            if (btnEdit) {
-                btnEdit.addEventListener('click', () => {
-                    this.editLocation(location.id);
-                    if (this.map.currentPopup) this.map.currentPopup.remove();
-                });
-            }
-        }, 50);
+        this.map.showPopup({ lng: location.lng, lat: location.lat }, container);
 
         // Sync with Sidebar
         const sidebar = document.getElementById('sidebar-panel');

@@ -509,28 +509,37 @@ export class MapEngine {
         }
     }
 
-    showPopup(lngLat, html) {
-        // Close existing popup if any (immediately, or animate?)
-        // If we want to animate the old one closing, we'd need to async wait, but that might be buggy if user clicks fast.
-        // For responsiveness, instant replace is better for new clicks.
+    showPopup(lngLat, content) {
         if (this.currentPopup) {
             this.currentPopup.remove();
         }
 
-        // Inject Custom Close Button into HTML
-        // We do this to control the event. 
-        // Note: The HTML usually comes with its own structure, but we need a generic way or rely on the HTML string having a specific structure.
-        // EASIER: Just append our close button to the provided HTML string.
-        
-        // Custom Close Button HTML
-        const closeBtnHtml = `
-            <button class="maplibregl-popup-close-button custom-popup-close" type="button" aria-label="Close popup">×</button>
-        `;
-        
-        // We wrap user content in a relative div to position our close button absolute
-        const finalHtml = `<div style="position:relative;">${html}${closeBtnHtml}</div>`;
+        // Create a container div
+        const container = document.createElement('div');
+        container.style.position = 'relative';
 
-        // 1. Create Popup with closeButton: false
+        // Add content
+        if (typeof content === 'string') {
+            container.innerHTML = content;
+        } else if (content instanceof Node) {
+            container.appendChild(content);
+        }
+
+        // Add Close Button
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'maplibregl-popup-close-button custom-popup-close';
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', 'Close popup');
+        closeBtn.innerHTML = '×';
+        
+        // Attach listener immediately (no setTimeout needed)
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closePopupAnimated();
+        });
+
+        container.appendChild(closeBtn);
+
         this.currentPopup = new maptilersdk.Popup({ 
             offset: 25, 
             className: 'glass-popup', 
@@ -538,40 +547,10 @@ export class MapEngine {
             maxWidth: 'none'
         })
             .setLngLat(lngLat)
-            .setHTML(finalHtml)
+            .setDOMContent(container) // Use setDOMContent instead of setHTML
             .addTo(this.map);
-            
-        // 2. Bind Click Event to the new Close Button
-        // We need to wait for DOM insertion or use delegation on the map container
-        
-        // Easier: delegation on the popup Content element which usually isn't recreated often? 
-        // Actually, Popup recreates DOM.
-        
-        // Let's use a timeout to ensuring DOM is ready, or use the Popup's internal element reference if accessible.
-        // MapTiler/MapLibre Popup has .getElement() !
-        
-        const popupEl = this.currentPopup.getElement();
-        
-        if (popupEl) {
-            // Find our button
-            // Since we setHTML, it's inside.
-            // Note: setHTML sets innerHTML of the content node.
-            
-            // We need to attach event using delegation or direct find after a tick.
-             setTimeout(() => {
-                const closeBtn = popupEl.querySelector('.custom-popup-close');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.closePopupAnimated(); 
-                    });
-                }
-             }, 10);
-        }
 
-        // Clear reference when popup is closed via other means (e.g. .remove() called externally)
         this.currentPopup.on('close', () => {
-            // This fires AFTER removal. 
             this.currentPopup = null;
         });
     }
