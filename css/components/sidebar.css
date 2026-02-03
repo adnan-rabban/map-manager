@@ -32,7 +32,13 @@
 .panel-container.collapsed-view .btn-toggle-sidebar {
   opacity: 1;
   pointer-events: auto;
+  pointer-events: auto;
   transform: scale(1);
+}
+
+.panel-container.collapsed-view .btn-toggle-sidebar:hover {
+  transform: scale(1.15);
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.25);
 }
 
 /* Hide panel toggle inside the panel header for closing */
@@ -41,6 +47,11 @@
   border: none;
   cursor: pointer;
   padding: 4px;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.panel-close-btn:hover {
+  transform: scale(1.1);
+  color: var(--text-main);
 }
 .panel-close-btn svg {
   color: var(--text-secondary);
