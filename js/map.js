@@ -1,5 +1,5 @@
 // Replace this with your MapTiler API Key!
-const MAPTILER_KEY = 'bdQDjDEtrztzKNBE2KZO';
+const MAPTILER_KEY = 'snWlaRIgy45mGaS7gkfz';
 
 import { notify } from './notifications.js';
 
