@@ -1,10 +1,10 @@
-import { Store } from './store.js';
-import { MapEngine } from './map.js';
-import { Navigation } from './navigation.js';
-import { notify } from './notifications.js';
-import { CustomTooltip } from './tooltip.js';
-import { LayerSwitcher } from './layers.js';
-import type { Location, POI, LngLat, SearchFeature } from './types';
+import { Store } from './store/store.js';
+import { MapEngine } from './core/map.js';
+import { Navigation } from './components/navigation.js';
+import { notify } from './components/notifications.js';
+import { CustomTooltip } from './components/tooltip.js';
+import { LayerSwitcher } from './core/layers.js';
+import type { Location, POI, LngLat, SearchFeature } from './types/types';
 
 class App {
     private store: Store;

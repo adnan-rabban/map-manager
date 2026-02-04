@@ -1,4 +1,4 @@
-import type { Location, LocationsExport } from './types';
+import type { Location, LocationsExport } from '../types/types';
 
 export class Store {
   private locations: Location[];

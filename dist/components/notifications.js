@@ -1,7 +1,5 @@
-import type { NotificationType, NotificationConfigMap } from './types';
-
 // Notification types configuration with varied icons and titles
-const NOTIFICATION_CONFIG: NotificationConfigMap = {
+const NOTIFICATION_CONFIG = {
     success: {
         titles: ['Success', 'Completed', 'Done', 'Saved', 'Finished'],
         icons: [
@@ -42,16 +40,17 @@ const NOTIFICATION_CONFIG: NotificationConfigMap = {
         ]
     }
 };
-
 export class NotificationManager {
-    private container: HTMLElement | null = null;
-
-    private getContainer(): HTMLElement {
+    constructor() {
+        this.container = null;
+    }
+    getContainer() {
         if (!this.container) {
             const existing = document.getElementById('notification-container');
             if (existing) {
                 this.container = existing;
-            } else {
+            }
+            else {
                 // Safety fallback: Create if missing
                 console.warn("Notification container missing, creating one.");
                 this.container = document.createElement('div');
@@ -62,24 +61,18 @@ export class NotificationManager {
         }
         return this.container;
     }
-
-    private getRandomItem<T>(array: T[]): T {
+    getRandomItem(array) {
         return array[Math.floor(Math.random() * array.length)];
     }
-
-    show(message: string, type: NotificationType = 'info'): void {
+    show(message, type = 'info') {
         const container = this.getContainer();
-        
         const toast = document.createElement('div');
         toast.className = `notification-toast ${type}`;
-        
         // Get config for type or fallback to info
         const config = NOTIFICATION_CONFIG[type] || NOTIFICATION_CONFIG['info'];
-        
         // Select random icon and title
         const iconSvg = this.getRandomItem(config.icons);
         const title = this.getRandomItem(config.titles);
-        
         // Structure: Icon | Content (Title + Message)
         toast.innerHTML = `
             <div class="notification-icon">${iconSvg}</div>
@@ -88,15 +81,12 @@ export class NotificationManager {
                 <div class="notification-message">${message}</div>
             </div>
         `;
-
         // Prepend to show newest at top
         container.insertBefore(toast, container.firstChild);
-
         // Animate in
         requestAnimationFrame(() => {
             toast.classList.add('show');
         });
-
         // Remove after delay
         setTimeout(() => {
             toast.classList.remove('show');
@@ -107,9 +97,8 @@ export class NotificationManager {
             };
             toast.addEventListener('transitionend', onTransitionEnd);
             // Fallback
-            setTimeout(() => toast.remove(), 600); 
+            setTimeout(() => toast.remove(), 600);
         }, 4000);
     }
 }
-
 export const notify = new NotificationManager();

@@ -1,6 +1,6 @@
 import { notify } from './notifications.js';
-import type { MapEngine } from './map.js';
-import type { Location, LngLat, Coordinates, SearchFeature, Route, CoordinatesCallback } from './types';
+import type { MapEngine } from '../core/map.js';
+import type { Location, LngLat, Coordinates, SearchFeature, Route, CoordinatesCallback } from '../types/types';
 
 // Declare global maptilersdk
 declare const maptilersdk: any;
