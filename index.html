@@ -22,6 +22,11 @@
 <body>
 
     <div id="app" class="panel-container">
+        <div id="app-loading" style="position:fixed;inset:0;background:#F5F5F7;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;flex-direction:column;gap:15px;transition:opacity 0.5s;">
+             <div style="width:30px;height:30px;border:3px solid #ddd;border-top-color:#007AFF;border-radius:50%;animation:spin 1s linear infinite;"></div>
+             <p style="color:#86868B;font-size:14px;">Loading Map Manager...</p>
+        </div>
+        <style>@keyframes spin {to{transform:rotate(360deg);}}</style>
         <!-- Map Container -->
         <div id="map-container"></div>
 
@@ -213,6 +218,27 @@
     <script defer src="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.umd.js"></script>
     
     <!-- Application Logic -->
-    <script type="module" src="dist/app.js"></script>
+    <script type="module">
+        import 'dist/app.js';
+        
+        // Remove loading screen when everything is ready
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('app-loading');
+                if(loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.remove(), 500);
+                }
+            }, 500);
+        });
+
+        // Error handling
+        window.addEventListener('error', (e) => {
+             const loader = document.getElementById('app-loading');
+             if(loader) {
+                 loader.innerHTML = `<p style="color:red;padding:20px;text-align:center;">Failed to load application.<br><br>Error: ${e.message}<br><br>Please check console.</p>`;
+             }
+        });
+    </script>
 </body>
 </html>

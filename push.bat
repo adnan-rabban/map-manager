@@ -17,6 +17,7 @@ if "%CommitMessage%"=="" goto input_msg
 :: 3. Eksekusi perintah Git
 echo.
 echo [1/3] Menambahkan file...
+git add dist -f
 git add .
 
 echo [2/3] Menyimpan commit...
