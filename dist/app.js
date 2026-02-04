@@ -405,9 +405,9 @@ class App {
     }
     setupSidebar() {
         const sidebar = document.getElementById('sidebar-panel');
-        const btnToggle = document.getElementById('btn-toggle-sidebar');
+        const btnToggle = document.getElementById('btn-open-sidebar');
         const btnClose = sidebar?.querySelector('.panel-close-btn');
-        const container = document.getElementById('panel-container');
+        const container = document.getElementById('app');
         if (btnToggle) {
             btnToggle.addEventListener('click', () => {
                 sidebar?.classList.remove('collapsed');
