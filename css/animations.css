@@ -1,0 +1,159 @@
+/* ===================================
+   ANIMATIONS
+   Keyframe Animations & Transitions
+   =================================== */
+
+/* =========================
+   ENTRANCE ANIMATIONS
+   ========================= */
+@keyframes slideIn {
+  from { 
+    opacity: 0; 
+    transform: translateX(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes slideInItem {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Stagger delays for search results */
+.search-result-item:nth-child(1) { animation-delay: 0.05s; }
+.search-result-item:nth-child(2) { animation-delay: 0.1s; }
+.search-result-item:nth-child(3) { animation-delay: 0.15s; }
+.search-result-item:nth-child(4) { animation-delay: 0.2s; }
+.search-result-item:nth-child(5) { animation-delay: 0.25s; }
+.search-result-item:nth-child(6) { animation-delay: 0.3s; }
+.search-result-item:nth-child(7) { animation-delay: 0.35s; }
+.search-result-item:nth-child(8) { animation-delay: 0.4s; }
+.search-result-item:nth-child(9) { animation-delay: 0.45s; }
+.search-result-item:nth-child(10) { animation-delay: 0.5s; }
+
+/* =========================
+   DROPDOWN ANIMATIONS
+   ========================= */
+@keyframes dropdown-enter {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.8); 
+  }
+  60% { 
+    opacity: 1; 
+    transform: scale(1.05); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+@keyframes dropdown-exit {
+  from { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+  to { 
+    opacity: 0; 
+    transform: scale(0.95); 
+  }
+}
+
+/* =========================
+   POPUP ANIMATIONS
+   ========================= */
+@keyframes popup-open {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.5); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+@keyframes popup-close {
+  0% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+  100% { 
+    opacity: 0; 
+    transform: scale(0.8); 
+  }
+}
+
+/* =========================
+   ICON ANIMATIONS
+   ========================= */
+
+/* Sidebar Icon Animation - Spring Effect */
+.btn-toggle-sidebar svg .icon-sidebar-line,
+.btn-toggle-sidebar svg .icon-chevron {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-toggle-sidebar:hover svg .icon-sidebar-line {
+  transform: translateX(2px);
+}
+
+.btn-toggle-sidebar:hover svg .icon-chevron {
+  transform: translateX(2px);
+}
+
+/* Animated Panel Left Open Icon */
+.icon-panel-left-open-anim {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-panel-left-open-anim .icon-sidebar-line {
+  transition: opacity 0.3s ease;
+  opacity: 0.5;
+}
+
+.icon-panel-left-open-anim .icon-chevron {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateX(-2px);
+  transform-origin: center;
+}
+
+.btn-toggle-sidebar:hover .icon-sidebar-line {
+  opacity: 1;
+}
+
+.btn-toggle-sidebar:hover .icon-chevron {
+  transform: translateX(2px);
+}
+
+/* Circle X Icons Animation */
+.btn-clear-route svg,
+#btn-close-nav svg,
+.panel-close-btn svg {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center;
+}
+
+.btn-clear-route:hover svg,
+#btn-close-nav:hover svg,
+.panel-close-btn:hover svg {
+  transform: rotate(90deg) scale(1.1);
+  color: #ff3b30;
+}
+
+#btn-close-nav:hover svg,
+.panel-close-btn:hover svg {
+  color: var(--text-main);
+}

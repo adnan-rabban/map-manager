@@ -1,0 +1,290 @@
+/* ===================================
+   MAP CONTROLS
+   MapLibre/MapTiler Control Overrides & Popups
+   =================================== */
+
+/* =========================
+   MAP CONTROLS (ZOOM, COMPASS, ETC)
+   ========================= */
+.maplibregl-ctrl-group,
+.mapboxgl-ctrl-group {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.08), 
+    0 2px 4px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button,
+.mapboxgl-ctrl-group button {
+  width: 36px !important;
+  height: 36px !important;
+  border: none !important;
+  background: transparent !important;
+  transition: background 0.2s, color 0.2s;
+}
+
+.maplibregl-ctrl-group button:hover,
+.mapboxgl-ctrl-group button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.maplibregl-ctrl-group button + button,
+.mapboxgl-ctrl-group button + button {
+  border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.maplibregl-ctrl-icon,
+.mapboxgl-ctrl-icon {
+  opacity: 0.7;
+  filter: none !important;
+}
+
+.maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon,
+.mapboxgl-ctrl-group button:hover .mapboxgl-ctrl-icon {
+  opacity: 1;
+}
+
+.maplibregl-ctrl-compass .maplibregl-ctrl-icon,
+.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon {
+  transform: scale(0.9);
+}
+
+/* =========================
+   ATTRIBUTION CONTROL
+   ========================= */
+.maplibregl-ctrl-attrib,
+.mapboxgl-ctrl-attrib {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+/* Hide MapTiler Logo */
+.maplibregl-ctrl-logo,
+.mapboxgl-ctrl-logo,
+a.mapboxgl-ctrl-logo,
+a.maplibregl-ctrl-logo,
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl {
+  display: none !important;
+}
+
+/* Ensure Map Controls are above notifications */
+.maplibregl-ctrl-top-right, 
+.mapboxgl-ctrl-top-right {
+  z-index: 20 !important;
+}
+
+/* =========================
+   MAP POPUPS
+   ========================= */
+.glass-popup .maplibregl-popup-content, 
+.glass-popup .mapboxgl-popup-content {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  border: 0.5px solid rgba(0, 0, 0, 0.05);
+  padding: 0; 
+  font-family: var(--font-family);
+}
+
+.glass-popup .maplibregl-popup-tip,
+.glass-popup .mapboxgl-popup-tip {
+  border-top-color: rgba(255, 255, 255, 0.9);
+}
+
+.maplibregl-popup, 
+.mapboxgl-popup {
+  max-width: none !important;
+}
+
+.glass-popup {
+  z-index: 200;
+}
+
+/* Popup Animation Transform Origins */
+.glass-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-content,
+.glass-popup.maplibregl-popup-anchor-top .maplibregl-popup-content {
+  transform-origin: top center;
+}
+
+.glass-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-content,
+.glass-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-content {
+  transform-origin: bottom center;
+}
+
+.glass-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-content,
+.glass-popup.maplibregl-popup-anchor-left .maplibregl-popup-content {
+  transform-origin: center right;
+}
+
+.glass-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-content,
+.glass-popup.maplibregl-popup-anchor-right .maplibregl-popup-content {
+  transform-origin: center left;
+}
+
+.glass-popup .maplibregl-popup-content,
+.glass-popup .mapboxgl-popup-content {
+  animation: popup-open 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.glass-popup.closing .maplibregl-popup-content,
+.glass-popup.closing .mapboxgl-popup-content {
+  animation: popup-close 0.3s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+
+.glass-popup.closing {
+  pointer-events: none;
+}
+
+/* Popup Close Button */
+.maplibregl-popup-close-button,
+.mapboxgl-popup-close-button {
+  background: rgba(142, 142, 147, 0.2);
+  color: #8E8E93;
+  border-radius: 50% !important;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  right: 8px;
+  top: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.maplibregl-popup-close-button:hover,
+.mapboxgl-popup-close-button:hover {
+  background: rgba(142, 142, 147, 0.6);
+}
+
+.glass-popup .maplibregl-popup-close-button,
+.glass-popup .mapboxgl-popup-close-button {
+  top: 10px;
+  right: 10px;
+  color: #8E8E93;
+  width: 28px;
+  height: 28px;
+  background: rgba(118, 118, 128, 0.12);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 600;
+  z-index: 10;
+}
+
+/* =========================
+   POI POPUP (iOS Apple Maps Style)
+   ========================= */
+.poi-popup {
+  padding: 0;
+  width: 320px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.poi-header {
+  padding: 24px 60px 8px 24px;
+  position: relative;
+}
+
+.poi-popup h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  color: #000;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  word-wrap: break-word;
+}
+
+.poi-subtitle {
+  font-size: 15px;
+  color: #8E8E93;
+  margin-bottom: 0;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.poi-divider {
+  height: 1px;
+  background-color: rgba(60, 60, 67, 0.18);
+  margin: 0 20px;
+}
+
+.poi-body {
+  padding: 16px 20px;
+}
+
+.poi-desc {
+  font-size: 15px;
+  color: #1D1D1F;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.poi-coords {
+  font-size: 12px;
+  color: #8E8E93;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.poi-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-ios-primary {
+  flex: 1;
+  background-color: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-ios-primary:hover {
+  background-color: #0062cc;
+}
+
+.btn-ios-secondary {
+  flex: 1;
+  background-color: rgba(118, 118, 128, 0.12);
+  color: #007AFF;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-ios-secondary:hover {
+  background-color: rgba(118, 118, 128, 0.2);
+}

@@ -1,0 +1,214 @@
+/* ===================================
+   NAVIGATION
+   Navigation Panel, Routes & Directions
+   =================================== */
+
+/* =========================
+   NAVIGATION PANEL
+   ========================= */
+.nav-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 380px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  z-index: 100;
+  padding: 24px;
+  transform: translateX(-450px);
+  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nav-panel.open {
+  transform: translateX(0);
+}
+
+.nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* =========================
+   NAV INPUTS
+   ========================= */
+.nav-inputs {
+  background: rgba(118, 118, 128, 0.12);
+  border-radius: 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+}
+
+.nav-inputs input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 10px 10px 30px;
+  font-size: 15px;
+  color: var(--text-main);
+  outline: none;
+  font-weight: 500;
+}
+
+/* Input Icons */
+.input-icon {
+  position: absolute;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.start-dot {
+  background: #007AFF;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #007AFF;
+}
+
+.dest-pin {
+  background: #FF3B30;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #FF3B30;
+}
+
+/* Connector Line */
+.connector-line {
+  margin-left: 18px;
+  height: 1px;
+  width: calc(100% - 36px);
+  background: rgba(0,0,0,0.1);
+}
+
+/* =========================
+   NAV SUGGESTIONS
+   ========================= */
+.nav-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 4px 6px rgba(0,0,0,0.05), 
+    0 12px 24px rgba(0,0,0,0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 12px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 200;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: top center;
+}
+
+.nav-suggestions.hidden {
+  display: none !important;
+}
+
+.nav-suggestions::-webkit-scrollbar {
+  display: none;
+}
+
+/* =========================
+   NAVIGATION INSTRUCTIONS
+   ========================= */
+.nav-instructions {
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.instruction-step {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  transition: background 0.2s;
+}
+
+.instruction-step:last-child {
+  border-bottom: none;
+}
+
+.instruction-step:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.step-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  font-size: 18px;
+  text-align: center;
+  color: var(--primary);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-content {
+  flex-grow: 1;
+}
+
+.step-text {
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 2px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.step-dist {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* =========================
+   NAVIGATION PUCK (Real-Time)
+   ========================= */
+.nav-puck-wrapper {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100 !important;
+  pointer-events: none;
+}
+
+.nav-puck {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

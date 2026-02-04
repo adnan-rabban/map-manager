@@ -1,0 +1,68 @@
+/* ===================================
+   UTILITIES
+   Dropdown Menu & Helper Classes
+   =================================== */
+
+/* =========================
+   DROPDOWN MENU
+   ========================= */
+.dropdown-menu {
+  position: fixed;
+  margin-top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: 
+    0 4px 6px rgba(0,0,0,0.05), 
+    0 10px 30px rgba(0,0,0,0.1);
+  min-width: 140px;
+  z-index: 50;
+  padding: 6px;
+  transform-origin: top right;
+  border: 1px solid rgba(0,0,0,0.05);
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.dropdown-menu.active {
+  display: block;
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  animation: dropdown-enter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.dropdown-menu.closing {
+  animation: dropdown-exit 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.dropdown-menu.hidden {
+  display: none;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.dropdown-item svg {
+  margin-right: 8px;
+}

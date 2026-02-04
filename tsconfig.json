@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",             /* Versi JS modern */
+    "module": "ES2020",             /* Gunakan import/export modern */
+    "rootDir": "./src",             /* Ambil kode sumber dari sini */
+    "outDir": "./dist",             /* Taruh hasil JS di sini */
+    "strict": true,                 /* Aktifkan mode aman (type safety) */
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"]
+}

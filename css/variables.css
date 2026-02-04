@@ -1,0 +1,36 @@
+/* ===================================
+   CSS VARIABLES
+   Apple Design System Variables
+   =================================== */
+
+:root {
+  /* Primary Colors */
+  --primary: #007AFF;
+  --primary-hover: #0062cc;
+  
+  /* Background Colors */
+  --bg-color: #F5F5F7; /* Apple gray bg */
+  --glass-bg: rgba(255, 255, 255, 0.72); /* Saturation boost */
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); /* Softer shadow */
+  
+  /* Text Colors */
+  --text-main: #1D1D1F;
+  --text-secondary: #86868B;
+  
+  /* Border Radius */
+  --radius-lg: 24px; /* More rounded */
+  --radius-md: 14px;
+  
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  
+  /* Z-Index Layers */
+  --z-map: 0;
+  --z-ui: 10;
+  
+  /* System Colors */
+  --color-teal: #30B0C7;
+  --color-orange: #FF9500;
+  --color-purple: #AF52DE;
+}
