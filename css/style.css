@@ -1,48 +1,1751 @@
-/* Main Entry Point for Map Manager Pro Styles */
-
-/* 1. Base */
-@import 'base/variables.css';
-@import 'base/reset.css';
-
-/* 2. Components */
-@import 'components/buttons.css';
-@import 'components/sidebar.css';
-@import 'components/search.css';
-@import 'components/modals.css';
-@import 'components/map.css';
-@import 'components/map-controls.css';
-@import 'components/notifications.css';
-@import 'components/icons.css';
-
-/* 3. Legacy / Other */
-/* Theme toggle items are in buttons.css or sidebar.css */
-/* Specific utility adjustments */
-
-.theme-option {
-    flex: 1;
-    position: relative;
-    cursor: pointer;
+:root {
+  /* Apple Design System Variables */
+  --primary: #007AFF;
+  --primary-hover: #0062cc;
+  --bg-color: #F5F5F7; /* Apple gray bg */
+  --glass-bg: rgba(255, 255, 255, 0.72); /* Saturation boost */
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); /* Softer shadow */
+  --text-main: #1D1D1F;
+  --text-secondary: #86868B;
+  --radius-lg: 24px; /* More rounded */
+  --radius-md: 14px;
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --z-map: 0;
+  --z-ui: 10;
+  
+  /* New System Colors */
+  --color-teal: #30B0C7;
+  --color-orange: #FF9500;
+  --color-purple: #AF52DE;
 }
 
-.theme-option input {
-    position: absolute;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  overflow: hidden; /* App-like feel */
+  height: 100vh;
+  width: 100vw;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+/* Map Container */
+#map-container {
+  flex-grow: 1;
+  height: 100%;
+  z-index: var(--z-map);
+  position: absolute;
+  top: 0; 
+  left: 0;
+  width: 100%;
+}
+
+/* Glassmorphism Sidebar */
+.panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 380px;
+  max-height: calc(100vh - 40px);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  z-index: var(--z-ui);
+  display: flex;
+  flex-direction: column;
+  /* iOS Spring-like easing */
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform, opacity;
+  overflow: visible; 
+  opacity: 1;
+}
+
+/* Sidebar Collapsed State */
+.panel.collapsed {
+  transform: translateX(-105%); /* Slide completely off-screen to left */
+  opacity: 0; /* Fade out for smoother exit */
+  pointer-events: none;
+}
+
+/* ... existing code ... */
+
+.notification-toast {
+  background: rgba(255, 255, 255, 0.85); /* Slightly more transparent */
+  backdrop-filter: blur(25px); /* Stronger blur */
+  -webkit-backdrop-filter: blur(25px);
+  padding: 14px 24px;
+  border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.2); /* Subtle rim */
+  border: none;
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 320px;
+  max-width: 450px;
+  
+  /* Animation Start State */
+  opacity: 0;
+  transform: translateY(-20px) scale(0.9);
+  /* Energetic pop */
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Toggle Sidebar Button */
+.btn-toggle-sidebar {
+  position: absolute;
+  top: 20px;
+  left: 20px; /* Aligned with panel initial position */
+  width: 44px;
+  height: 44px;
+  background: white; /* Match Layers Button */
+  color: var(--text-main); /* Match Layers Button */
+  border: none; /* Match Layers Button */
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+  z-index: var(--z-ui); /* Same Z as panel */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  cursor: pointer;
+  /* transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1); */
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy / Membal Effect */
+  opacity: 0; 
+  pointer-events: none;
+  transform: scale(0.8);
+  will-change: opacity, transform;
+}
+
+/* Sidebar Icon Animation - Spring Effect */
+.btn-toggle-sidebar svg .icon-sidebar-line,
+.btn-toggle-sidebar svg .icon-chevron {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-toggle-sidebar:hover svg .icon-sidebar-line {
+  transform: translateX(2px);
+}
+
+.btn-toggle-sidebar:hover svg .icon-chevron {
+  transform: translateX(2px);
+}
+
+/* Show toggle button when panel is collapsed */
+.panel-container.collapsed-view .btn-toggle-sidebar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+/* Nav Toggle Button (Main Directions) */
+.btn-toggle-nav {
+  position: absolute;
+  top: 74px; /* Below sidebar toggle (20 + 44 + 10 gap) */
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  background: white; /* Distinct from sidebar toggle */
+  color: var(--primary);
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+  z-index: var(--z-ui);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy */
+  transform: scale(1); /* Always visible initially */
+}
+
+.btn-toggle-nav:hover {
+  transform: scale(1.15); /* Slightly larger */
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.25);
+}
+
+/* Hide panel toggle inside the panel header for closing */
+.panel-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+.panel-close-btn svg {
+  color: var(--text-secondary);
+}
+
+.panel-header {
+  padding: 20px 20px 0 20px; /* Adjusted padding since we are merging */
+  border-bottom: none;
+  background: transparent;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.panel-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+/* Location List */
+.location-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.location-item {
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.5);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  /* Entrance Animation */
+  opacity: 0;
+  transform: translateX(-20px); /* Slide in from left slightly */
+  animation: slideIn 0.6s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.location-item:hover {
+  background: rgba(255,255,255,0.8);
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.location-item.active {
+  border-color: transparent; /* Removed blue border per user request */
+  background: rgba(255, 255, 255, 0.95); /* Slightly clearer background instead */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Add soft shadow for depth instead */
+  outline: none;
+}
+
+.location-info h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.location-info p {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Buttons */
+.btn {
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-actions {
+  padding: 10px 20px 10px 20px; /* Balanced spacing top/bottom */
+  display: flex;
+  gap: 8px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  width: auto; /* Revert width */
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-icon {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 6px;
+  border: none;
+  cursor: pointer; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  color: var(--text-main);
+  background: rgba(0,0,0,0.05);
+}
+
+/* Specific override for Directions Close Button to match Locations style (static) */
+#btn-close-nav {
+  transition: none;
+}
+#btn-close-nav:hover {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.fab-add {
+  position: absolute;
+  bottom: 50px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+  font-size: 24px;
+  cursor: pointer;
+  z-index: var(--z-ui);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fab-add svg {
+  overflow: visible; /* Ensure rotation doesn't clip if slightly off */
+}
+
+.fab-add svg line {
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* easeInOut */
+}
+
+/* Vertical Line (Line 1 in React Code) - Delays slightly on hover start */
+.fab-add svg line:nth-child(1) {
+  transition-delay: 0.1s;
+}
+
+/* Horizontal Line (Line 2 in React Code) - No delay */
+.fab-add svg line:nth-child(2) {
+  transition-delay: 0s;
+}
+
+.fab-add:hover {
+  transform: scale(1.1);
+}
+
+.fab-add:hover svg line:nth-child(1) {
+  transform: rotate(90deg);
+  transition-delay: 0.1s;
+}
+
+.fab-add:hover svg line:nth-child(2) {
+  transform: rotate(90deg);
+  transition-delay: 0s;
+}
+
+/* Reset delays on mouse out so they reverse logically if needed, 
+   but usually standard behavior is fine. 
+   React code had delays on both Initial and Animate, so we keep delays symmetric. 
+*/
+
+/* Modal/Form */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(30px);
+  width: 400px;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  
+  /* Start State: Down and Scaled Down */
+  transform: translateY(100px) scale(0.9);
+  opacity: 0;
+  
+  transition: 
+    transform 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform, opacity;
+}
+
+.modal-overlay.open .modal {
+  /* End State: Centered and Full Scale */
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.5);
+  font-size: 16px;
+  font-family: inherit;
+  transition: border 0.2s, background 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: white;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.6);
+  color: var(--text-main);
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* Marker Wrapper (Positioned by Map Engine, NO TRANSITIONS) */
+.marker-wrapper {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  pointer-events: auto;
+  z-index: 1; /* Ensure above map tiles */
+}
+
+/* Custom Marker Visuals (Has transitions) */
+.custom-marker {
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary);
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy pop */
+  will-change: transform;
+}
+
+.marker-wrapper:hover .custom-marker {
+  transform: scale(1.3);
+}
+
+/* Ensure no direct hover transition on the root marker element if styling leaked */
+.mapboxgl-marker, .maplibregl-marker {
+  transition: none !important;
+}
+
+/* Navigation & Utility */
+.js-nav:hover {
+  color: var(--primary);
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.js-edit:hover {
+  color: var(--color-orange);
+  background: rgba(255, 149, 0, 0.1);
+}
+
+.js-menu:hover {
+  color: var(--color-purple);
+  background: rgba(175, 82, 222, 0.1);
+}
+
+.btn-clear-route {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px); /* Hidden by default */
+  background: white;
+  color: #ff3b30; /* Red for cancel */
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  z-index: 5;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-clear-route.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.btn-clear-route:hover {
+  background: #fff0f0;
+}
+
+
+/* Search Bar Styles */
+.search-container {
+  margin-top: 20px;
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+}
+
+/* Refined Inputs (iOS Search Bar Style) */
+#search-input {
+  width: 100%;
+  width: 100%;
+  width: 100%;
+  padding: 12px 36px 12px 16px; /* Reset padding (clear btn only) */
+  border: none; /* No border by default */
+  border-radius: 12px;
+  background: rgba(118, 118, 128, 0.12); /* iOS Input Fill */
+  font-size: 15px; /* Readable size */
+  transition: all 0.2s;
+  outline: none;
+  color: var(--text-main);
+}
+
+#search-input::placeholder {
+  color: #8E8E93;
+}
+
+#search-input:focus {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); /* Thinner Focus Ring */
+}
+
+.btn-input-clear {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(142, 142, 147, 0.2); /* iOS clear button bg */
+  border: none;
+  color: #8E8E93;
+  cursor: pointer;
+  padding: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 5;
+}
+
+/* Position Start Clear Button to left of My Location */
+#btn-clear-start {
+  right: 44px; /* Move left to avoid collision with My Location */
+}
+
+/* Position Dest Clear Button to align with My Location column */
+#btn-clear-dest {
+  right: 15px; /* Centered with My Location icon (24px width + 12px pad) */
+}
+
+/* Position Sidebar Search Clear Button */
+#btn-clear-search {
+  right: 12px; /* Reset position */
+}
+
+/* New Search Trigger Button (Sibling) */
+.btn-input-search {
+  position: relative; /* No longer absolute */
+  top: auto;
+  right: auto;
+  transform: none;
+  background: transparent; /* Clear */
+  color: var(--text-secondary); /* Gray icon to match others */
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 36px; /* Reduced size */
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: none;
+  transition: all 0.2s;
+}
+/* Clean up hover state for static button */
+.btn-input-search:hover {
+  color: var(--color-teal);
+  background: rgba(48, 176, 199, 0.1);
+  transform: scale(1.1); /* Subtle grow */
+  box-shadow: none;
+}
+
+/* Add padding to prevent text overlap with buttons */
+#nav-start {
+  padding-right: 70px !important;
+}
+
+#nav-dest {
+  padding-right: 36px !important;
+}
+
+.btn-input-clear svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 3;
+}
+
+.btn-input-clear:hover {
+  background: rgba(142, 142, 147, 0.4);
+  color: white;
+}
+
+/* IOS Style Search Results (Sidebar) */
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin-top: 12px;
+  
+  /* Glassmorphism */
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  
+  border-radius: 12px;
+  box-shadow: 
+    0 4px 6px rgba(0,0,0,0.02), 
+    0 12px 32px rgba(0,0,0,0.12), 
+    0 0 0 1px rgba(0,0,0,0.05);
+  
+  max-height: 70vh; /* Auto expand to fit content up to 70% screen height */
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  z-index: 200;
+  
+  opacity: 1;
+  transform-origin: top center;
+  transform: scaleY(1);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: none;
+}
+
+/* Integrated Nav Suggestions (Inside Card) */
+.nav-suggestions {
+  position: absolute; /* Float outside flow */
+  top: 100%; /* Below inputs */
+  left: 0;
+  width: 100%;
+  margin-top: 8px; /* Small gap */
+  
+  background: rgba(255, 255, 255, 0.95); /* Opaque background */
+  box-shadow: 
+    0 4px 6px rgba(0,0,0,0.05), 
+    0 12px 24px rgba(0,0,0,0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0,0,0,0.05); /* Restore border */
+  border-radius: 12px;
+  
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 200; /* Ensure on top of start button */
+  
+  /* Animation behavior */
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: top center;
+}
+
+/* Hidden State */
+.search-results.hidden {
+  display: block !important;
+  opacity: 0;
+  transform: scaleY(0.8) translateY(-10px);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.nav-suggestions.hidden {
+  display: none !important; /* Fully remove from flow when hidden */
+}
+
+.search-result-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  transition: background 0.2s;
+  
+  /* Staggered Entrance */
+  opacity: 0; /* Start hidden */
+  animation: slideInItem 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideInItem {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Stagger for up to 10 items */
+.search-result-item:nth-child(1) { animation-delay: 0.05s; }
+.search-result-item:nth-child(2) { animation-delay: 0.1s; }
+.search-result-item:nth-child(3) { animation-delay: 0.15s; }
+.search-result-item:nth-child(4) { animation-delay: 0.2s; }
+.search-result-item:nth-child(5) { animation-delay: 0.25s; }
+.search-result-item:nth-child(6) { animation-delay: 0.3s; }
+.search-result-item:nth-child(7) { animation-delay: 0.35s; }
+.search-result-item:nth-child(8) { animation-delay: 0.4s; }
+.search-result-item:nth-child(9) { animation-delay: 0.45s; }
+.search-result-item:nth-child(10) { animation-delay: 0.5s; }
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: rgba(0, 122, 255, 0.08); /* Transparent Blue */
+}
+
+/* New Result Structure */
+.result-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: rgba(0,0,0,0.04);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.search-result-item:hover .result-icon {
+  background: white;
+  color: var(--primary);
+}
+
+.result-text {
+  flex-grow: 1;
+  min-width: 0; /* truncate text properly */
+}
+
+.result-main {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Delete Dialog Specifics */
+.delete-modal {
+  max-width: 425px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.1);
+  color: var(--text-main);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-outline:hover {
+  background: rgba(0,0,0,0.02);
+  border-color: rgba(0,0,0,0.2);
+}
+
+.btn-destructive {
+  background: #ff3b30;
+  color: white;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+.btn-destructive:hover {
+  background: #d63329;
+}
+
+/* Custom Notifications */
+/* Custom Notifications (macOS Style) */
+.notification-container {
+  position: fixed;
+  top: 15px;
+  right: 55px; /* Shifted left to avoid map controls */
+  z-index: 5; /* Lower than UI and Map Controls */
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Spacing between stack items */
+  pointer-events: none;
+  align-items: flex-end;
+}
+
+
+/* Ensure Map Controls are above notifications */
+.maplibregl-ctrl-top-right, .mapboxgl-ctrl-top-right {
+  z-index: 20 !important;
+}
+
+/* iOS Custom Tooltip */
+.ios-tooltip {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    
+    /* Styling - Matching Web Style */
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 0.5px solid rgba(255, 255, 255, 0.4);
+    color: var(--text-main);
+    
+    padding: 6px 12px;
+    border-radius: 8px;
+    
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.1px;
+    
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+        
+    /* Start State: Hidden, Scaled down slightly, transparent */
     opacity: 0;
+    transform: scale(0.9) translateY(4px); 
+    transform-origin: center top; /* Pop from top */
+    
+    /* Default Transition (Exit) - Fast Fade Out */
+    transition: 
+        opacity 0.15s ease-out, 
+        transform 0.15s ease-out,
+        visibility 0.15s;
+        
+    visibility: hidden; 
 }
 
-.theme-option span {
+/* Visibility Override - Enter Animation */
+.ios-tooltip.visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    visibility: visible;
+    
+    /* Enter Transition: Slightly bouncy/springy */
+    transition: 
+        opacity 0.2s ease-out,
+        transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), /* Spring */
+        visibility 0s linear 0s; /* Immediate visibility on enter */
+}
+
+/* Hidden Utility when removing from DOM or logic */
+.ios-tooltip.hidden {
+    display: block; /* We use opacity/visibility for transiton */
+    visibility: hidden;
+}
+
+/* Dark Mode Support (if app supports it, referencing implicit usually) */
+@media (prefers-color-scheme: dark) {
+    .ios-tooltip {
+        background: rgba(30, 30, 30, 0.9);
+        color: #fff;
+        box-shadow: 
+            0 4px 12px rgba(0, 0, 0, 0.3),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+}
+
+
+.notification-toast {
+  /* Glassmorphism */
+  background: rgba(255, 255, 255, 0.82); 
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  
+  /* Shape */
+  border-radius: 14px; /* macOS Notification Center radius */
+  padding: 14px 16px;
+  width: 340px;
+  max-width: 90vw;
+  
+  /* Border & Shadow */
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.08), 
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset; /* Inner light ring */
+  
+  /* Typography */
+  color: var(--text-main);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  
+  /* Orientation */
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  pointer-events: auto;
+  cursor: default;
+
+  /* Animation Entry */
+  opacity: 0;
+  transform: translateX(80px) scale(0.95); /* Slide from/to deeper right */
+  transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.notification-toast.show {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+/* Icons */
+.notification-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px; /* App icon shape */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  /* Default Icon BG */
+  background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* State Colors (Icon Only) */
+.notification-toast.info .notification-icon {
+  background: linear-gradient(135deg, #007AFF, #00C6FF);
+  color: white;
+}
+.notification-toast.success .notification-icon {
+  background: linear-gradient(135deg, #34C759, #30D158);
+  color: white;
+}
+.notification-toast.error .notification-icon {
+  background: linear-gradient(135deg, #FF3B30, #FF453A);
+  color: white;
+}
+
+.notification-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 36px; /* Align with icon */
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+  color: #000;
+}
+
+.notification-message {
+  color: #3a3a3c; /* Dark gray for body */
+  font-weight: 400;
+}
+
+/* Map Popups */
+.glass-popup .maplibregl-popup-content, 
+.glass-popup .mapboxgl-popup-content {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px; /* iOS standard radius */
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  border: 0.5px solid rgba(0, 0, 0, 0.05); /* Subtle border */
+  padding: 0; 
+  font-family: var(--font-family);
+}
+
+.glass-popup .maplibregl-popup-tip,
+.glass-popup .mapboxgl-popup-tip {
+  border-top-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Override default library constraint */
+.maplibregl-popup, .mapboxgl-popup {
+  max-width: none !important; /* Allow wider popups */
+}
+
+.glass-popup {
+  z-index: 200; /* Ensure on top */
+}
+
+/* Animation Classes */
+.glass-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-content,
+.glass-popup.maplibregl-popup-anchor-top .maplibregl-popup-content {
+    transform-origin: top center;
+}
+.glass-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-content,
+.glass-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-content {
+    transform-origin: bottom center;
+}
+.glass-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-content,
+.glass-popup.maplibregl-popup-anchor-left .maplibregl-popup-content {
+    transform-origin: center right; /* Visual approximation */
+}
+.glass-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-content,
+.glass-popup.maplibregl-popup-anchor-right .maplibregl-popup-content {
+    transform-origin: center left;
+}
+
+/* Default Open Animation - Apply to CONTENT only to avoid overriding map position transform */
+.glass-popup .maplibregl-popup-content,
+.glass-popup .mapboxgl-popup-content {
+    animation: popup-open 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Closing Animation Class (Applied by JS to container, but affects content) */
+.glass-popup.closing .maplibregl-popup-content,
+.glass-popup.closing .mapboxgl-popup-content {
+    animation: popup-close 0.3s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+
+/* Ensure container itself doesn't block events during close but keeps position */
+.glass-popup.closing {
+    pointer-events: none;
+}
+
+@keyframes popup-open {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes popup-close {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.8); }
+}
+
+/* iOS Apple Maps Style Popup */
+.poi-popup {
+  padding: 0; /* Content handles padding */
+  width: 320px; /* Increased to 320px for more space */
+  border-radius: 20px;
+  overflow: hidden; /* Ensure content doesn't bleed */
+}
+
+.poi-header {
+  padding: 24px 60px 8px 24px; /* Even bigger right padding (60px) to clear Close Button */
+  position: relative;
+}
+
+.poi-popup h3 {
+  font-size: 22px; /* Large iOS Title */
+  font-weight: 700;
+  margin-bottom: 2px;
+  color: #000;
+  letter-spacing: -0.5px;
+  line-height: 1.1; /* Tight line height */
+  word-wrap: break-word; /* Prevent overflow */
+}
+
+.poi-subtitle {
+  font-size: 15px;
+  color: #8E8E93; /* iOS Secondary Label Color */
+  margin-bottom: 0;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.poi-divider {
+  height: 1px;
+  background-color: rgba(60, 60, 67, 0.18); /* iOS Separator */
+  margin: 0 20px;
+}
+
+.poi-body {
+  padding: 16px 20px;
+}
+
+.poi-desc {
+  font-size: 15px;
+  color: #1D1D1F;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.poi-coords {
+  font-size: 12px;
+  color: #8E8E93;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* iOS Style Action Buttons */
+.poi-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-ios-primary {
+  flex: 1;
+  background-color: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 10px; /* iOS Standard Button Radius */
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-ios-primary:hover {
+  background-color: #0062cc;
+}
+
+.btn-ios-secondary {
+  flex: 1;
+  background-color: rgba(118, 118, 128, 0.12); /* iOS Fill Gray */
+  color: #007AFF;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-ios-secondary:hover {
+  background-color: rgba(118, 118, 128, 0.2);
+}
+
+.glass-popup .maplibregl-popup-close-button,
+.glass-popup .mapboxgl-popup-close-button {
+  top: 10px;
+  right: 10px;
+  color: #8E8E93;
+  width: 28px;
+  height: 28px;
+  background: rgba(118, 118, 128, 0.12); /* Circle gray bg */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 600;
+  z-index: 10;
+}
+/* Navigation Panel (Floating) */
+/* Initially hidden */
+.nav-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 380px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  z-index: 100; /* Higher than sidebar */
+  padding: 24px;
+  transform: translateX(-450px); /* Hidden left */
+  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nav-panel.open {
+  transform: translateX(0);
+}
+
+.nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Nav Inputs Container */
+.nav-inputs {
+  background: rgba(118, 118, 128, 0.12);
+  border-radius: 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* Anchor for absolute suggestions */
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+}
+
+.nav-inputs input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 10px 10px 30px;
+  font-size: 15px;
+  color: var(--text-main);
+  outline: none;
+  font-weight: 500;
+}
+
+/* Icons */
+.input-icon {
+  position: absolute;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.start-dot {
+  background: #007AFF;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #007AFF;
+}
+
+.dest-pin {
+  background: #FF3B30;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #FF3B30;
+}
+
+/* Connector Line */
+.connector-line {
+  margin-left: 18px; /* Align with dots center roughly */
+  height: 1px;
+  width: calc(100% - 36px);
+  background: rgba(0,0,0,0.1);
+}
+
+/* "My Location" Button inside input */
+.btn-icon-inside {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+.btn-icon-inside:hover {
+  transform: scale(1.1);
+}
+
+/* Start Button */
+.btn-block {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* Autocomplete Suggestions (Nav) */
+.nav-suggestions {
+  background: white;
+  border-radius: 12px;
+  max-height: 70vh; /* Expanded height */
+  overflow-y: auto;
+  scrollbar-width: none; /* Hide scrollbar Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.05);
+  z-index: 1000; /* Ensure on top */
+}
+/* Hide scrollbar Chrome/Safari */
+.nav-suggestions::-webkit-scrollbar {
+  display: none;
+}
+/* Reuse .search-result-item styles */
+
+/* iOS-style Category Badge */
+.ios-badge {
+  background-color: rgba(118, 118, 128, 0.12);
+  color: #8a8a8e;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Navigation Instructions List */
+.nav-instructions {
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.instruction-step {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  transition: background 0.2s;
+}
+
+.instruction-step:last-child {
+  border-bottom: none;
+}
+
+.instruction-step:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.step-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  font-size: 18px;
+  text-align: center;
+  color: var(--primary);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-content {
+  flex-grow: 1;
+}
+
+.step-text {
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 2px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.step-dist {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Follow User Button inside Instructions */
+.btn-follow-user {
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--primary);
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.btn-follow-user:hover {
+  background: rgba(0, 122, 255, 0.2);
+  transform: scale(1.02);
+}
+
+/* Real-Time Navigation Puck */
+.nav-puck-wrapper {
+  width: 48px;
+  height: 48px; /* Adjusted for SVG */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100 !important; /* Above everything */
+  pointer-events: none; /* Let clicks pass through */
+}
+
+.nav-puck {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); /* iOS Smooth Rotation */
+  will-change: transform;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+/* Animated Panel Left Open Icon */
+.icon-panel-left-open-anim {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sidebar Line: The Divider */
+.icon-panel-left-open-anim .icon-sidebar-line {
+  transition: opacity 0.3s ease;
+  opacity: 0.5; /* Start dim */
+}
+
+/* Chevron: The Arrow */
+.icon-panel-left-open-anim .icon-chevron {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateX(-2px); /* Start slightly left */
+  transform-origin: center;
+}
+
+.btn-toggle-sidebar:hover .icon-sidebar-line {
+  opacity: 1; /* Light up on hover */
+}
+
+.btn-toggle-sidebar:hover .icon-chevron {
+  transform: translateX(2px); /* Slide right to indicate 'Open' */
+}
+
+/* Enhancing Button Hover - Increased specificity to override .collapsed-view state */
+.panel-container.collapsed-view .btn-toggle-sidebar:hover,
+.btn-toggle-sidebar:hover {
+    transform: scale(1.15); /* Match layers button scale */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* Match layers button shadow */
+}
+
+/* Animation for Circle X Icons */
+.btn-clear-route svg,
+#btn-close-nav svg,
+.panel-close-btn svg {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center;
+}
+
+.btn-clear-route:hover svg,
+#btn-close-nav:hover svg,
+.panel-close-btn:hover svg {
+  transform: rotate(90deg) scale(1.1);
+  color: #ff3b30; /* Optional: Red accent on hover for close actions */
+}
+
+/* Specific override to keep original color if needed, or stick to the red accent */
+#btn-close-nav:hover svg,
+.panel-close-btn:hover svg {
+    color: var(--text-main); /* Keep mild for these buttons */
+}
+
+/* Map Popup Close Button (Match Search Clear Button) */
+.maplibregl-popup-close-button,
+.mapboxgl-popup-close-button {
+    background: rgba(142, 142, 147, 0.2);
+    color: #8E8E93;
+    border-radius: 50% !important; /* Force circle */
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-main);
+    transition: all 0.2s;
+    right: 8px; /* Adjustment for better spacing */
+    top: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.maplibregl-popup-close-button:hover,
+.mapboxgl-popup-close-button:hover {
+    background: rgba(142, 142, 147, 0.6); /* Darker gray on hover */
+}
+
+/* MapTiler / MapLibre Control Overrides (iOS Style) */
+.maplibregl-ctrl-group,
+.mapboxgl-ctrl-group {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08), 
+        0 2px 4px rgba(0, 0, 0, 0.04) !important;
+    overflow: hidden;
+}
+
+.maplibregl-ctrl-group button,
+.mapboxgl-ctrl-group button {
+    width: 36px !important;
+    height: 36px !important;
+    border: none !important;
+    background: transparent !important;
     transition: background 0.2s, color 0.2s;
 }
 
-.theme-option input:checked + span {
-    background: var(--primary); 
-    color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.maplibregl-ctrl-group button:hover,
+.mapboxgl-ctrl-group button:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
 }
+
+.maplibregl-ctrl-group button + button,
+.mapboxgl-ctrl-group button + button {
+    border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Icons in controls */
+.maplibregl-ctrl-icon,
+.mapboxgl-ctrl-icon {
+    opacity: 0.7;
+    filter: none !important; /* Reset default filters if any */
+}
+
+.maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon,
+.mapboxgl-ctrl-group button:hover .mapboxgl-ctrl-icon {
+    opacity: 1;
+}
+
+/* Compass Specific */
+.maplibregl-ctrl-compass .maplibregl-ctrl-icon,
+.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon {
+     transform: scale(0.9); /* Slightly smaller to fit nice padding */
+}
+
+/* Attribution Control - Make it subtle */
+.maplibregl-ctrl-attrib,
+.mapboxgl-ctrl-attrib {
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 10px;
+}
+
+/* Hide MapTiler Logo - Advanced Targeting */
+.maplibregl-ctrl-logo,
+.mapboxgl-ctrl-logo,
+a.mapboxgl-ctrl-logo,
+a.maplibregl-ctrl-logo,
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl {
+    display: none !important;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: fixed;
+  /* Top/Left set by JS */
+  margin-top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: 
+    0 4px 6px rgba(0,0,0,0.05), 
+    0 10px 30px rgba(0,0,0,0.1);
+  min-width: 140px;
+  z-index: 50;
+  padding: 6px;
+  transform-origin: top right;
+  /* Removed default animation: dropdownIn */
+  border: 1px solid rgba(0,0,0,0.05);
+  
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.dropdown-menu.active {
+  display: block;
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  animation: dropdown-enter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.dropdown-menu.closing {
+  animation: dropdown-exit 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes dropdown-enter {
+  0% { opacity: 0; transform: scale(0.8); }
+  60% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes dropdown-exit {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.95); }
+}
+
+.dropdown-menu.hidden {
+  display: none;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.dropdown-item svg {
+  margin-right: 8px;
+}
+

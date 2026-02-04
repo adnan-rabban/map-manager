@@ -35,7 +35,7 @@ export class Store {
   }
 
   add(location) {
-    location.id = crypto.randomUUID ? crypto.randomUUID() : `loc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    location.id = Date.now().toString();
     this.locations.push(location);
     this.save();
     return location;

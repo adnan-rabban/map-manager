@@ -14,100 +14,15 @@
 
     <!-- MapTiler SDK CSS -->
     <link href="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.css" rel="stylesheet" />
+    <!-- Custom CSS -->
     <link href="css/style.css" rel="stylesheet">
     <link href="css/layers-nav.css" rel="stylesheet">
-    <link href="css/navigation-dashboard.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 </head>
 <body>
 
     <div id="app" class="panel-container">
-        <!-- Settings Button -->
-        <button id="btn-settings" class="fab-settings" title="Settings">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        </button>
-    
-        <!-- Settings Modal -->
-        <div id="settings-overlay" class="modal-overlay">
-            <div id="settings-modal" class="modal">
-                <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2 style="margin:0; font-size: 20px;">Settings</h2>
-                    <button id="btn-close-settings" class="btn-icon">
-                        <svg class="icon-circlex" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line class="line1" x1="9" y1="15" x2="15" y2="9"></line>
-                            <line class="line2" x1="9" y1="9" x2="15" y2="15"></line>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="settings-section">
-                    <h3 style="font-size:14px; color:var(--text-secondary); text-transform:uppercase; margin-bottom:12px;">Appearance</h3>
-                    
-                    <div class="theme-toggles" style="display:flex; gap:10px; background: rgba(128,128,128,0.1); padding:4px; border-radius:12px;">
-                        <label class="theme-option">
-                            <input type="radio" name="theme" value="light">
-                            <span>Light</span>
-                        </label>
-                        <label class="theme-option">
-                            <input type="radio" name="theme" value="dark">
-                            <span>Dark</span>
-                        </label>
-                        <label class="theme-option">
-                            <input type="radio" name="theme" value="system">
-                            <span>Auto</span>
-                        </label>
-                    </div>
-                </div>
-                
-                 <div class="settings-section" style="margin-top:24px;">
-                    <h3 style="font-size:14px; color:var(--text-secondary); text-transform:uppercase; margin-bottom:12px;">About</h3>
-                     <p style="font-size:14px; color:var(--text-secondary);">Map Manager Pro v1.2</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dashboard Overlay -->
-        <div id="nav-dashboard">
-            <div class="nav-top-panel">
-                <div class="nav-direction-icon" id="nav-step-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                </div>
-                <div class="nav-instruction-text">
-                    <div class="nav-distance" id="nav-step-dist">0 m</div>
-                    <div class="nav-road" id="nav-step-text">Starting navigation...</div>
-                </div>
-            </div>
-
-            <!-- Voice Control (Floating) -->
-            <button id="btn-voice-toggle" class="nav-voice-control" aria-label="Toggle Voice">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-            </button>
-
-            <!-- Recenter Control (Floating) -->
-            <button id="btn-recenter" class="nav-recenter-control hidden" aria-label="Recenter Map">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="5 9 2 12 5 15"></polyline>
-                    <polyline points="9 5 12 2 15 5"></polyline>
-                    <polyline points="19 9 22 12 19 15"></polyline>
-                    <polyline points="9 19 12 22 15 19"></polyline>
-                    <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <span>Re-center</span>
-            </button>
-
-            <div class="nav-bottom-panel">
-                <div class="nav-trip-info">
-                    <div class="nav-time-arrival good" id="nav-arrival-time">--:--</div>
-                    <div class="nav-trip-details">
-                        <span id="nav-rem-time">0 min</span> • <span id="nav-rem-dist">0 km</span>
-                    </div>
-                </div>
-                <button id="btn-end-trip" class="btn-end-nav">End</button>
-            </div>
-        </div>
-
         <!-- Map Container -->
         <div id="map-container"></div>
 
@@ -122,11 +37,7 @@
             <div class="nav-header">
                 <h2>Directions</h2>
                 <button id="btn-close-nav" class="btn-icon">
-                    <svg class="icon-circlex" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line class="line1" x1="9" y1="15" x2="15" y2="9"></line>
-                        <line class="line2" x1="9" y1="9" x2="15" y2="15"></line>
-                    </svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                 </button>
             </div>
             
@@ -160,11 +71,13 @@
 
         <!-- Toggle Button (Visible when sidebar is closed) -->
         <button id="btn-open-sidebar" class="btn-toggle-sidebar" data-tooltip="Open Sidebar" aria-label="Open Sidebar">
-             <svg class="icon-panel-left-open" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                 <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
-                 <line class="line" x1="9" y1="3" x2="9" y2="21"></line>
-                 <path class="arrow" d="m14 9 3 3-3 3"></path>
-             </svg>
+             <div class="icon-panel-left-open-anim">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" class="icon-frame"></rect>
+                    <path d="M9 3v18" class="icon-sidebar-line"></path>
+                    <path d="m14 9 3 3-3 3" class="icon-chevron"></path>
+                </svg>
+             </div>
         </button>
         
         <!-- Navigation Toggle Button (New) -->
@@ -215,11 +128,7 @@
                     </div>
                 </div>
                 <button id="btn-close-sidebar" class="panel-close-btn" data-tooltip="Close Sidebar" aria-label="Close Sidebar">
-                    <svg class="icon-circlex" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line class="line1" x1="9" y1="15" x2="15" y2="9"></line>
-                        <line class="line2" x1="9" y1="9" x2="15" y2="15"></line>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                 </button>
             </div>
             <div class="panel-actions">
@@ -252,7 +161,7 @@
         <div id="modal-overlay" class="modal-overlay">
             <div class="modal">
                 <h2 style="margin-bottom: 20px;">Add Location</h2>
-                <form id="location-form" novalidate>
+                <form id="location-form">
                     <input type="hidden" id="loc-id">
                     <div class="form-group">
                         <label>Name</label>
@@ -298,15 +207,14 @@
     <!-- Custom Notification/Toast -->
     <div id="notification-container" class="notification-container"></div>
 
-
+    <!-- Protection Script -->
+    <script src="js/protection.js"></script>
 
     <!-- MapTiler SDK JS -->
     <script defer src="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.umd.js"></script>
     
     <!-- Application Logic -->
-    <script type="module" src="js/utils.js"></script>
     <script type="module" src="js/store.js"></script>
-    <script type="module" src="js/settings.js"></script>
     <script type="module" src="js/map.js"></script>
     <script type="module" src="js/navigation.js"></script>
     <script type="module" src="js/layers.js"></script>

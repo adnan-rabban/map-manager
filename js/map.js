@@ -1,5 +1,5 @@
 // Replace this with your MapTiler API Key!
-const MAPTILER_KEY = 'snWlaRIgy45mGaS7gkfz';
+const MAPTILER_KEY = 'bdQDjDEtrztzKNBE2KZO';
 
 import { notify } from './notifications.js';
 
@@ -19,247 +19,28 @@ export class MapEngine {
             style: this.currentStyle,
             center: [106.8456, -6.2088], // Jakarta
             zoom: 15.5,
-            // HYBRID 3D CONFIGURATION
-            pitch: 50, 
-            maxPitch: 60,
+            pitch: 45,
             bearing: -17.6,
-            geolocate: false, 
-            geolocateControl: false,
-            terrainControl: true, // Enable 3D Terrain
+            geolocate: true,
+            terrainControl: true,
             scaleControl: true,
             navigationControl: true,
-            logoControl: false,
-            antialias: true // Sharp/Smooth edges for 3D buildings
+            logoControl: false // Disable default logo
         });
 
-        // Store control instances
-        this.geolocateControl = new maptilersdk.GeolocateControl({
-            positionOptions: { enableHighAccuracy: true },
-            trackUserLocation: true
-        });
-        this.map.addControl(this.geolocateControl);
-
-        // Marker Data Store (In-Memory)
-        this.markersData = new Map();
-        this.hoveredMarkerId = null; // For hover effect
+        this.markers = {}; // Store markers BY ID
+        this.clickCallback = null;
         
         this.init();
     }
 
     init() {
         this.map.on('load', () => {
-             this.map.setPitch(50);
-
-             // Dynamic Pitch Adjustment
-             this.map.on('zoom', () => {
-                 if (this.map.getZoom() < 14 && this.map.getPitch() > 10) {
-                     this.map.easeTo({ pitch: 0, duration: 300 });
-                 }
-             });
-
-             // Initialize Marker Source & Layer DIRECTLY (No Image Loading)
-             this.setupMarkerLayer();
+             this.map.setPitch(60); 
 
              // Apply Custom Tooltips to Map Controls
              this.applyCustomTooltipsToControls();
-             
-             // Setup Interactions
-             this.setupInteractions();
         });
-    }
-
-    setupMarkerLayer() {
-        // Add GeoJSON Source
-        const sourceId = 'markers-source';
-        if (!this.map.getSource(sourceId)) {
-            this.map.addSource(sourceId, {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features: []
-                },
-                promoteId: 'id' // Critical for setFeatureState to work on hover
-            });
-        }
-
-        // Layer Ordering: Find the first symbol layer (labels) to place markers below text
-        const layers = this.map.getStyle().layers;
-        let firstSymbolId;
-        for (const layer of layers) {
-            if (layer.type === 'symbol') {
-                firstSymbolId = layer.id;
-                break;
-            }
-        }
-
-        // Add Circle Layer (Vector Marker - iOS Style)
-        if (!this.map.getLayer('markers-layer')) {
-            this.map.addLayer({
-                id: 'markers-layer',
-                type: 'circle',
-                source: sourceId,
-                paint: {
-                    // iOS Style: Blue Circle, White Border
-                    'circle-radius': [
-                        'case',
-                        ['boolean', ['feature-state', 'hover'], false],
-                        12, // Radius when hovered
-                        9   // Default radius
-                    ],
-                    'circle-color': '#007AFF',
-                    'circle-stroke-width': 3,
-                    'circle-stroke-color': '#FFFFFF',
-                    'circle-pitch-alignment': 'viewport' // Keeps circle facing screen
-                }
-            }, firstSymbolId); 
-        }
-    }
-
-    updateMarkersSource() {
-        if (!this.map.getSource('markers-source')) return;
-
-        const features = [];
-        for (const [id, data] of this.markersData) {
-            features.push({
-                type: 'Feature',
-                id: id, // Top-level ID for setFeatureState
-                geometry: {
-                    type: 'Point',
-                    coordinates: [data.location.lng, data.location.lat]
-                },
-                properties: {
-                    id: id,
-                    name: data.location.name || 'Location'
-                }
-            });
-        }
-
-        this.map.getSource('markers-source').setData({
-            type: 'FeatureCollection',
-            features: features
-        });
-    }
-
-    addMarker(location, onClick) {
-        if (!location || isNaN(location.lng) || isNaN(location.lat)) return;
-        if (location.lat < -90 || location.lat > 90) return;
-
-        // Store data
-        this.markersData.set(location.id, {
-            location: location,
-            onClick: onClick
-        });
-
-        this.updateMarkersSource();
-    }
-
-    removeMarker(id) {
-        if (this.markersData.has(id)) {
-            this.markersData.delete(id);
-            this.updateMarkersSource();
-        }
-    }
-
-    setupInteractions() {
-        // 1. Marker Interaction (Hover Effect & Click)
-        this.map.on('mousemove', 'markers-layer', (e) => {
-            this.map.getCanvas().style.cursor = 'pointer';
-            
-            if (e.features.length > 0) {
-                if (this.hoveredMarkerId !== null) {
-                    this.map.setFeatureState(
-                        { source: 'markers-source', id: this.hoveredMarkerId },
-                        { hover: false }
-                    );
-                }
-                this.hoveredMarkerId = e.features[0].id;
-                this.map.setFeatureState(
-                    { source: 'markers-source', id: this.hoveredMarkerId },
-                    { hover: true }
-                );
-            }
-        });
-
-        this.map.on('mouseleave', 'markers-layer', () => {
-            this.map.getCanvas().style.cursor = '';
-            
-            if (this.hoveredMarkerId !== null) {
-                this.map.setFeatureState(
-                    { source: 'markers-source', id: this.hoveredMarkerId },
-                    { hover: false }
-                );
-            }
-            this.hoveredMarkerId = null;
-        });
-
-        this.map.on('click', 'markers-layer', (e) => {
-            // Because we use promoteId='id', feature.id is available
-            if (e.features.length > 0) {
-                const id = e.features[0].id; 
-                const item = this.markersData.get(id);
-                if (item && item.onClick) {
-                    item.onClick(item.location);
-                }
-            }
-        });
-
-        // 2. Global Map Click
-        this.map.on('click', (e) => {
-             const features = this.map.queryRenderedFeatures(e.point);
-             
-             // Check if we clicked our marker layer first (top priority)
-             const isMarker = features.some(f => f.layer.id === 'markers-layer');
-             if (isMarker) return; 
-
-             // Check for POIs (Built-in)
-             const viablePoi = features.find(f => 
-                f.properties && 
-                f.properties.name && 
-                f.layer.type === 'symbol' &&
-                f.layer.id !== 'markers-layer'
-            );
-
-            if (viablePoi) {
-                 this.handlePoiClick(viablePoi, e.lngLat);
-                 return;
-            }
-
-            if (this.clickCallback) {
-                this.clickCallback(e.lngLat);
-            }
-        });
-
-        // 3. POI Hover Cursor
-        this.map.on('mouseenter', (e) => {
-            // Priority to markers logic handling cursor
-            if (this.map.getCanvas().style.cursor === 'pointer') return;
-            
-            const features = this.map.queryRenderedFeatures(e.point, {
-                 layers: this.map.getStyle().layers.filter(l => l.type === 'symbol' && l.id !== 'markers-layer').map(l => l.id)
-            });
-            const isPoi = features.some(f => f.properties && f.properties.name);
-            if(isPoi) this.map.getCanvas().style.cursor = 'pointer';
-        });
-    }
-
-    handlePoiClick(feature, lngLat) {
-        this.map.flyTo({
-            center: lngLat,
-            zoom: 17,
-            pitch: 50, 
-            essential: true,
-            duration: 1500
-        });
-
-        if (this.poiClickCallback) {
-            const category = (feature.properties.class || 'Place').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            this.poiClickCallback({
-                name: feature.properties.name,
-                category: category,
-                lngLat: lngLat,
-                id: feature.id || Date.now()
-            });
-        }
     }
 
     applyCustomTooltipsToControls() {
@@ -269,21 +50,86 @@ export class MapEngine {
                 const title = btn.getAttribute('title');
                 if (title) {
                     btn.setAttribute('data-tooltip', title);
-                    btn.setAttribute('aria-label', title);
+                    btn.setAttribute('aria-label', title); // Accessiblity
                     btn.removeAttribute('title');
                 }
             });
         };
 
+        // Initial run
         updateTooltips();
+
+        // Observe for new controls (e.g. if added lazily)
         const observer = new MutationObserver((mutations) => {
-             updateTooltips();
+            let shouldUpdate = false;
+            for (const mutation of mutations) {
+                if (mutation.addedNodes.length > 0) {
+                    shouldUpdate = true;
+                    break;
+                }
+            }
+            if (shouldUpdate) updateTooltips();
         });
 
-        const ctrlContainer = this.map.getContainer().querySelector('.maplibregl-ctrl-top-right');
+        const ctrlContainer = this.map.getContainer().querySelector('.maplibregl-ctrl-top-right') || this.map.getContainer();
         if (ctrlContainer) {
-            observer.observe(ctrlContainer, { childList: true, subtree: true, attributes: true, attributeFilter: ['title'] });
+            observer.observe(ctrlContainer, { childList: true, subtree: true });
         }
+
+
+        // ... existing POI logic ...
+        // POI Interaction: Change cursor
+        this.map.on('mouseenter', (e) => {
+             // ... existing ...
+             const features = this.map.queryRenderedFeatures(e.point);
+             const isPoi = features.some(f => f.properties && f.properties.name && f.source !== 'route');
+             this.map.getCanvas().style.cursor = isPoi ? 'pointer' : '';
+        });
+
+        this.map.on('mouseleave', () => {
+             this.map.getCanvas().style.cursor = '';
+        });
+
+        this.map.on('click', (e) => {
+            // ... existing click logic ...
+            // Check for POIs first
+            const features = this.map.queryRenderedFeatures(e.point);
+            // Filter features that look like POIs (have a name, not our route line)
+            const poi = features.find(f => f.properties && f.properties.name && f.source !== 'route' && f.source !== 'composite'); 
+            
+             const viableFeature = features.find(f => 
+                f.properties && 
+                f.properties.name && 
+                f.layer.type === 'symbol' // Usually icons/labels
+            );
+
+            if (viableFeature) {
+                // Fly to the location smoothly
+                this.map.flyTo({
+                    center: e.lngLat,
+                    zoom: 17,
+                    pitch: 60,
+                    bearing: 0,
+                    essential: true,
+                    duration: 1500
+                });
+
+                if (this.poiClickCallback) {
+                    const category = (viableFeature.properties.class || 'Place').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    this.poiClickCallback({
+                        name: viableFeature.properties.name,
+                        category: category,
+                        lngLat: e.lngLat,
+                        id: viableFeature.id || Date.now()
+                    });
+                }
+                return; // Stop here, don't trigger background click
+            }
+
+            if (this.clickCallback) {
+                this.clickCallback(e.lngLat);
+            }
+        });
     }
 
     setStyle(styleId) {
@@ -291,18 +137,18 @@ export class MapEngine {
         this.currentStyle = maptilersdk.MapStyle[styleId];
         this.map.setStyle(this.currentStyle);
         
+        // Re-add route if it existed, as setStyle clears sources/layers
         this.map.once('styledata', () => {
             if (this.lastRouteData && this.lastRouteData.routes) {
                 this.drawRoutes(this.lastRouteData.routes, this.lastRouteData.activeIndex);
             }
-            
-            // Re-setup layer (Source is usually kept if it wasn't removed, but layers are gone)
-            // Note: MapLibre setStyle() removes all sources and layers usually.
-            // So we need to re-add everything.
-             this.setupMarkerLayer();
-             this.updateMarkersSource();
+            // Also need to re-add markers? Markers are usually DOM elements so they stay overlayed, 
+            // but if they were symbol layers they would be gone. 
+            // Our markers are DOM markers (maptilersdk.Marker), so they persist!
         });
     }
+
+
 
     onMapClick(callback) {
         this.clickCallback = callback;
@@ -310,6 +156,48 @@ export class MapEngine {
 
     onPoiClick(callback) {
         this.poiClickCallback = callback;
+    }
+
+    addMarker(location, onClick) {
+        if (!location || isNaN(location.lng) || isNaN(location.lat)) return;
+        if (location.lat < -90 || location.lat > 90) return;
+
+        // Prevent duplicate markers
+        if (this.markers[location.id]) {
+            this.markers[location.id].remove();
+        }
+
+        // Wrapper for positioning (controlled by Map SDK)
+        const container = document.createElement('div');
+        container.className = 'marker-wrapper';
+
+        // Actual visual element (animations/styles)
+        const el = document.createElement('div');
+        el.className = 'custom-marker';
+        
+        container.appendChild(el);
+        
+        const marker = new maptilersdk.Marker({
+            element: container,
+            anchor: 'center'
+        })
+            .setLngLat([location.lng, location.lat])
+            .addTo(this.map);
+
+        // Click event on the container (easier hit target)
+        container.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            onClick(location);
+        });
+
+        this.markers[location.id] = marker;
+    }
+
+    removeMarker(id) {
+        if (this.markers[id]) {
+            this.markers[id].remove();
+            delete this.markers[id];
+        }
     }
 
     flyTo(lng, lat) {
@@ -325,15 +213,19 @@ export class MapEngine {
     async calculateRoute(start, end) {
         this.clearRoute();
         
-        if (!start || !end || isNaN(start.lng) || isNaN(start.lat)) {
+        if (!start || !end || isNaN(start.lng) || isNaN(start.lat) || isNaN(end.lng) || isNaN(end.lat)) {
             notify.show("Invalid coordinates for routing.", 'error');
             return null;
         }
 
+        // OSRM Routing API (Free & Reliable)
+        // Added alternatives=true to get multiple routes
         const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson&steps=true&alternatives=true`;
         
         try {
+            console.log("Fetching route:", url);
             const res = await fetch(url);
+            
             if (!res.ok) {
                 notify.show(`Routing failed: ${res.statusText}`, 'error');
                 return null;
@@ -341,12 +233,17 @@ export class MapEngine {
 
             const data = await res.json();
             if(data.routes && data.routes.length > 0) {
-                this.routes = data.routes;
-                this.activeRouteIndex = 0;
+                this.routes = data.routes; // Store all routes
+                this.activeRouteIndex = 0; // Default to first (best)
+                
                 this.drawRoutes(this.routes, this.activeRouteIndex);
                 
                 const mainRoute = this.routes[this.activeRouteIndex];
-                notify.show(`Found ${data.routes.length} route(s).`, 'success');
+                const durationMins = Math.round(mainRoute.duration / 60);
+                const distanceKm = (mainRoute.distance / 1000).toFixed(1);
+                
+                notify.show(`Found ${data.routes.length} route(s). Best: ${distanceKm} km (${durationMins} min)`, 'success');
+                
                 return mainRoute;
             } else {
                 notify.show("No route found.", 'error');
@@ -354,14 +251,19 @@ export class MapEngine {
             }
         } catch(e) {
              console.error("Network Error:", e);
-             notify.show("Network error.", 'error');
+             notify.show("Network error: Could not connect to routing service.", 'error');
              return null;
         }
     }
 
     drawRoutes(routes, activeIndex) {
-        this.lastRouteData = { routes, activeIndex };
+        this.lastRouteData = { routes, activeIndex }; // Persistence
 
+        // We need to add sources/layers for EACH route to make them individually clickable.
+        // Or simpler: One source with multiple features, but we need to update styles based on properties.
+        
+        // Approach: One source 'routes', with features having 'isMain' property.
+        
         const features = routes.map((route, index) => ({
             'type': 'Feature',
             'properties': {
@@ -371,76 +273,124 @@ export class MapEngine {
             'geometry': route.geometry
         }));
 
-        const geojson = { 'type': 'FeatureCollection', 'features': features };
+        const geojson = {
+            'type': 'FeatureCollection',
+            'features': features
+        };
 
         if (!this.map.getSource('routes')) {
-            this.map.addSource('routes', { 'type': 'geojson', 'data': geojson, 'lineMetrics': true });
+            this.map.addSource('routes', {
+                'type': 'geojson',
+                'data': geojson,
+                 'lineMetrics': true // Required for gradient lines? Not using gradients yet.
+            });
             
-             const layers = this.map.getStyle().layers;
-             const firstSymbolId = layers.find(l => l.type === 'symbol')?.id;
-
+            // Layer for ALTERNATIVE routes (Gray, Dashed, Background)
             this.map.addLayer({
                 'id': 'routes-alt',
                 'type': 'line',
                 'source': 'routes',
-                'filter': ['==', 'isMain', false],
-                'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                'filter': ['==', 'isMain', false], // Only show non-main routes
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
                 'paint': {
                     'line-color': '#999999',
                     'line-width': 6,
                     'line-opacity': 0.6,
                     'line-dasharray': [2, 2]
                 }
-            }, firstSymbolId);
+            });
             
+             // Layer for ALTERNATIVE routes (Invisible Click Target - Wider)
              this.map.addLayer({
                 'id': 'routes-alt-touch',
                 'type': 'line',
                 'source': 'routes',
                 'filter': ['==', 'isMain', false],
                 'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                'paint': { 'line-color': 'transparent', 'line-width': 20, 'line-opacity': 0 }
-            }, firstSymbolId);
+                'paint': {
+                    'line-color': 'transparent',
+                    'line-width': 20, // Easy to click
+                    'line-opacity': 0
+                }
+            });
 
+            // Layer for MAIN route (Blue, Solid, Foreground)
             this.map.addLayer({
                 'id': 'route-main',
                 'type': 'line',
                 'source': 'routes',
-                'filter': ['==', 'isMain', true],
-                'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                'paint': { 'line-color': '#007AFF', 'line-width': 6, 'line-opacity': 0.9 }
-            }, firstSymbolId);
+                'filter': ['==', 'isMain', true], // Only show main route
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#007AFF',
+                    'line-width': 6,
+                    'line-opacity': 0.9
+                }
+            });
 
+            // Interaction: Click handling
             this.setupRouteInteraction();
 
         } else {
             this.map.getSource('routes').setData(geojson);
         }
 
+        // Fit bounds to MAIN route
         if(routes[activeIndex]) {
              const coordinates = routes[activeIndex].geometry.coordinates;
-             const bounds = new maptilersdk.LngLatBounds(coordinates[0], coordinates[0]);
-             for (const coord of coordinates) bounds.extend(coord);
-             this.map.fitBounds(bounds, { padding: 100 });
+            const bounds = new maptilersdk.LngLatBounds(coordinates[0], coordinates[0]);
+            for (const coord of coordinates) {
+                bounds.extend(coord);
+            }
+            this.map.fitBounds(bounds, { padding: 100 });
         }
     }
 
     setupRouteInteraction() {
-        this.map.on('mouseenter', 'routes-alt-touch', () => this.map.getCanvas().style.cursor = 'pointer');
-        this.map.on('mouseleave', 'routes-alt-touch', () => this.map.getCanvas().style.cursor = '');
-        this.map.on('click', 'routes-alt-touch', (e) => {
-            if (e.features.length) this.switchRoute(e.features[0].properties.index);
+        // Change cursor on hover over alternative routes
+        this.map.on('mouseenter', 'routes-alt-touch', () => {
+             this.map.getCanvas().style.cursor = 'pointer';
         });
+        this.map.on('mouseleave', 'routes-alt-touch', () => {
+             this.map.getCanvas().style.cursor = '';
+        });
+
+        // Click on alternative route
+        this.map.on('click', 'routes-alt-touch', (e) => {
+            if (e.features.length > 0) {
+                const index = e.features[0].properties.index;
+                this.switchRoute(index);
+            }
+        });
+        
+        // Also allow clicking the visible dash line directly
         this.map.on('click', 'routes-alt', (e) => {
-             if (e.features.length) this.switchRoute(e.features[0].properties.index);
+             if (e.features.length > 0) {
+                const index = e.features[0].properties.index;
+                this.switchRoute(index);
+            }
         });
     }
 
     switchRoute(index) {
         if(index === this.activeRouteIndex) return;
+
+        console.log("Switching to route index:", index);
         this.activeRouteIndex = index;
+        
+        // Redraw (updates styles based on 'isMain' property)
         this.drawRoutes(this.routes, this.activeRouteIndex);
-        if (this.onRouteChangedCallback) this.onRouteChangedCallback(this.routes[index]);
+
+        // Notify Listeners (Navigation.js needs to know to update text)
+        if (this.onRouteChangedCallback) {
+            this.onRouteChangedCallback(this.routes[index]);
+        }
         
         const mainRoute = this.routes[index];
         const durationMins = Math.round(mainRoute.duration / 60);
@@ -454,7 +404,10 @@ export class MapEngine {
 
     clearRoute() {
         if (this.map.getSource('routes')) {
-            this.map.getSource('routes').setData({ 'type': 'FeatureCollection', 'features': [] });
+            this.map.getSource('routes').setData({
+                'type': 'FeatureCollection',
+                'features': []
+            });
         }
         this.routes = [];
         this.lastRouteData = null;
@@ -462,31 +415,60 @@ export class MapEngine {
 
     async searchPlaces(query) {
         if (!query || query.length < 3) return [];
+        
+        // Photon API (by Komoot, based on OSM)
+        // param 'q': query
+        // param 'lat', 'lon': Focus/Bias location
+        // param 'limit': 8 (Requested)
+        
         const center = this.map.getCenter();
         const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${center.lat}&lon=${center.lng}&limit=8`;
         
         try {
             const res = await fetch(url);
             const data = await res.json();
+            
+            // Photon returns GeoJSON FeatureCollection
+            // Map features to app format: { id, center, place_name, text, properties: { name, address } }
+            
             return (data.features || []).map(f => {
                 const p = f.properties;
-                const addressParts = [p.name, p.street, p.city || p.town || p.village, p.state, p.country].filter(Boolean);
+                // Construct a display string (Address) from available properties
+                const addressParts = [
+                    p.name, 
+                    p.street, 
+                    p.city || p.town || p.village, 
+                    p.state, 
+                    p.country
+                ].filter(Boolean); // Remove null/undefined
+                
+                // Remove duplicates if name is repeated in address parts (common in Photon)
                 const uniqueParts = [...new Set(addressParts)];
                 const placeName = uniqueParts.join(', ');
+
+                // Format Category (osm_value)
+                // e.g. "university" -> "University", "bus_stop" -> "Bus Stop"
                 let category = '';
-                if (p.osm_value) category = p.osm_value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                if (p.osm_value) {
+                    category = p.osm_value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                }
 
                 return {
                     id: p.osm_id || Math.random().toString(),
-                    center: f.geometry.coordinates,
+                    center: f.geometry.coordinates, // [lng, lat]
                     place_name: placeName,
                     text: p.name || placeName.split(',')[0],
-                    category: category,
-                    properties: { name: p.name || placeName.split(',')[0], address: placeName, category: category }
+                    category: category, // New property
+                    properties: {
+                        name: p.name || placeName.split(',')[0],
+                        address: placeName,
+                        category: category
+                    }
                 };
             });
+
         } catch (e) {
-            console.error("Search error:", e);
+            console.error("Search error (Photon):", e);
             return [];
         }
     }
@@ -497,50 +479,118 @@ export class MapEngine {
             const res = await fetch(url);
             if (!res.ok) return null;
             const data = await res.json();
-             return (data.features && data.features.length > 0) ? data.features[0] : null;
+            if (data.features && data.features.length > 0) {
+                return data.features[0];
+            }
+            return null;
         } catch (e) {
+            console.error("Reverse geocoding error:", e);
             return null;
         }
     }
 
     enableFollowMode(enabled) {
         if (enabled) {
-            this.map.flyTo({ zoom: 17, pitch: 50, essential: true });
-            if (this.geolocateControl) this.geolocateControl.trigger();
+            // Trigger built-in geolocate control if possible, or manual tracking
+            // Since we set geolocate: true in constructor, we can access it via _controls?
+            // Safer way: manual approach or find the control instance.
+            // Simplified approach: Just ensuring we are tracking if supported.
+            
+            this.map.flyTo({
+                zoom: 17,
+                pitch: 60,
+                essential: true
+            });
+            
+            const geolocateControl = this.map._controls.find(c => c instanceof maptilersdk.GeolocateControl);
+            if (geolocateControl) {
+                geolocateControl.trigger();
+            }
         }
     }
 
-    showPopup(lngLat, content) {
-        if (this.currentPopup) this.currentPopup.remove();
+    showPopup(lngLat, html) {
+        // Close existing popup if any (immediately, or animate?)
+        // If we want to animate the old one closing, we'd need to async wait, but that might be buggy if user clicks fast.
+        // For responsiveness, instant replace is better for new clicks.
+        if (this.currentPopup) {
+            this.currentPopup.remove();
+        }
 
-        const container = document.createElement('div');
-        container.style.position = 'relative';
-        if (typeof content === 'string') container.innerHTML = content;
-        else if (content instanceof Node) container.appendChild(content);
+        // Inject Custom Close Button into HTML
+        // We do this to control the event. 
+        // Note: The HTML usually comes with its own structure, but we need a generic way or rely on the HTML string having a specific structure.
+        // EASIER: Just append our close button to the provided HTML string.
+        
+        // Custom Close Button HTML
+        const closeBtnHtml = `
+            <button class="maplibregl-popup-close-button custom-popup-close" type="button" aria-label="Close popup">×</button>
+        `;
+        
+        // We wrap user content in a relative div to position our close button absolute
+        const finalHtml = `<div style="position:relative;">${html}${closeBtnHtml}</div>`;
 
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'maplibregl-popup-close-button custom-popup-close';
-        closeBtn.innerHTML = `<svg class="icon-circlex" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="9" y1="15" x2="15" y2="9"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-        closeBtn.onclick = (e) => { e.stopPropagation(); this.closePopupAnimated(); };
-        container.appendChild(closeBtn);
-
-        this.currentPopup = new maptilersdk.Popup({ offset: 25, className: 'glass-popup', closeButton: false, maxWidth: 'none' })
+        // 1. Create Popup with closeButton: false
+        this.currentPopup = new maptilersdk.Popup({ 
+            offset: 25, 
+            className: 'glass-popup', 
+            closeButton: false, // We use ours
+            maxWidth: 'none'
+        })
             .setLngLat(lngLat)
-            .setDOMContent(container)
+            .setHTML(finalHtml)
             .addTo(this.map);
+            
+        // 2. Bind Click Event to the new Close Button
+        // We need to wait for DOM insertion or use delegation on the map container
+        
+        // Easier: delegation on the popup Content element which usually isn't recreated often? 
+        // Actually, Popup recreates DOM.
+        
+        // Let's use a timeout to ensuring DOM is ready, or use the Popup's internal element reference if accessible.
+        // MapTiler/MapLibre Popup has .getElement() !
+        
+        const popupEl = this.currentPopup.getElement();
+        
+        if (popupEl) {
+            // Find our button
+            // Since we setHTML, it's inside.
+            // Note: setHTML sets innerHTML of the content node.
+            
+            // We need to attach event using delegation or direct find after a tick.
+             setTimeout(() => {
+                const closeBtn = popupEl.querySelector('.custom-popup-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.closePopupAnimated(); 
+                    });
+                }
+             }, 10);
+        }
 
-        this.currentPopup.on('close', () => { this.currentPopup = null; });
+        // Clear reference when popup is closed via other means (e.g. .remove() called externally)
+        this.currentPopup.on('close', () => {
+            // This fires AFTER removal. 
+            this.currentPopup = null;
+        });
     }
 
     closePopupAnimated() {
         if (!this.currentPopup) return;
+        
         const popup = this.currentPopup;
         const el = popup.getElement();
+        
         if (el) {
             el.classList.add('closing');
-            const onEnd = () => popup.remove();
+            
+            // Wait for animation
+            const onEnd = () => {
+                popup.remove(); // This triggers the 'close' event
+                el.removeEventListener('animationend', onEnd);
+            };
             el.addEventListener('animationend', onEnd, { once: true });
-            setTimeout(onEnd, 300);
         } else {
             popup.remove();
         }
