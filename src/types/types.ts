@@ -47,10 +47,28 @@ export interface SearchFeature {
 }
 
 // Route Types
+// OSRM Step Types
+export interface OSRMStep {
+  distance: number;
+  duration: number;
+  name: string;
+  maneuver: {
+    type: string;
+    modifier?: string;
+    location: [number, number];
+    bearing_after: number;
+  };
+}
+
 export interface RouteInstruction {
   text: string;
   distance: number;
   icon: string;
+  maneuver: { // Add maneuver for logic
+      location: [number, number];
+      type: string;
+      modifier?: string;
+  };
 }
 
 export interface Route {
@@ -60,7 +78,8 @@ export interface Route {
     type: 'LineString';
     coordinates: [number, number][];
   };
-  instructions?: RouteInstruction[];
+  legs?: { steps: OSRMStep[] }[]; // OSRM structure
+  instructions?: RouteInstruction[]; // Parsed instructions
 }
 
 export interface RouteResponse {

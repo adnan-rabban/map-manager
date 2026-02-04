@@ -288,3 +288,48 @@ a.maplibregl-ctrl-logo,
 .btn-ios-secondary:hover {
   background-color: rgba(118, 118, 128, 0.2);
 }
+
+/* =========================
+   DARK MODE OVERRIDES (POPUPS)
+   ========================= */
+
+[data-theme="dark"] .glass-popup .maplibregl-popup-content,
+[data-theme="dark"] .glass-popup .mapboxgl-popup-content {
+    background: rgba(40, 40, 40, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .glass-popup .maplibregl-popup-tip,
+[data-theme="dark"] .glass-popup .mapboxgl-popup-tip {
+    border-top-color: rgba(40, 40, 40, 0.95);
+}
+
+[data-theme="dark"] .poi-popup h3 {
+    color: #FFFFFF;
+}
+
+[data-theme="dark"] .poi-subtitle,
+[data-theme="dark"] .poi-desc,
+[data-theme="dark"] .poi-coords {
+    color: rgba(235, 235, 245, 0.6);
+}
+
+[data-theme="dark"] .poi-divider {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn-ios-secondary {
+    background-color: rgba(58, 58, 60, 0.8);
+    color: #0A84FF; /* iOS Dark Mode Blue */
+}
+
+[data-theme="dark"] .btn-ios-secondary:hover {
+    background-color: rgba(80, 80, 80, 1);
+}
+
+[data-theme="dark"] .maplibregl-popup-close-button,
+[data-theme="dark"] .mapboxgl-popup-close-button {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.1);
+}

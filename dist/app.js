@@ -19,6 +19,7 @@ class App {
         this.setupSidebar();
         this.setupDataManagement();
         this.setupSearch();
+        this.setupSettings();
         // POI Click Handler
         this.map.onPoiClick((poi) => {
             const popupHtml = `
@@ -360,6 +361,64 @@ class App {
                 this.renderSearchResults(results);
             }, 300);
         });
+    }
+    setupSettings() {
+        const btnSettings = document.getElementById('btn-settings');
+        const settingsMenu = document.getElementById('settings-menu');
+        const toggleDarkMode = document.getElementById('dark-mode-toggle');
+        // Load Saved Theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            if (toggleDarkMode)
+                toggleDarkMode.checked = true;
+        }
+        // Toggle Menu
+        if (btnSettings && settingsMenu) {
+            console.log('Settings Setup: Elements found');
+            btnSettings.addEventListener('click', (e) => {
+                console.log('Settings Button Clicked!');
+                e.stopPropagation();
+                settingsMenu.classList.toggle('active');
+                if (settingsMenu.classList.contains('active')) {
+                    settingsMenu.classList.remove('hidden');
+                }
+                else {
+                    // Small timeout to allow animation to play before hiding if we were doing display:none
+                    // But here we rely on opacity, so just toggle active is mostly enough.
+                    // However, user prompt explicitly mentioned 'hidden' class usage or start state.
+                    // The CSS handles opacity. ensuring 'hidden' is removed when active is crucial if hidden does display:none.
+                }
+                btnSettings.classList.toggle('active');
+            });
+            // Close when clicking outside
+            document.addEventListener('click', (e) => {
+                const target = e.target;
+                if (!settingsMenu.contains(target) && !btnSettings.contains(target)) {
+                    if (settingsMenu.classList.contains('active')) {
+                        console.log('Closing settings menu (click outside)');
+                        settingsMenu.classList.remove('active');
+                        btnSettings.classList.remove('active');
+                    }
+                }
+            });
+        }
+        else {
+            console.error('Settings Setup: Buttons not found!');
+        }
+        // Toggle Dark Mode
+        if (toggleDarkMode) {
+            toggleDarkMode.addEventListener('change', () => {
+                if (toggleDarkMode.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+                else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        }
     }
     renderSearchResults(features) {
         const container = document.getElementById('search-results');

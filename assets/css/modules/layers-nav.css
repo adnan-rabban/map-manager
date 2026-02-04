@@ -209,3 +209,43 @@
 }
 
 /* No keyframes needed for simple transition */
+
+/* =========================
+   DARK MODE OVERRIDES (LAYERS & NAV)
+   ========================= */
+
+[data-theme="dark"] .btn-toggle-layers {
+    background: rgba(44, 44, 46, 0.8);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn-toggle-layers:hover {
+    background: rgba(58, 58, 60, 1);
+}
+
+[data-theme="dark"] .layer-panel {
+    background: rgba(30, 30, 30, 0.75);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .layer-option span {
+    color: #FFFFFF;
+}
+
+[data-theme="dark"] .nav-instructions {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .instruction-step {
+    color: #FFFFFF;
+}
+
+[data-theme="dark"] .step-dist {
+    color: rgba(235, 235, 245, 0.6);
+}
+
+[data-theme="dark"] .instruction-step:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+

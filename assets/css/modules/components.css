@@ -949,3 +949,186 @@
 .hidden {
   display: none !important;
 }
+
+/* =========================
+   DARK MODE OVERRIDES
+   ========================= */
+
+/* Global Panel & Modal Backgrounds */
+[data-theme="dark"] .panel, 
+[data-theme="dark"] .settings-menu,
+[data-theme="dark"] .modal,
+[data-theme="dark"] .notification-toast,
+[data-theme="dark"] .search-results {
+  background: rgba(30, 30, 30, 0.75);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .modal {
+  background: rgba(40, 40, 40, 0.9);
+}
+
+/* Secondary Buttons */
+[data-theme="dark"] .btn-secondary {
+  background: rgba(58, 58, 60, 0.8); /* Dark Grey */
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: rgba(80, 80, 80, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .btn-secondary svg {
+    stroke: #FFFFFF;
+}
+
+/* Icon Buttons */
+[data-theme="dark"] .btn-icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .btn-icon:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn-icon svg {
+    stroke: currentColor;
+}
+
+/* Location Items */
+[data-theme="dark"] .location-item {
+  background: rgba(44, 44, 46, 0.6);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .location-item:hover {
+  background: rgba(58, 58, 60, 0.8);
+}
+
+[data-theme="dark"] .location-info h3 {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .location-info p {
+  color: rgba(235, 235, 245, 0.6);
+}
+
+/* Inputs */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] #search-input {
+  background: rgba(28, 28, 30, 0.6);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] #search-input:focus {
+  background: rgba(44, 44, 46, 1);
+  border-color: var(--primary);
+}
+
+/* Headers & Text */
+[data-theme="dark"] .panel-header h1,
+[data-theme="dark"] .modal-title,
+[data-theme="dark"] .settings-header,
+[data-theme="dark"] .menu-header {
+  color: #FFFFFF;
+}
+
+/* Toggle Buttons (Sidebar/Nav) */
+[data-theme="dark"] .btn-toggle-sidebar,
+[data-theme="dark"] .btn-toggle-nav {
+    background: rgba(44, 44, 46, 0.8);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn-toggle-sidebar:hover,
+[data-theme="dark"] .btn-toggle-nav:hover {
+    background: rgba(58, 58, 60, 1);
+}
+
+/* MapLibre/MapBox Control Overrides */
+[data-theme="dark"] .maplibregl-ctrl-group,
+[data-theme="dark"] .mapboxgl-ctrl-group {
+    background: rgba(44, 44, 46, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+
+[data-theme="dark"] .maplibregl-ctrl-group button,
+[data-theme="dark"] .mapboxgl-ctrl-group button {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .maplibregl-ctrl-group button + button,
+[data-theme="dark"] .mapboxgl-ctrl-group button + button {
+    border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Force icons to white using filter */
+[data-theme="dark"] .maplibregl-ctrl-icon,
+[data-theme="dark"] .mapboxgl-ctrl-icon {
+    filter: brightness(0) invert(1) !important;
+}
+
+/* Custom Toggle Buttons - Strict Overrides */
+[data-theme="dark"] #btn-open-sidebar,
+[data-theme="dark"] #btn-open-nav,
+[data-theme="dark"] #btn-layers,
+[data-theme="dark"] .btn-toggle-sidebar, 
+[data-theme="dark"] .btn-toggle-nav,
+[data-theme="dark"] .btn-toggle-layers {
+    background-color: rgba(44, 44, 46, 0.8) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] #btn-open-sidebar svg,
+[data-theme="dark"] #btn-open-nav svg,
+[data-theme="dark"] #btn-layers svg,
+[data-theme="dark"] .btn-toggle-sidebar svg, 
+[data-theme="dark"] .btn-toggle-nav svg,
+[data-theme="dark"] .btn-toggle-layers svg {
+    stroke: #FFFFFF !important;
+    color: #FFFFFF !important;
+}
+
+[data-theme="dark"] #btn-open-sidebar:hover,
+[data-theme="dark"] #btn-open-nav:hover,
+[data-theme="dark"] #btn-layers:hover {
+    background-color: rgba(60, 60, 60, 1) !important;
+}
+
+/* Modal Text & Actions Overrides */
+[data-theme="dark"] .modal-desc,
+[data-theme="dark"] .modal p {
+    color: rgba(235, 235, 245, 0.8) !important;
+}
+
+[data-theme="dark"] .btn-outline {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .modal-title {
+    color: #FFFFFF !important;
+}
+
+/* Notification Toast Overrides */
+[data-theme="dark"] .notification-title {
+    color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .notification-message {
+    color: rgba(235, 235, 245, 0.8) !important;
+}

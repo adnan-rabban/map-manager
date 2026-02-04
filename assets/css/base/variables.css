@@ -34,3 +34,18 @@
   --color-orange: #FF9500;
   --color-purple: #AF52DE;
 }
+
+[data-theme="dark"] {
+  /* Dark Mode Colors */
+  --bg-color: #000000;
+  --glass-bg: rgba(30, 30, 30, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  
+  --text-main: #F5F5F7;
+  --text-secondary: #86868B;
+  
+  /* Adjust primary for dark mode visibility if needed */
+  --primary: #0A84FF; 
+  --primary-hover: #0077ED;
+}

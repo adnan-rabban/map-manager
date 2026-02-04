@@ -65,6 +65,19 @@ export class MapEngine {
             this.map.setPitch(60);
             this.applyCustomTooltipsToControls();
         });
+
+        // Handle Map Errors (404s on tiles, styles, etc)
+        this.map.on('error', (e) => {
+            if (e && e.error && e.error.message) {
+                // Filter out common minor errors or log them
+                console.warn("Map Error:", e.error.message);
+                
+                // If it's a style load error, notify user
+                if (e.error.message.includes('404') || e.error.message.includes('style')) {
+                   console.error("Failed to load map resource:", e.error);
+                }
+            }
+        });
     }
 
     private applyCustomTooltipsToControls(): void {
@@ -225,7 +238,9 @@ export class MapEngine {
 
         notify.show("Calculating route...", 'info');
 
-        const url = `https://api.maptiler.com/navigation/${start.lng},${start.lat};${end.lng},${end.lat}.json?key=${MAPTILER_KEY}&alternatives=2`;
+        // Use OSRM public routing API (Fall back from MapTiler to avoid 404)
+        // Request steps=true for turn-by-turn instructions
+        const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson&steps=true`;
 
         try {
             const res = await fetch(url);
@@ -233,14 +248,48 @@ export class MapEngine {
                 notify.show("Route calculation failed.", 'error');
                 return null;
             }
-            const data: RouteResponse = await res.json();
+            const data: any = await res.json();
             
             if (!data.routes || data.routes.length === 0) {
                 notify.show("No route found.", 'error');
                 return null;
             }
 
-            const routes = data.routes;
+            // Parse instructions from OSRM steps
+            const routes = data.routes.map((r: any) => {
+                if (r.legs && r.legs.length > 0) {
+                    const steps = r.legs[0].steps;
+                    r.instructions = steps.map((s: any) => {
+                        let text = s.maneuver.type;
+                        if (s.maneuver.modifier) {
+                            text += ` ${s.maneuver.modifier}`;
+                        }
+                        if (s.name) {
+                            text += ` on ${s.name}`;
+                        }
+                        if (s.maneuver.type === 'arrive') {
+                            text = "Arrive at destination";
+                        }
+                        
+                        // Icon mapping
+                        let icon = 'arrow-up';
+                        const m = s.maneuver.modifier;
+                        if (m && m.includes('left')) icon = 'arrow-left';
+                        else if (m && m.includes('right')) icon = 'arrow-right';
+                        else if (m && m.includes('uturn')) icon = 'rotate-cw';
+                        else if (s.maneuver.type === 'arrive') icon = 'map-pin';
+
+                        return {
+                            text: text,
+                            distance: s.distance,
+                            maneuver: s.maneuver,
+                            icon: icon
+                        };
+                    });
+                }
+                return r;
+            });
+
             this.routes = routes;
             this.activeRouteIndex = 0;
             this.drawRoutes(routes, 0);
