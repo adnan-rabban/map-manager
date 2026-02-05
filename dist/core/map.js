@@ -12,6 +12,7 @@ export class MapEngine {
         this.lastRouteData = null;
         this.onRouteChangedCallback = null;
         this.isReady = false;
+        this.onPopupCloseCallback = null;
         if (typeof maptilersdk === 'undefined') {
             console.error("MapTiler SDK not loaded");
             throw new Error("MapTiler SDK not loaded");
@@ -538,10 +539,12 @@ export class MapEngine {
             }
         }
     }
-    showPopup(lngLat, html) {
+    showPopup(lngLat, html, onClose) {
         if (this.currentPopup) {
             this.currentPopup.remove();
         }
+        // Store the callback
+        this.onPopupCloseCallback = onClose || null;
         const closeBtnHtml = `
             <button class="maplibregl-popup-close-button custom-popup-close" type="button" aria-label="Close popup">×</button>
         `;
@@ -562,14 +565,29 @@ export class MapEngine {
                 if (closeBtn) {
                     closeBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
+                        console.log('Close button clicked');
                         this.closePopupAnimated();
                     });
                 }
             }, 10);
         }
         this.currentPopup?.on('close', () => {
-            this.currentPopup = null;
+            console.log('Popup closed event fired');
+            this.triggerPopupClose();
         });
+    }
+    triggerPopupClose() {
+        this.currentPopup = null;
+        if (this.onPopupCloseCallback) {
+            console.log('Executing popup close callback');
+            try {
+                this.onPopupCloseCallback();
+            }
+            catch (e) {
+                console.error('Error in popup close callback:', e);
+            }
+            this.onPopupCloseCallback = null;
+        }
     }
     closePopupAnimated() {
         if (!this.currentPopup)
@@ -583,6 +601,12 @@ export class MapEngine {
                 el.removeEventListener('animationend', onEnd);
             };
             el.addEventListener('animationend', onEnd, { once: true });
+            // Safety timeout in case animationend doesn't fire
+            setTimeout(() => {
+                if (popup.isOpen()) {
+                    popup.remove();
+                }
+            }, 350);
         }
         else {
             popup.remove();

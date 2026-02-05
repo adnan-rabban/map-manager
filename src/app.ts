@@ -12,6 +12,7 @@ class App {
     private nav: Navigation;
     private layers: LayerSwitcher;
     private tooltip: CustomTooltip;
+    private selectedLocation: Location | null = null;
 
     constructor() {
         this.store = new Store();
@@ -711,6 +712,7 @@ class App {
     }
 
     private onMarkerClick(location: Location): void {
+        this.selectedLocation = location;
         this.map.flyTo(location.lng, location.lat);
         
         const popupHtml = `
@@ -738,7 +740,21 @@ class App {
             </div>
         `;
         
-        this.map.showPopup({ lng: location.lng, lat: location.lat }, popupHtml);
+        // Define close handler to reset state
+        const handleClosePopup = () => {
+            console.log('handleClosePopup triggered');
+            this.selectedLocation = null;
+            const activeItem = document.querySelector('.location-item.active');
+            if (activeItem) {
+                activeItem.classList.remove('active');
+            }
+        };
+
+        this.map.showPopup(
+            { lng: location.lng, lat: location.lat }, 
+            popupHtml,
+            handleClosePopup // Pass the close handler
+        );
 
         setTimeout(() => {
             const btnNav = document.getElementById(`btn-popup-nav-${location.id}`);

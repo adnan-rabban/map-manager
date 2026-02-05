@@ -13,9 +13,14 @@ export class CustomTooltip {
         this.init();
     }
     applyStyles() {
-        if (!document.getElementById('macos-tooltip-styles')) {
+        const styleId = 'macos-tooltip-styles-v2';
+        if (!document.getElementById(styleId)) {
+            // Remove old style if it exists
+            const oldStyle = document.getElementById('macos-tooltip-styles');
+            if (oldStyle)
+                oldStyle.remove();
             const style = document.createElement('style');
-            style.id = 'macos-tooltip-styles';
+            style.id = styleId;
             style.textContent = `
                 .macos-tooltip {
                     position: fixed;
@@ -38,6 +43,12 @@ export class CustomTooltip {
                     word-wrap: break-word;
                     font-weight: 400;
                     letter-spacing: 0.01em;
+                    
+                    /* Explicitly remove arrows in case of cache/conflict */
+                    &::after, &::before {
+                        display: none !important;
+                        content: none !important;
+                    }
                     
                     /* Initial hidden state */
                     opacity: 0;
@@ -97,6 +108,14 @@ export class CustomTooltip {
                     transform: scale(0.85) translateY(8px);
                 }
 
+                .macos-tooltip.position-left {
+                    transform-origin: right center;
+                }
+                
+                .macos-tooltip.position-right {
+                    transform-origin: left center;
+                }
+
                 /* Light mode support */
                 @media (prefers-color-scheme: light) {
                     .macos-tooltip {
@@ -107,6 +126,8 @@ export class CustomTooltip {
                             0 4px 12px rgba(0, 0, 0, 0.15),
                             0 1px 3px rgba(0, 0, 0, 0.1);
                     }
+
+
                 }
 
                 /* Reduce motion for accessibility */

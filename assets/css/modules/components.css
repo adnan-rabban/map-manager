@@ -861,57 +861,97 @@
 }
 
 /* =========================
-   TOOLTIPS (iOS Style)
+   TOOLTIPS (macOS Style)
    ========================= */
-.ios-tooltip {
+.macos-tooltip {
   position: fixed;
   z-index: 10000;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 0.5px solid rgba(255, 255, 255, 0.4);
-  color: var(--text-main);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  
+  /* Gaya khas macOS dengan background semi-transparan */
+  background: rgba(246, 246, 246, 0.85);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  
+  /* Border halus khas macOS */
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  
+  /* Tipografi macOS */
+  color: #1d1d1f;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
   font-weight: 500;
-  letter-spacing: -0.1px;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  
+  /* Shadow lembut & subtle khas macOS */
   box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  
+  /* Animasi muncul */
   opacity: 0;
-  transform: scale(0.9) translateY(4px); 
-  transform-origin: center top;
+  transform: scale(0.88) translateY(-2px);
+  transform-origin: center bottom;
   transition: 
-    opacity 0.15s ease-out, 
-    transform 0.15s ease-out,
-    visibility 0.15s;
-  visibility: hidden; 
+    opacity 0.12s ease-out, 
+    transform 0.12s ease-out,
+    visibility 0.12s;
+  visibility: hidden;
 }
 
-.ios-tooltip.visible {
+.macos-tooltip.visible {
   opacity: 1;
   transform: scale(1) translateY(0);
   visibility: visible;
   transition: 
-    opacity 0.2s ease-out,
-    transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
     visibility 0s linear 0s;
 }
 
-.ios-tooltip.hidden {
+.macos-tooltip.hidden {
   display: block;
   visibility: hidden;
 }
 
+/* Dark mode - mengikuti gaya Big Sur/Monterey/Ventura */
 @media (prefers-color-scheme: dark) {
-  .ios-tooltip {
-    background: rgba(30, 30, 30, 0.9);
-    color: #fff;
+  .macos-tooltip {
+    background: rgba(50, 50, 52, 0.88);
+    border: 0.5px solid rgba(255, 255, 255, 0.12);
+    color: #f5f5f7;
     box-shadow: 
-      0 4px 12px rgba(0, 0, 0, 0.3),
-      0 0 0 1px rgba(255, 255, 255, 0.1);
+      0 4px 16px rgba(0, 0, 0, 0.4),
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* Varian untuk tooltip dengan arrow (opsional) */
+.macos-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  border-right: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+  transform: translateX(-50%) rotate(45deg);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .macos-tooltip::before {
+    border-right: 0.5px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -961,8 +1001,12 @@
 [data-theme="dark"] .notification-toast,
 [data-theme="dark"] .search-results {
   background: rgba(30, 30, 30, 0.75);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] .modal {
@@ -971,14 +1015,16 @@
 
 /* Secondary Buttons */
 [data-theme="dark"] .btn-secondary {
-  background: rgba(58, 58, 60, 0.8); /* Dark Grey */
+  background: rgba(255, 255, 255, 0.1); 
   color: #FFFFFF;
-  border-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 [data-theme="dark"] .btn-secondary:hover {
-  background: rgba(80, 80, 80, 0.9);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(80, 80, 80, 0.6);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 [data-theme="dark"] .btn-secondary svg {
@@ -992,7 +1038,8 @@
 
 [data-theme="dark"] .btn-icon:hover {
   color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 [data-theme="dark"] .btn-icon svg {
@@ -1001,12 +1048,22 @@
 
 /* Location Items */
 [data-theme="dark"] .location-item {
-  background: rgba(44, 44, 46, 0.6);
-  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 3px solid transparent; 
+  transition: all 0.2s ease-out;
 }
 
 [data-theme="dark"] .location-item:hover {
-  background: rgba(58, 58, 60, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .location-item.active,
+[data-theme="dark"] .location-item:active {
+    border-left-color: #007AFF;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 [data-theme="dark"] .location-info h3 {
@@ -1020,15 +1077,18 @@
 /* Inputs */
 [data-theme="dark"] .form-control,
 [data-theme="dark"] #search-input {
-  background: rgba(28, 28, 30, 0.6);
+  background: rgba(0, 0, 0, 0.2);
   color: #FFFFFF;
-  border-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 [data-theme="dark"] .form-control:focus,
 [data-theme="dark"] #search-input:focus {
-  background: rgba(44, 44, 46, 1);
-  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
 }
 
 /* Headers & Text */

@@ -6,6 +6,7 @@ import { CustomTooltip } from './components/tooltip.js';
 import { LayerSwitcher } from './core/layers.js';
 class App {
     constructor() {
+        this.selectedLocation = null;
         this.store = new Store();
         this.map = new MapEngine('map-container');
         this.nav = new Navigation(this.map);
@@ -641,6 +642,7 @@ class App {
         }
     }
     onMarkerClick(location) {
+        this.selectedLocation = location;
         this.map.flyTo(location.lng, location.lat);
         const popupHtml = `
             <div class="poi-popup">
@@ -666,7 +668,17 @@ class App {
                 </div>
             </div>
         `;
-        this.map.showPopup({ lng: location.lng, lat: location.lat }, popupHtml);
+        // Define close handler to reset state
+        const handleClosePopup = () => {
+            console.log('handleClosePopup triggered');
+            this.selectedLocation = null;
+            const activeItem = document.querySelector('.location-item.active');
+            if (activeItem) {
+                activeItem.classList.remove('active');
+            }
+        };
+        this.map.showPopup({ lng: location.lng, lat: location.lat }, popupHtml, handleClosePopup // Pass the close handler
+        );
         setTimeout(() => {
             const btnNav = document.getElementById(`btn-popup-nav-${location.id}`);
             const btnEdit = document.getElementById(`btn-popup-edit-${location.id}`);
