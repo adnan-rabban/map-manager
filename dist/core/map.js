@@ -11,12 +11,16 @@ export class MapEngine {
         this.activeRouteIndex = 0;
         this.lastRouteData = null;
         this.onRouteChangedCallback = null;
+        this.isReady = false;
         if (typeof maptilersdk === 'undefined') {
             console.error("MapTiler SDK not loaded");
             throw new Error("MapTiler SDK not loaded");
         }
         maptilersdk.config.apiKey = MAPTILER_KEY;
-        this.currentStyle = maptilersdk.MapStyle.STREETS;
+        const isDarkMode = this.getDarkModePreference();
+        this.currentStyle = isDarkMode
+            ? `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`
+            : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
         this.map = new maptilersdk.Map({
             container: containerId,
             style: this.currentStyle,
@@ -32,10 +36,123 @@ export class MapEngine {
         });
         this.init();
     }
+    onReady(callback) {
+        if (this.isReady) {
+            callback();
+        }
+        else {
+            this.map.once('load', () => {
+                // Ensure isReady is true before callback if event fires
+                this.isReady = true;
+                callback();
+            });
+        }
+    }
+    getDarkModePreference() {
+        return localStorage.getItem('theme') === 'dark';
+    }
+    syncWithDarkMode(isDark) {
+        const newStyle = isDark
+            ? `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`
+            : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
+        // Save current state
+        const center = this.map.getCenter();
+        const zoom = this.map.getZoom();
+        const pitch = this.map.getPitch();
+        const bearing = this.map.getBearing();
+        this.map.setStyle(newStyle);
+        this.map.once('styledata', () => {
+            // Restore state
+            this.map.jumpTo({
+                center: center,
+                zoom: zoom,
+                pitch: pitch,
+                bearing: bearing
+            });
+            // Re-draw routes
+            if (this.lastRouteData && this.lastRouteData.routes) {
+                this.drawRoutes(this.lastRouteData.routes, this.lastRouteData.activeIndex);
+            }
+            // Restore/Add 3D buildings
+            this.add3DBuildings();
+        });
+    }
+    add3DBuildings() {
+        if (!this.map || !this.map.getStyle())
+            return;
+        // Check if layer already exists
+        if (this.map.getLayer('3d-buildings'))
+            return;
+        // Check if source exists (OpenMapTiles is standard)
+        if (!this.map.getSource('openmaptiles')) {
+            // Some styles might use 'maptiler_planet' or different source names
+            // If openmaptiles is missing, we might try to find a suitable source or return.
+            // But for standard MapTiler styles, it's usually there or implicity available if we add it.
+            // Actually, usually styles define sources. If not present, we can't add layer easily without adding source.
+            // Let's assume standard vector styles have it or we check 'composite'.
+            // Standard MapTiler checks:
+            const sources = this.map.getStyle().sources;
+            let sourceId = 'openmaptiles';
+            if (!sources[sourceId]) {
+                // Try to find a vector source
+                const found = Object.keys(sources).find(k => sources[k].type === 'vector');
+                if (found)
+                    sourceId = found;
+                else {
+                    console.warn("No vector source found for 3D buildings");
+                    return;
+                }
+            }
+            this.map.addLayer({
+                'id': '3d-buildings',
+                'source': sourceId,
+                'source-layer': 'building',
+                'type': 'fill-extrusion',
+                'minzoom': 15,
+                'paint': {
+                    'fill-extrusion-color': '#4a4a4a', // Dark mode color default
+                    'fill-extrusion-height': [
+                        'interpolate', ['linear'], ['zoom'],
+                        15, 0,
+                        15.05, ['get', 'render_height']
+                    ],
+                    'fill-extrusion-base': [
+                        'interpolate', ['linear'], ['zoom'],
+                        15, 0,
+                        15.05, ['get', 'render_min_height']
+                    ],
+                    'fill-extrusion-opacity': 0.6
+                }
+            });
+            return;
+        }
+        this.map.addLayer({
+            'id': '3d-buildings',
+            'source': 'openmaptiles',
+            'source-layer': 'building',
+            'type': 'fill-extrusion',
+            'minzoom': 15,
+            'paint': {
+                'fill-extrusion-color': '#4a4a4a',
+                'fill-extrusion-height': ['get', 'render_height'],
+                'fill-extrusion-base': ['get', 'render_min_height'],
+                'fill-extrusion-opacity': 0.6
+            }
+        });
+    }
     init() {
         this.map.on('load', () => {
+            this.isReady = true;
             this.map.setPitch(60);
             this.applyCustomTooltipsToControls();
+            // Initial check for 3D buildings if starting in dark mode or just high zoom
+            // Actually, we can just add them if possible.
+            // But let's respect dark mode logic or just add them generally?
+            // User requested "buat pada mode dark bangunan 3d pada light mode tetap ada"
+            // Means: 3D buildings should exist in BOTH, or specifically ensure they are enabled in dark mode like in light mode.
+            // Standard light mode streets-v2 often has them. dataviz-dark might not.
+            // So we blindly add them if missing.
+            this.add3DBuildings();
         });
         // Handle Map Errors (404s on tiles, styles, etc)
         this.map.on('error', (e) => {

@@ -157,3 +157,64 @@
 .panel-close-btn:hover svg {
   color: var(--text-main);
 }
+
+/* Settings Button Animation Rules */
+#btn-settings {
+    transition: transform 0.3s ease;
+}
+
+#btn-settings svg {
+    transform-origin: center;
+    transform: rotate(0deg);
+    transition: transform 1.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Animasi saat active - rotasi smooth */
+#btn-settings.active svg {
+    transform: rotate(180deg);
+    transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Animasi hover saat tidak active - rotasi smooth */
+#btn-settings:not(.active):hover svg {
+    transform: rotate(90deg);
+    transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Kembali ke posisi semula saat cursor keluar - LEBIH LAMBAT */
+#btn-settings:not(.active):not(:hover) svg {
+    transform: rotate(0deg);
+    transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Subtle scale effect saat hover */
+#btn-settings:hover {
+    transform: scale(1.05);
+}
+
+/* Optional: Animasi loading/processing */
+@keyframes rotate-continuous {
+    from { 
+        transform: rotate(0deg);
+    }
+    to { 
+        transform: rotate(360deg);
+    }
+}
+
+#btn-settings.loading svg {
+    animation: rotate-continuous 2s linear infinite;
+}
+
+/* Optional: Prefers-reduced-motion untuk aksesibilitas */
+@media (prefers-reduced-motion: reduce) {
+    #btn-settings svg,
+    #btn-settings {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    #btn-settings svg {
+        transform: rotate(0deg) !important;
+    }
+}

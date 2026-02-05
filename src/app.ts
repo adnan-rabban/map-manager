@@ -228,8 +228,9 @@ class App {
                             ${isHidden ? eyeIcon : eyeOffIcon}
                             ${isHidden ? 'Show on Map' : 'Hide from Map'}
                         </button>
+                        <div class="dropdown-divider"></div>
                         <button class="dropdown-item js-delete" data-id="${id}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; color: #ff3b30;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             Delete
                         </button>
                     `;
@@ -411,11 +412,20 @@ class App {
         const toggleDarkMode = document.getElementById('dark-mode-toggle') as HTMLInputElement;
         
         // Load Saved Theme
+        // Load Saved Theme
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
+        const isDark = savedTheme === 'dark';
+
+        if (isDark) {
             document.documentElement.setAttribute('data-theme', 'dark');
             if (toggleDarkMode) toggleDarkMode.checked = true;
         }
+
+        // Tunggu map benar-benar loaded dengan handling race condition (via wrapper)
+        this.map.onReady(() => {
+             console.log('MapEngine Ready: syncing dark mode:', isDark);
+             this.map.syncWithDarkMode(isDark);
+        });
 
         // Toggle Menu
         if (btnSettings && settingsMenu) {
@@ -455,13 +465,17 @@ class App {
         // Toggle Dark Mode
         if (toggleDarkMode) {
             toggleDarkMode.addEventListener('change', () => {
-                if (toggleDarkMode.checked) {
+                const isDark = toggleDarkMode.checked;
+                
+                if (isDark) {
                     document.documentElement.setAttribute('data-theme', 'dark');
                     localStorage.setItem('theme', 'dark');
                 } else {
                     document.documentElement.removeAttribute('data-theme');
                     localStorage.setItem('theme', 'light');
                 }
+                
+                this.map.syncWithDarkMode(isDark);
             });
         }
     }
@@ -540,6 +554,20 @@ class App {
         if (!listEl) return;
 
         const locations = this.store.getAll();
+
+        if (locations.length === 0) {
+            listEl.innerHTML = `
+                <div class="empty-state" style="padding: 40px 20px; text-align: center; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; opacity: 0.5;">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <p style="margin: 0; font-weight: 500;">No saved locations</p>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.7;">Click the + button to save your first spot.</p>
+                </div>
+            `;
+            return;
+        }
 
         listEl.innerHTML = locations.map(loc => `
             <div class="location-item" data-id="${loc.id}">

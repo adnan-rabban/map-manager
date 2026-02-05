@@ -40,7 +40,7 @@
         <div id="nav-panel" class="nav-panel">
             <div class="nav-header">
                 <h2>Directions</h2>
-                <button id="btn-close-nav" class="btn-icon">
+                <button id="btn-close-nav" class="btn-icon" data-tooltip="Close Navigation" aria-label="Close Navigation">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                 </button>
             </div>
@@ -114,10 +114,22 @@
         </div>
 
         <!-- Settings Menu -->
-        <button id="btn-settings" class="btn-settings" aria-label="Settings">
+        <button id="btn-settings" class="btn-settings" aria-label="Settings" data-tooltip="Settings">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path>
+                <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path>
+                <path d="M12 2v2"></path>
+                <path d="M12 22v-2"></path>
+                <path d="m17 20.66-1-1.73"></path>
+                <path d="M11 10.27 7 3.34"></path>
+                <path d="m20.66 17-1.73-1"></path>
+                <path d="m3.34 7 1.73 1"></path>
+                <path d="M14 12h8"></path>
+                <path d="M2 12h2"></path>
+                <path d="m20.66 7-1.73 1"></path>
+                <path d="m3.34 17 1.73-1"></path>
+                <path d="m17 3.34-1 1.73"></path>
+                <path d="m11 13.73-4 6.93"></path>
             </svg>
         </button>
 
@@ -218,8 +230,8 @@
             <h2 class="modal-title">Delete Location</h2>
             <p class="modal-desc">Are you sure you want to delete this location? This action cannot be undone.</p>
             <div class="modal-footer">
-                <button id="btn-confirm-delete" class="btn btn-destructive">Delete</button>
                 <button id="btn-cancel-delete" class="btn btn-outline">Cancel</button>
+                <button id="btn-confirm-delete" class="btn btn-destructive">Delete</button>
             </div>
         </div>
     </div>
@@ -231,7 +243,7 @@
     <div id="notification-container" class="notification-container"></div>
 
     <!-- Protection Script -->
-    <script src="dist/core/protection.js"></script>
+    <!-- <script src="dist/core/protection.js"></script> -->
 
     <!-- MapTiler SDK JS -->
     <script defer src="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.umd.js"></script>

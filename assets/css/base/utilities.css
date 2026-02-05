@@ -65,6 +65,30 @@
 
 .dropdown-item svg {
   margin-right: 8px;
+  transition: stroke 0.2s;
+}
+
+.dropdown-item.js-delete {
+  color: #ff3b30;
+}
+
+.dropdown-item.js-delete svg {
+  stroke: #ff3b30;
+}
+
+.dropdown-item.js-delete:hover {
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+}
+
+.dropdown-item.js-delete:hover svg {
+  stroke: #ff3b30;
+}
+
+.dropdown-divider {
+  border-top: 1px solid #E0E0E0;
+  margin: 4px 0;
+  width: 100%;
 }
 
 /* =========================
@@ -85,6 +109,24 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+[data-theme="dark"] .dropdown-item.js-delete {
+  color: #ff3b30;
+}
+
+/* Explicit override for delete button in dark mode to ensure red hover works */
+[data-theme="dark"] .dropdown-item.js-delete:hover {
+  background: rgba(255, 59, 48, 0.2);
+  color: #ff3b30;
+}
+
+[data-theme="dark"] .dropdown-item.js-delete:hover svg {
+  stroke: #ff3b30;
+}
+
 [data-theme="dark"] .dropdown-item svg {
   stroke: currentColor;
+}
+
+[data-theme="dark"] .dropdown-divider {
+  border-top-color: #404040;
 }

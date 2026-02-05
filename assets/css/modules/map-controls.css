@@ -333,3 +333,33 @@ a.maplibregl-ctrl-logo,
     color: #FFFFFF;
     background: rgba(255, 255, 255, 0.1);
 }
+
+/* =========================
+   DARK MODE OVERRIDES (ATTRIBUTION)
+   ========================= */
+[data-theme="dark"] .maplibregl-ctrl-attrib,
+[data-theme="dark"] .mapboxgl-ctrl-attrib {
+    background: rgba(30, 30, 30, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] .maplibregl-ctrl-attrib a,
+[data-theme="dark"] .mapboxgl-ctrl-attrib a {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] .maplibregl-ctrl-attrib a:hover,
+[data-theme="dark"] .mapboxgl-ctrl-attrib a:hover {
+    color: #fff;
+}
+
+/* =========================
+   DARK MODE OVERRIDES (SCALE)
+   ========================= */
+[data-theme="dark"] .maplibregl-ctrl-scale,
+[data-theme="dark"] .mapboxgl-ctrl-scale {
+    background: rgba(30, 30, 30, 0.85) !important;       
+    color: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.7) !important;
+}

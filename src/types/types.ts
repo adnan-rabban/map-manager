@@ -138,6 +138,12 @@ export interface MapTilerMap {
   getContainer(): HTMLElement;
   queryRenderedFeatures(point: any, options?: any): any[];
   getCanvas(): HTMLCanvasElement;
+  loaded(): boolean;
+  getZoom(): number;
+  getPitch(): number;
+  getBearing(): number;
+  jumpTo(options: any): void;
+  getStyle(): any;
   _controls?: any[];
 }
 

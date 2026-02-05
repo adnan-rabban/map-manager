@@ -377,6 +377,9 @@ export class Navigation {
         }
         notify.show("Starting Real-Time Navigation...", 'success');
         this.watchId = navigator.geolocation.watchPosition((pos) => {
+            // Safeguard: If navigation stopped while this callback was pending
+            if (!this.isNavigating)
+                return;
             const { longitude, latitude, heading, speed } = pos.coords;
             const coords = [longitude, latitude];
             const currentSpeed = speed || 0; // m/s
@@ -460,10 +463,17 @@ export class Navigation {
     }
     stopRealTimeNavigation() {
         this.isNavigating = false;
-        if (this.watchId)
+        if (this.watchId !== null) {
             navigator.geolocation.clearWatch(this.watchId);
+            this.watchId = null;
+        }
         if (this.navMarker) {
-            this.navMarker.remove();
+            try {
+                this.navMarker.remove();
+            }
+            catch (e) {
+                console.error("Error removing marker:", e);
+            }
             this.navMarker = null;
         }
         this.hudPanel?.classList.add('hidden'); // Hide HUD
