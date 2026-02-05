@@ -160,7 +160,9 @@
 
 /* Settings Button Animation Rules */
 #btn-settings {
-    transition: transform 0.3s ease;
+    /* MENGGUNAKAN EFEK BOUNCY (Sama seperti Sidebar) */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-origin: center;
 }
 
 #btn-settings svg {
@@ -169,27 +171,32 @@
     transition: transform 1.2s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* Animasi saat active - rotasi smooth */
+/* Animasi saat active (Menu terbuka) */
 #btn-settings.active svg {
     transform: rotate(180deg);
-    transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* Animasi hover saat tidak active - rotasi smooth */
+/* Animasi hover saat tidak active */
 #btn-settings:not(.active):hover svg {
     transform: rotate(90deg);
     transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* Kembali ke posisi semula saat cursor keluar - LEBIH LAMBAT */
+/* Kembali ke posisi semula */
 #btn-settings:not(.active):not(:hover) svg {
     transform: rotate(0deg);
     transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* Subtle scale effect saat hover */
+/* EFEK SCALE HOVER (Disamakan dengan Sidebar) */
 #btn-settings:hover {
-    transform: scale(1.05);
+    transform: scale(1.15); /* Diubah dari 1.05 menjadi 1.15 */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* Menambah shadow saat hover */
+}
+
+/* Efek Klik */
+#btn-settings:active {
+    transform: scale(0.95);
 }
 
 /* Optional: Animasi loading/processing */

@@ -129,7 +129,7 @@ export interface MapTilerMap {
   getSource(id: string): any;
   getLayer(id: string): any;
   addSource(id: string, source: any): void;
-  addLayer(layer: any): void;
+  addLayer(layer: any, beforeId?: string): void;
   removeLayer(id: string): void;
   removeSource(id: string): void;
   setPaintProperty(layer: string, property: string, value: any): void;
@@ -143,6 +143,7 @@ export interface MapTilerMap {
   getPitch(): number;
   getBearing(): number;
   jumpTo(options: any): void;
+  fitBounds(bounds: any, options?: any): void;
   getStyle(): any;
   _controls?: any[];
 }

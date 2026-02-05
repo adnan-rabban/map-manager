@@ -373,3 +373,40 @@ a.maplibregl-ctrl-logo,
     color: rgba(255, 255, 255, 0.9) !important;
     border-color: rgba(255, 255, 255, 0.7) !important;
 }
+
+/* =========================
+   CUSTOM MARKERS
+   ========================= */
+.custom-marker-dot {
+    width: 18px;
+    height: 18px;
+    background-color: #007AFF; /* iOS Blue */
+    border: 3px solid #FFFFFF;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-sizing: border-box;
+}
+
+.custom-marker-dot::after {
+    content: none; /* Remove inner dot for cleaner look, or keep it? Apple maps has clean blue dot */
+}
+
+.custom-marker-dot:hover {
+    transform: scale(1.25);
+    background-color: #0062cc;
+    z-index: 10;
+}
+
+.custom-marker-dot.active {
+    background-color: #FF3B30; /* Red when active/selected */
+    transform: scale(1.2);
+    z-index: 20;
+}
+
+/* Dark Mode support for markers */
+[data-theme="dark"] .custom-marker-dot {
+    border-color: #2c2c2e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}

@@ -22,7 +22,7 @@ class App {
         this.setupSearch();
         this.setupSettings();
         // POI Click Handler
-        this.map.onPoiClick((poi) => {
+        this.map.onPOIClick((poi) => {
             const popupHtml = `
                 <div class="poi-popup">
                     <div class="poi-header">
@@ -84,12 +84,12 @@ class App {
         setTimeout(() => {
             this.store.getAll().forEach(loc => {
                 if (!loc.hidden) {
-                    this.map.addMarker(loc, (l) => this.onMarkerClick(l));
+                    this.map.addMarker(loc.id, { lng: loc.lng, lat: loc.lat }, { onClick: () => this.onMarkerClick(loc) });
                 }
             });
         }, 1000);
         // Map click for form filling
-        this.map.onMapClick(async (lngLat) => {
+        this.map.onClick(async (lngLat) => {
             const modal = document.getElementById('modal-overlay');
             if (modal?.classList.contains('open')) {
                 const lngInput = document.getElementById('loc-lng');
@@ -147,7 +147,7 @@ class App {
                 const id = btnNav.dataset.id;
                 const loc = this.store.getAll().find(l => l.id === id);
                 if (loc) {
-                    this.map.flyTo(loc.lng, loc.lat);
+                    this.map.flyTo({ lng: loc.lng, lat: loc.lat });
                     notify.show(`Viewing ${loc.name}`, 'info');
                 }
                 return;
@@ -227,7 +227,7 @@ class App {
                 const id = item.dataset.id;
                 const loc = this.store.getAll().find(l => l.id === id);
                 if (loc) {
-                    this.map.flyTo(loc.lng, loc.lat);
+                    this.map.flyTo({ lng: loc.lng, lat: loc.lat });
                 }
             }
         };
@@ -296,7 +296,7 @@ class App {
                             if (this.store.importData(data)) {
                                 this.renderList();
                                 this.store.getAll().forEach(loc => {
-                                    this.map.addMarker(loc, (l) => this.onMarkerClick(l));
+                                    this.map.addMarker(loc.id, { lng: loc.lng, lat: loc.lat }, { onClick: () => this.onMarkerClick(loc) });
                                 });
                                 notify.show('Data imported successfully', 'success');
                             }
@@ -462,7 +462,7 @@ class App {
             item.addEventListener('click', () => {
                 const lng = parseFloat(item.dataset.lng || '0');
                 const lat = parseFloat(item.dataset.lat || '0');
-                this.map.flyTo(lng, lat);
+                this.map.flyTo({ lng, lat });
                 container.classList.add('hidden');
                 const input = document.getElementById('search-input');
                 if (input)
@@ -582,12 +582,12 @@ class App {
                 }
                 else {
                     const newLoc = this.store.add(data);
-                    this.map.addMarker(newLoc, (l) => this.onMarkerClick(l));
+                    this.map.addMarker(newLoc.id, { lng: newLoc.lng, lat: newLoc.lat }, { onClick: () => this.onMarkerClick(newLoc) });
                     notify.show('Location saved successfully', 'success');
                 }
                 this.renderList();
                 closeModal();
-                this.map.flyTo(lng, lat);
+                this.map.flyTo({ lng, lat });
             }
             catch (err) {
                 console.error(err);
@@ -624,7 +624,7 @@ class App {
         const title = modal?.querySelector('h2');
         if (title)
             title.textContent = 'Edit Location';
-        this.map.flyTo(loc.lng, loc.lat);
+        this.map.flyTo({ lng: loc.lng, lat: loc.lat });
     }
     toggleVisibility(id) {
         const loc = this.store.getAll().find(l => l.id === id);
@@ -636,14 +636,14 @@ class App {
                 notify.show('Location hidden', 'info');
             }
             else {
-                this.map.addMarker(loc, (l) => this.onMarkerClick(l));
+                this.map.addMarker(loc.id, { lng: loc.lng, lat: loc.lat }, { onClick: () => this.onMarkerClick(loc) });
                 notify.show('Location visible', 'success');
             }
         }
     }
     onMarkerClick(location) {
         this.selectedLocation = location;
-        this.map.flyTo(location.lng, location.lat);
+        this.map.flyTo({ lng: location.lng, lat: location.lat });
         const popupHtml = `
             <div class="poi-popup">
                 <div class="poi-header">

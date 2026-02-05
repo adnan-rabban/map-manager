@@ -10,7 +10,7 @@ export class LayerSwitcher {
     }
 
     private initUI(): void {
-        // Bind to existing elements for cleaner separation
+        // Bind to existing elements
         this.panel = document.getElementById('layer-panel');
         const btnToggle = document.getElementById('btn-layers');
         
@@ -38,10 +38,11 @@ export class LayerSwitcher {
             opt.addEventListener('click', () => {
                 const styleId = opt.dataset.style;
                 if (styleId) {
+                    console.log(`🎨 Layer Switcher: User selected ${styleId}`);
                     this.setLayer(styleId);
                 }
                 
-                // Update active state
+                // Update active state in UI
                 options.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
             });
@@ -64,9 +65,16 @@ export class LayerSwitcher {
         if (btn) btn.classList.remove('active');
     }
 
+    /**
+     * Set layer style via MapEngine
+     * MapEngine akan otomatis handle dark mode internally
+     */
     private setLayer(styleId: string): void {
         if (this.mapEngine && typeof this.mapEngine.setStyle === 'function') {
+            // Call MapEngine's setStyle which will respect current dark mode
             this.mapEngine.setStyle(styleId);
+        } else {
+            console.error('MapEngine setStyle method not available');
         }
     }
 }

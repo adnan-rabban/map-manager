@@ -362,6 +362,16 @@
   transform: scale(1.02);
 }
 
+[data-theme="dark"] .btn-clear-route {
+    background: rgba(44, 44, 46, 0.9); /* Ubah background jadi gelap */
+    color: #ff453a; /* Merah yang lebih soft untuk dark mode */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn-clear-route:hover {
+    background: rgba(60, 60, 60, 1);
+}
+
 /* =========================
    FAB (Floating Action Button)
    ========================= */
@@ -1145,7 +1155,6 @@
 [data-theme="dark"] .btn-toggle-layers {
     background-color: rgba(44, 44, 46, 0.8) !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 [data-theme="dark"] #btn-open-sidebar svg,
@@ -1162,6 +1171,17 @@
 [data-theme="dark"] #btn-open-nav:hover,
 [data-theme="dark"] #btn-layers:hover {
     background-color: rgba(60, 60, 60, 1) !important;
+}
+
+[data-theme="dark"] .btn-toggle-layers.active,
+[data-theme="dark"] .btn-toggle-nav.active,
+[data-theme="dark"] #btn-layers.active,
+[data-theme="dark"] #btn-open-nav.active,
+[data-theme="dark"] #btn-settings.active {
+    background-color: var(--primary) !important;
+    color: #FFFFFF !important;
+    border-color: transparent !important;
+    box-shadow: 0 0 12px rgba(10, 132, 255, 0.4) !important;
 }
 
 /* Modal Text & Actions Overrides */
@@ -1192,3 +1212,4 @@
 [data-theme="dark"] .notification-message {
     color: rgba(235, 235, 245, 0.8) !important;
 }
+
