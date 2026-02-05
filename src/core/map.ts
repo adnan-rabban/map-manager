@@ -44,9 +44,8 @@ export class MapEngine {
         maptilersdk.config.apiKey = MAPTILER_KEY;
 
         const isDarkMode = this.getDarkModePreference();
-        this.currentStyle = isDarkMode 
-            ? `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`
-            : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
+        // Use streets-v2 for all modes
+        this.currentStyle = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
 
         this.map = new maptilersdk.Map({
             container: containerId,
@@ -82,35 +81,12 @@ export class MapEngine {
     }
 
     syncWithDarkMode(isDark: boolean): void {
-        const newStyle = isDark 
-            ? `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`
-            : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
-        
-        // Save current state
-        const center = this.map.getCenter();
-        const zoom = this.map.getZoom();
-        const pitch = this.map.getPitch();
-        const bearing = this.map.getBearing();
-
-        this.map.setStyle(newStyle);
-        
-        this.map.once('styledata', () => {
-            // Restore state
-            this.map.jumpTo({
-                center: center,
-                zoom: zoom,
-                pitch: pitch,
-                bearing: bearing
-            });
-
-            // Re-draw routes
-            if (this.lastRouteData && this.lastRouteData.routes) {
-                this.drawRoutes(this.lastRouteData.routes, this.lastRouteData.activeIndex);
-            }
-
-            // Restore/Add 3D buildings
-            this.add3DBuildings();
-        });
+        const container = this.map.getContainer();
+        if (isDark) {
+            container.classList.add('map-dark-mode');
+        } else {
+            container.classList.remove('map-dark-mode');
+        }
     }
 
     add3DBuildings(): void {
@@ -122,12 +98,6 @@ export class MapEngine {
         // Check if source exists (OpenMapTiles is standard)
         if (!this.map.getSource('openmaptiles')) {
             // Some styles might use 'maptiler_planet' or different source names
-            // If openmaptiles is missing, we might try to find a suitable source or return.
-            // But for standard MapTiler styles, it's usually there or implicity available if we add it.
-            // Actually, usually styles define sources. If not present, we can't add layer easily without adding source.
-            // Let's assume standard vector styles have it or we check 'composite'.
-            
-            // Standard MapTiler checks:
             const sources = this.map.getStyle().sources;
             let sourceId = 'openmaptiles';
             
@@ -148,7 +118,7 @@ export class MapEngine {
                 'type': 'fill-extrusion',
                 'minzoom': 15,
                 'paint': {
-                    'fill-extrusion-color': '#4a4a4a', // Dark mode color default
+                    'fill-extrusion-color': '#4a4a4a',
                     'fill-extrusion-height': [
                         'interpolate', ['linear'], ['zoom'],
                         15, 0,
@@ -186,23 +156,27 @@ export class MapEngine {
             this.map.setPitch(60);
             this.applyCustomTooltipsToControls();
             
-            // Initial check for 3D buildings if starting in dark mode or just high zoom
-            // Actually, we can just add them if possible.
-            // But let's respect dark mode logic or just add them generally?
-            // User requested "buat pada mode dark bangunan 3d pada light mode tetap ada"
-            // Means: 3D buildings should exist in BOTH, or specifically ensure they are enabled in dark mode like in light mode.
-            // Standard light mode streets-v2 often has them. dataviz-dark might not.
-            // So we blindly add them if missing.
+            // Add 3D buildings
             this.add3DBuildings();
+            
+            // Apply dark theme if dark mode is active
+            const isDarkMode = this.getDarkModePreference();
+            if (isDarkMode) {
+                this.syncWithDarkMode(true);
+            }
         });
 
         // Handle Map Errors (404s on tiles, styles, etc)
         this.map.on('error', (e) => {
             if (e && e.error && e.error.message) {
-                // Filter out common minor errors or log them
+                // Suppress image loading errors (not critical)
+                if (e.error.message.includes('Image') || e.error.message.includes('sprite')) {
+                    console.debug("Map image warning (non-critical):", e.error.message);
+                    return;
+                }
+                
                 console.warn("Map Error:", e.error.message);
                 
-                // If it's a style load error, notify user
                 if (e.error.message.includes('404') || e.error.message.includes('style')) {
                    console.error("Failed to load map resource:", e.error);
                 }
@@ -225,120 +199,43 @@ export class MapEngine {
 
         updateTooltips();
 
-        const observer = new MutationObserver((mutations) => {
-            let shouldUpdate = false;
-            for (const mutation of mutations) {
-                if (mutation.addedNodes.length > 0) {
-                    shouldUpdate = true;
-                    break;
-                }
-            }
-            if (shouldUpdate) updateTooltips();
-        });
-
-        const ctrlContainer = this.map.getContainer().querySelector('.maplibregl-ctrl-top-right') || this.map.getContainer();
-        if (ctrlContainer) {
-            observer.observe(ctrlContainer, { childList: true, subtree: true });
-        }
-
-        // POI Interaction
-        this.map.on('mouseenter', (e: any) => {
-            const features = this.map.queryRenderedFeatures(e.point);
-            const isPoi = features.some((f: any) => f.properties && f.properties.name && f.source !== 'route');
-            this.map.getCanvas().style.cursor = isPoi ? 'pointer' : '';
-        });
-
-        this.map.on('mouseleave', () => {
-            this.map.getCanvas().style.cursor = '';
-        });
-
-        this.map.on('click', (e: any) => {
-            const features = this.map.queryRenderedFeatures(e.point);
-            const viableFeature = features.find((f: any) => 
-                f.properties && 
-                f.properties.name && 
-                f.layer.type === 'symbol'
-            );
-
-            if (viableFeature) {
-                this.map.flyTo({
-                    center: e.lngLat,
-                    zoom: 17,
-                    pitch: 60,
-                    bearing: 0,
-                    essential: true,
-                    duration: 1500
-                });
-
-                if (this.poiClickCallback) {
-                    const category = (viableFeature.properties.class || 'Place')
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, (l: string) => l.toUpperCase());
-                    this.poiClickCallback({
-                        name: viableFeature.properties.name,
-                        category: category,
-                        lngLat: e.lngLat,
-                        id: viableFeature.id || Date.now()
-                    });
-                }
-                return;
-            }
-
-            if (this.clickCallback) {
-                this.clickCallback(e.lngLat);
-            }
-        });
+        setTimeout(updateTooltips, 100);
     }
 
-    setStyle(styleId: string): void {
-        if (!maptilersdk.MapStyle[styleId]) return;
-        this.currentStyle = maptilersdk.MapStyle[styleId];
-        this.map.setStyle(this.currentStyle);
-        
-        this.map.once('styledata', () => {
-            if (this.lastRouteData && this.lastRouteData.routes) {
-                this.drawRoutes(this.lastRouteData.routes, this.lastRouteData.activeIndex);
-            }
-        });
-    }
-
-    onMapClick(callback: MapClickCallback): void {
+    onClick(callback: MapClickCallback): void {
         this.clickCallback = callback;
     }
 
-    onPoiClick(callback: POIClickCallback): void {
+    onPOIClick(callback: POIClickCallback): void {
         this.poiClickCallback = callback;
     }
 
-    addMarker(location: Location, onClick: MarkerClickCallback): void {
-        if (!location || isNaN(location.lng) || isNaN(location.lat)) return;
-        if (location.lat < -90 || location.lat > 90) return;
-
-        if (this.markers[location.id]) {
-            this.markers[location.id].remove();
+    addMarker(id: string, lngLat: LngLat, options?: any): void {
+        if (this.markers[id]) {
+            this.markers[id].remove();
         }
 
-        const container = document.createElement('div');
-        container.className = 'marker-wrapper';
+        const markerEl = document.createElement('div');
+        markerEl.className = 'custom-marker';
+        markerEl.style.backgroundImage = 'url(/assets/marker.png)';
+        markerEl.style.width = '32px';
+        markerEl.style.height = '32px';
+        markerEl.style.backgroundSize = 'contain';
+        markerEl.style.backgroundRepeat = 'no-repeat';
+        markerEl.style.cursor = 'pointer';
 
-        const el = document.createElement('div');
-        el.className = 'custom-marker';
-        
-        container.appendChild(el);
-        
-        const marker = new maptilersdk.Marker({
-            element: container,
-            anchor: 'center'
-        })
-            .setLngLat([location.lng, location.lat])
+        const marker = new maptilersdk.Marker({ element: markerEl })
+            .setLngLat(lngLat)
             .addTo(this.map);
 
-        container.addEventListener('click', (e: Event) => {
-            e.stopPropagation(); 
-            onClick(location);
-        });
+        if (options?.onClick) {
+            markerEl.addEventListener('click', (e: MouseEvent) => {
+                e.stopPropagation();
+                options.onClick(id, lngLat);
+            });
+        }
 
-        this.markers[location.id] = marker;
+        this.markers[id] = marker;
     }
 
     removeMarker(id: string): void {
@@ -348,150 +245,124 @@ export class MapEngine {
         }
     }
 
-    flyTo(lng: number, lat: number): void {
+    removeAllMarkers(): void {
+        Object.keys(this.markers).forEach(id => this.removeMarker(id));
+    }
+
+    flyTo(lngLat: LngLat, zoom?: number): void {
         this.map.flyTo({
-            center: [lng, lat],
-            zoom: 17,
-            pitch: 50,
-            essential: true,
-            duration: 1200
+            center: lngLat,
+            zoom: zoom || 16,
+            essential: true
         });
     }
 
-    async calculateRoute(start: LngLat, end: LngLat): Promise<Route[] | null> {
-        this.clearRoute();
-        
-        if (!start || !end || isNaN(start.lng) || isNaN(start.lat) || isNaN(end.lng) || isNaN(end.lat)) {
-            notify.show("Invalid coordinates for routing.", 'error');
-            return null;
-        }
-
-        notify.show("Calculating route...", 'info');
-
-        // Use OSRM public routing API (Fall back from MapTiler to avoid 404)
-        // Request steps=true for turn-by-turn instructions
-        const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson&steps=true`;
+    async getRoute(from: LngLat, to: LngLat): Promise<RouteResponse | null> {
+        const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
+        const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&alternatives=true&steps=true`;
 
         try {
             const res = await fetch(url);
-            if (!res.ok) {
-                notify.show("Route calculation failed.", 'error');
-                return null;
+            if (!res.ok) return null;
+            const data: RouteResponse = await res.json();
+            if (data.routes && data.routes.length > 0) {
+                return data;
             }
-            const data: any = await res.json();
-            
-            if (!data.routes || data.routes.length === 0) {
-                notify.show("No route found.", 'error');
-                return null;
-            }
-
-            // Parse instructions from OSRM steps
-            const routes = data.routes.map((r: any) => {
-                if (r.legs && r.legs.length > 0) {
-                    const steps = r.legs[0].steps;
-                    r.instructions = steps.map((s: any) => {
-                        let text = s.maneuver.type;
-                        if (s.maneuver.modifier) {
-                            text += ` ${s.maneuver.modifier}`;
-                        }
-                        if (s.name) {
-                            text += ` on ${s.name}`;
-                        }
-                        if (s.maneuver.type === 'arrive') {
-                            text = "Arrive at destination";
-                        }
-                        
-                        // Icon mapping
-                        let icon = 'arrow-up';
-                        const m = s.maneuver.modifier;
-                        if (m && m.includes('left')) icon = 'arrow-left';
-                        else if (m && m.includes('right')) icon = 'arrow-right';
-                        else if (m && m.includes('uturn')) icon = 'rotate-cw';
-                        else if (s.maneuver.type === 'arrive') icon = 'map-pin';
-
-                        return {
-                            text: text,
-                            distance: s.distance,
-                            maneuver: s.maneuver,
-                            icon: icon
-                        };
-                    });
-                }
-                return r;
-            });
-
-            this.routes = routes;
-            this.activeRouteIndex = 0;
-            this.drawRoutes(routes, 0);
-
-            notify.show(`Found ${routes.length} route${routes.length > 1 ? 's' : ''}`, 'success');
-            return routes;
-        } catch (err) {
-            console.error(err);
-            notify.show("Network error while routing.", 'error');
+            return null;
+        } catch (e) {
+            console.error("Routing error:", e);
             return null;
         }
     }
 
-    private drawRoutes(routes: Route[], activeIndex: number): void {
+    drawRoutes(routes: Route[], activeIndex: number = 0): void {
+        // FIX: Add null check for routes
+        if (!routes || routes.length === 0) {
+            console.warn("drawRoutes called with empty or undefined routes");
+            return;
+        }
+
+        this.routes = routes;
+        this.activeRouteIndex = activeIndex;
         this.lastRouteData = { routes, activeIndex };
 
-        const features = routes.map((route, index) => ({
-            type: 'Feature' as const,
-            properties: {
-                isMain: index === activeIndex,
-                distance: route.distance,
-                duration: route.duration
+        const mainRoute = routes[activeIndex];
+        const alternativeRoutes = routes.filter((_, i) => i !== activeIndex);
+
+        const features = [
+            {
+                type: 'Feature',
+                properties: { type: 'main', index: activeIndex },
+                geometry: mainRoute.geometry
             },
-            geometry: route.geometry
-        }));
+            ...alternativeRoutes.map((route, i) => {
+                const altIndex = routes.indexOf(route);
+                return {
+                    type: 'Feature',
+                    properties: { type: 'alternative', index: altIndex },
+                    geometry: route.geometry
+                };
+            })
+        ];
 
         const geojson = {
-            type: 'FeatureCollection' as const,
-            features: features
+            'type': 'FeatureCollection',
+            'features': features
         };
 
         if (!this.map.getSource('routes')) {
             this.map.addSource('routes', {
-                type: 'geojson',
-                data: geojson
+                'type': 'geojson',
+                'data': geojson
             });
 
             this.map.addLayer({
-                id: 'route-alternative',
-                type: 'line',
-                source: 'routes',
-                filter: ['!', ['get', 'isMain']],
-                layout: {
+                'id': 'route-alternative',
+                'type': 'line',
+                'source': 'routes',
+                'layout': {
                     'line-join': 'round',
                     'line-cap': 'round'
                 },
-                paint: {
-                    'line-color': '#C0C0C0',
-                    'line-width': 5,
+                'paint': {
+                    'line-color': [
+                        'case',
+                        ['==', ['get', 'type'], 'alternative'],
+                        '#9ca3af',
+                        'transparent'
+                    ],
+                    'line-width': 6,
                     'line-opacity': 0.5
                 }
             });
 
             this.map.addLayer({
-                id: 'route-main',
-                type: 'line',
-                source: 'routes',
-                filter: ['get', 'isMain'],
-                layout: {
+                'id': 'route-main',
+                'type': 'line',
+                'source': 'routes',
+                'layout': {
                     'line-join': 'round',
                     'line-cap': 'round'
                 },
-                paint: {
-                    'line-color': '#007AFF',
+                'paint': {
+                    'line-color': [
+                        'case',
+                        ['==', ['get', 'type'], 'main'],
+                        '#3b82f6',
+                        'transparent'
+                    ],
                     'line-width': 8
                 }
             });
 
             (this.map as any).on('click', 'route-alternative', (e: any) => {
                 if (e.features && e.features.length > 0) {
-                    const clickedIndex = routes.findIndex(r => 
-                        r.distance === e.features[0].properties.distance
+                    const clickedIndex = e.features[0].properties.index;
+                    // FIX: Add null check for this.routes
+                    if (!this.routes || this.routes.length === 0) return;
+                    
+                    const activeIndex = this.routes.findIndex(
+                        (r) => r === this.routes[this.activeRouteIndex]
                     );
                     if (clickedIndex !== -1 && clickedIndex !== activeIndex) {
                         this.switchRoute(clickedIndex);
@@ -524,7 +395,11 @@ export class MapEngine {
     }
 
     switchRoute(index: number): void {
-        if (!this.routes || index < 0 || index >= this.routes.length) return;
+        // FIX: Add null check for routes
+        if (!this.routes || this.routes.length === 0 || index < 0 || index >= this.routes.length) {
+            console.warn("switchRoute called with invalid index or empty routes");
+            return;
+        }
 
         console.log("Switching to route index:", index);
         this.activeRouteIndex = index;
@@ -717,5 +592,23 @@ export class MapEngine {
         } else {
             popup.remove();
         }
+    }
+
+    setStyle(styleId: string): void {
+        // Handle full URL or simple style ID
+        let styleUrl = styleId;
+        if (!styleId.startsWith('http')) {
+            styleUrl = `https://api.maptiler.com/maps/${styleId}/style.json?key=${MAPTILER_KEY}`;
+        }
+        
+        this.currentStyle = styleUrl;
+        this.map.setStyle(styleUrl);
+        
+        this.map.once('styledata', () => {
+            if (this.lastRouteData && this.lastRouteData.routes) {
+                 this.drawRoutes(this.lastRouteData.routes, this.lastRouteData.activeIndex);
+            }
+            this.add3DBuildings();
+        });
     }
 }

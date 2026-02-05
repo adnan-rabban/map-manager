@@ -3,6 +3,12 @@
    MapLibre/MapTiler Control Overrides & Popups
    =================================== */
 
+/* Dark Mode Canvas Dimming */
+.map-dark-mode canvas {
+    filter: brightness(0.6) contrast(1.1) saturate(0.85);
+    transition: filter 0.3s ease;
+}
+
 /* =========================
    MAP CONTROLS (ZOOM, COMPASS, ETC)
    ========================= */

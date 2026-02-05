@@ -283,8 +283,9 @@ export class Navigation {
             return;
         }
 
-        const routes = await this.map.calculateRoute(this.startCoords, this.destCoords);
-        if (!routes || routes.length === 0) return;
+        const response = await this.map.getRoute(this.startCoords, this.destCoords);
+        if (!response || !response.routes || response.routes.length === 0) return;
+        const routes = response.routes;
 
         this.activeRoute = routes[0]; // Store active route
         this.lastAnnouncedStepIndex = -1; // Reset announcements

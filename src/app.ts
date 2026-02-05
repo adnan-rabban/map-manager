@@ -33,7 +33,7 @@ class App {
         this.setupSettings();
 
         // POI Click Handler
-        this.map.onPoiClick((poi: POI) => {
+        this.map.onPOIClick((poi: POI) => {
             const popupHtml = `
                 <div class="poi-popup">
                     <div class="poi-header">
@@ -96,13 +96,17 @@ class App {
         setTimeout(() => {
             this.store.getAll().forEach(loc => {
                 if (!loc.hidden) {
-                    this.map.addMarker(loc, (l) => this.onMarkerClick(l));
+                    this.map.addMarker(
+                        loc.id,
+                        { lng: loc.lng, lat: loc.lat },
+                        { onClick: () => this.onMarkerClick(loc) }
+                    );
                 }
             });
         }, 1000);
 
         // Map click for form filling
-        this.map.onMapClick(async (lngLat: LngLat) => {
+        this.map.onClick(async (lngLat: LngLat) => {
             const modal = document.getElementById('modal-overlay');
             
             if (modal?.classList.contains('open')) {
@@ -165,7 +169,7 @@ class App {
                 const id = (btnNav as HTMLElement).dataset.id;
                 const loc = this.store.getAll().find(l => l.id === id);
                 if (loc) {
-                    this.map.flyTo(loc.lng, loc.lat);
+                    this.map.flyTo({ lng: loc.lng, lat: loc.lat });
                     notify.show(`Viewing ${loc.name}`, 'info');
                 }
                 return;
@@ -258,7 +262,7 @@ class App {
                 const id = item.dataset.id;
                 const loc = this.store.getAll().find(l => l.id === id);
                 if (loc) {
-                    this.map.flyTo(loc.lng, loc.lat);
+                    this.map.flyTo({ lng: loc.lng, lat: loc.lat });
                 }
             }
         };
@@ -334,7 +338,11 @@ class App {
                             if (this.store.importData(data)) {
                                 this.renderList();
                                 this.store.getAll().forEach(loc => {
-                                    this.map.addMarker(loc, (l) => this.onMarkerClick(l));
+                                    this.map.addMarker(
+                                        loc.id,
+                                        { lng: loc.lng, lat: loc.lat },
+                                        { onClick: () => this.onMarkerClick(loc) }
+                                    );
                                 });
                                 notify.show('Data imported successfully', 'success');
                             } else {
@@ -517,7 +525,7 @@ class App {
                 const lng = parseFloat((item as HTMLElement).dataset.lng || '0');
                 const lat = parseFloat((item as HTMLElement).dataset.lat || '0');
                 
-                this.map.flyTo(lng, lat);
+                this.map.flyTo({ lng, lat });
                 container.classList.add('hidden');
                 
                 const input = document.getElementById('search-input') as HTMLInputElement;
@@ -650,13 +658,17 @@ class App {
                     notify.show('Location updated successfully', 'success');
                 } else {
                     const newLoc = this.store.add(data as Omit<Location, 'id'>);
-                    this.map.addMarker(newLoc, (l) => this.onMarkerClick(l));
+                    this.map.addMarker(
+                        newLoc.id, 
+                        { lng: newLoc.lng, lat: newLoc.lat }, 
+                        { onClick: () => this.onMarkerClick(newLoc) }
+                    );
                     notify.show('Location saved successfully', 'success');
                 }
 
                 this.renderList();
                 closeModal();
-                this.map.flyTo(lng, lat);
+                this.map.flyTo({ lng, lat });
             } catch (err) {
                 console.error(err);
                 notify.show('Failed to save location', 'error');
@@ -692,7 +704,7 @@ class App {
         const title = modal?.querySelector('h2');
         if (title) title.textContent = 'Edit Location';
         
-        this.map.flyTo(loc.lng, loc.lat);
+        this.map.flyTo({ lng: loc.lng, lat: loc.lat });
     }
 
     private toggleVisibility(id: string): void {
@@ -705,7 +717,11 @@ class App {
                 this.map.removeMarker(id);
                 notify.show('Location hidden', 'info');
             } else {
-                this.map.addMarker(loc, (l) => this.onMarkerClick(l));
+                this.map.addMarker(
+                    loc.id,
+                    { lng: loc.lng, lat: loc.lat },
+                    { onClick: () => this.onMarkerClick(loc) }
+                );
                 notify.show('Location visible', 'success');
             }
         }
@@ -713,7 +729,7 @@ class App {
 
     private onMarkerClick(location: Location): void {
         this.selectedLocation = location;
-        this.map.flyTo(location.lng, location.lat);
+        this.map.flyTo({ lng: location.lng, lat: location.lat });
         
         const popupHtml = `
             <div class="poi-popup">
