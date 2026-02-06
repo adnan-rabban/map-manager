@@ -58,12 +58,12 @@
 /* Dark mode */
 /* Update di settings.css */
 [data-theme="dark"] .btn-settings {
-    background: rgba(44, 44, 46, 0.8); /* Samakan dengan tombol lain */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Tambah border tipis */
+    background: rgba(44, 44, 46, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .btn-settings:hover {
-    background: rgba(80, 80, 80, 1); /* Menjadi lebih TERANG saat hover */
+    background: rgba(80, 80, 80, 1);
 }
 
 /* Reduced motion */

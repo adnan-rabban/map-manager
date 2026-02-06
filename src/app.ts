@@ -334,7 +334,17 @@ class App {
                     try {
                         const result = event.target?.result;
                         if (typeof result === 'string') {
-                            const data = JSON.parse(result);
+                            let data;
+                            
+                            // LOGIKA DETEKSI FORMAT (JSON vs CSV)
+                            if (result.trim().startsWith('[') || result.trim().startsWith('{')) {
+                                // Coba parse sebagai JSON
+                                data = JSON.parse(result);
+                            } else {
+                                // Jika bukan JSON, asumsikan CSV
+                                data = this.csvToJson(result);
+                            }
+
                             if (this.store.importData(data)) {
                                 this.renderList();
                                 this.store.getAll().forEach(loc => {
@@ -344,20 +354,59 @@ class App {
                                         { onClick: () => this.onMarkerClick(loc) }
                                     );
                                 });
-                                notify.show('Data imported successfully', 'success');
+                                notify.show(`Successfully imported locations`, 'success');
                             } else {
-                                notify.show('Invalid data format', 'error');
+                                notify.show('No valid locations found in file', 'warning');
                             }
                         }
                     } catch (err) {
                         console.error(err);
-                        notify.show('Failed to parse file', 'error');
+                        notify.show('Failed to parse file. Check format.', 'error');
                     }
                 };
                 reader.readAsText(file);
-                fileImport.value = '';
+                fileImport.value = ''; // Reset input agar bisa upload file yang sama lagi
             });
         }
+    }
+
+    private csvToJson(csv: string): any[] {
+        const lines = csv.split('\n').filter(line => line.trim() !== '');
+        if (lines.length === 0) return [];
+
+        // Deteksi header sederhana
+        const firstLine = lines[0];
+        const headers = firstLine.split(',').map(h => h.trim().toLowerCase().replace(/['"]+/g, ''));
+        
+        // Cek apakah header valid (harus ada lat dan lng minimal)
+        const hasHeader = headers.includes('lat') && headers.includes('lng');
+        
+        const dataRows = hasHeader ? lines.slice(1) : lines;
+        
+        return dataRows.map(line => {
+            // Split dengan koma, tapi abaikan koma di dalam tanda kutip (basic logic)
+            // Note: Ini regex sederhana, tidak menghandle nested quotes/commas sempurna tapi cukup untuk format basic
+            const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+            
+            if (hasHeader) {
+                const obj: any = {};
+                headers.forEach((h, i) => {
+                    // Mapping header ke key object, handle kemungkinan kolom kosong
+                    if (values[i] !== undefined) {
+                        obj[h] = values[i];
+                    }
+                });
+                return obj;
+            } else {
+                // Fallback jika tidak ada header: Asumsi urutan -> Name, Lat, Lng, Desc
+                return {
+                    name: values[0],
+                    lat: values[1],
+                    lng: values[2],
+                    desc: values[3] || ''
+                };
+            }
+        });
     }
 
     private setupSearch(): void {

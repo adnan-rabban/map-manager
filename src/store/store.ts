@@ -64,17 +64,25 @@ export class Store {
   importData(newLocations: unknown): boolean {
     if (!Array.isArray(newLocations)) return false;
     
-    // Validate basics - type guard
-    const valid = newLocations.filter((l: any): l is Location => 
-      l.id && 
+    // Perbaikan: Validasi lebih fleksibel (ID opsional)
+    const valid = newLocations.filter((l: any) => 
       l.name && 
-      typeof l.lng === 'number' && 
-      typeof l.lat === 'number' &&
-      !isNaN(l.lng) && 
-      !isNaN(l.lat)
-    );
+      (!l.lng || !isNaN(parseFloat(l.lng))) && 
+      (!l.lat || !isNaN(parseFloat(l.lat)))
+    ).map((l: any) => ({
+        // Jika ID tidak ada, buat ID baru menggunakan timestamp + random
+        id: l.id || `import-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: l.name,
+        desc: l.desc || '',
+        // Pastikan lng/lat dikonversi ke number (jika dari CSV string)
+        lng: parseFloat(l.lng),
+        lat: parseFloat(l.lat),
+        hidden: l.hidden === 'true' || l.hidden === true ? true : false
+    })).filter(l => !isNaN(l.lng) && !isNaN(l.lat)); // Final safety check
     
-    // Merge strategy: Overwrite matching IDs, add new ones
+    if (valid.length === 0) return false;
+
+    // Merge strategy
     valid.forEach(newItem => {
         const idx = this.locations.findIndex(existing => existing.id === newItem.id);
         if (idx !== -1) {
@@ -86,9 +94,5 @@ export class Store {
     
     this.save();
     return true;
-  }
-
-  exportData(): LocationsExport {
-    return this.locations;
   }
 }

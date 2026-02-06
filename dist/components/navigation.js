@@ -44,6 +44,7 @@ export class Navigation {
         if (btnClear) {
             btnClear.addEventListener('click', () => {
                 this.map.clearRoute();
+                this.map.resetCamera(); // Reset camera to default view
                 this.stopRealTimeNavigation();
                 btnClear.classList.remove('visible');
                 const instructions = document.getElementById('nav-instructions');
@@ -60,14 +61,29 @@ export class Navigation {
         }
     }
     togglePanel(show) {
+        const sidebar = document.getElementById('sidebar-panel');
+        const appContainer = document.getElementById('app'); // Container utama
+        const btnSidebar = document.getElementById('btn-open-sidebar');
         if (show) {
             this.panel?.classList.add('open');
-            const sidebar = document.getElementById('sidebar-panel');
+            // Tutup sidebar dan pastikan tombol toggle muncul
             if (sidebar)
                 sidebar.classList.add('collapsed');
+            if (appContainer)
+                appContainer.classList.add('collapsed-view');
+            // Fix: Force button visibility
+            if (btnSidebar)
+                btnSidebar.style.display = 'flex';
         }
         else {
             this.panel?.classList.remove('open');
+            // Opsional: Jika navigasi ditutup, jangan otomatis buka sidebar, biarkan user yang buka
+            if (sidebar)
+                sidebar.classList.remove('collapsed');
+            if (appContainer)
+                appContainer.classList.remove('collapsed-view');
+            if (btnSidebar)
+                btnSidebar.style.display = '';
         }
     }
     setDestination(location) {
@@ -260,6 +276,8 @@ export class Navigation {
         if (btnClear)
             btnClear.classList.add('visible');
         this.displayInstructions(routes[0]);
+        // Fix: Actually draw the route on the map!
+        this.map.drawRoutes(routes);
         this.map.onRouteChanged((route) => {
             this.activeRoute = route;
             this.displayInstructions(route);

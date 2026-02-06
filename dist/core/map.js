@@ -84,14 +84,20 @@ export class MapEngine {
      */
     updateMapStyle() {
         const newStyleUrl = this.getEffectiveStyleUrl(this.currentBaseStyle);
+        const cachedRoute = this.lastRouteData; // Simpan data rute sebelum ganti style
         console.log(`🗺️  Switching map style to: ${newStyleUrl}`);
         this.map.setStyle(newStyleUrl);
-        // Re-apply 3D buildings dan routes setelah style loaded
-        this.map.once('styledata', () => {
-            if (this.lastRouteData && this.lastRouteData.routes) {
-                this.drawRoutes(this.lastRouteData.routes, this.lastRouteData.activeIndex);
-            }
+        // 2. Gunakan 'idle' (Map Selesai Loading Sepenuhnya)
+        // Ini lebih aman daripada 'style.load' untuk mencegah layer hilang
+        this.map.once('idle', () => {
+            // Restore 3D Buildings
             this.add3DBuildings();
+            // Restore Route jika ada data tersimpan
+            if (cachedRoute && cachedRoute.routes) {
+                console.log("♻️ Restoring route after theme switch (Idle State)...");
+                // Pass 'true' agar kamera tidak reset/zoom-out
+                this.drawRoutes(cachedRoute.routes, cachedRoute.activeIndex, true);
+            }
         });
     }
     /**
@@ -349,19 +355,23 @@ export class MapEngine {
             const startLat = 'lat' in start ? start.lat : start.latitude || 0;
             const endLng = 'lng' in end ? end.lng : end.longitude || 0;
             const endLat = 'lat' in end ? end.lat : end.latitude || 0;
-            // MapTiler / OSRM format: coordinates separated by semicolons
-            const url = `https://api.maptiler.com/routing/driving/${startLng},${startLat};${endLng},${endLat}?key=${MAPTILER_KEY}&geometries=geojson&steps=true&overview=full`;
+            // OSRM Public Server (Gratis & Stabil)
+            // PENTING: geometries=geojson wajib ada untuk animasi kamera!
+            const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&steps=true&geometries=geojson`;
+            console.log("🚗 Fetching route from OSRM:", url);
             const response = await fetch(url);
             if (!response.ok)
                 throw new Error('Route request failed');
             const data = await response.json();
-            // Map OSRM response to our Route interface
-            // Note: MapTiler API returns OSRM format
+            if (!data.routes || data.routes.length === 0) {
+                console.warn("No routes found");
+                return null;
+            }
             return {
                 routes: data.routes.map((r) => ({
                     distance: r.distance,
                     duration: r.duration,
-                    geometry: r.geometry,
+                    geometry: r.geometry, // Ini sekarang pasti GeoJSON Object
                     legs: r.legs,
                     instructions: this.parseInstructions(r.legs[0])
                 }))
@@ -369,27 +379,30 @@ export class MapEngine {
         }
         catch (e) {
             console.error("Route fetch failed:", e);
-            notify.show('Could not find route', 'error');
+            notify.show('Could not find route. Please try again.', 'error');
             return null;
         }
     }
     parseInstructions(leg) {
         if (!leg || !leg.steps)
             return [];
-        // Simple mapping of OSRM steps to instructions
         return leg.steps.map((step) => {
-            let icon = 'straight';
+            let icon = 'arrow-up'; // Default (green)
             if (step.maneuver) {
-                if (step.maneuver.type === 'turn') {
-                    if (step.maneuver.modifier && step.maneuver.modifier.includes('left'))
-                        icon = 'turn-left';
-                    else if (step.maneuver.modifier && step.maneuver.modifier.includes('right'))
-                        icon = 'turn-right';
+                const type = step.maneuver.type;
+                const modifier = step.maneuver.modifier;
+                // Priority: Destination -> Turns -> Default
+                if (type === 'arrive' || type === 'destination') {
+                    icon = 'map-pin';
                 }
-                else if (step.maneuver.type === 'depart')
-                    icon = 'start';
-                else if (step.maneuver.type === 'arrive')
-                    icon = 'destination';
+                else if (modifier) {
+                    if (modifier.includes('uturn'))
+                        icon = 'rotate-cw';
+                    else if (modifier.includes('left'))
+                        icon = 'arrow-left';
+                    else if (modifier.includes('right'))
+                        icon = 'arrow-right';
+                }
             }
             return {
                 text: step.name || step.maneuver.type || 'Proceed',
@@ -399,18 +412,26 @@ export class MapEngine {
             };
         });
     }
-    drawRoutes(routes, activeIndex = 0) {
-        this.clearRoute();
+    drawRoutes(routes, activeIndex = 0, isRedraw = false) {
+        // 1. Bersihkan route lama dengan sangat teliti
+        if (this.map.getLayer('route-line'))
+            this.map.removeLayer('route-line');
+        if (this.map.getLayer('route-casing'))
+            this.map.removeLayer('route-casing');
+        if (this.map.getSource('route'))
+            this.map.removeSource('route');
         if (!routes || routes.length === 0)
             return;
         const route = routes[activeIndex];
         this.routes = routes;
         this.activeRouteIndex = activeIndex;
-        // Cache for style switches
         this.lastRouteData = { routes, activeIndex };
-        if (!route.geometry)
+        if (!route.geometry || !route.geometry.coordinates) {
+            console.error("❌ Route geometry missing");
             return;
-        // Add Source
+        }
+        console.log("🎨 Drawing route...", route.geometry);
+        // 2. Add Source
         this.map.addSource('route', {
             'type': 'geojson',
             'data': {
@@ -419,7 +440,23 @@ export class MapEngine {
                 'geometry': route.geometry
             }
         });
-        // Add Layer (Under labels, above roads)
+        // 3. Layer 1: Casing (Outline Putih - Agar kontras dengan peta satelit/gelap)
+        // Kita tidak pakai 'beforeId', biarkan dia di paling atas stack
+        this.map.addLayer({
+            'id': 'route-casing',
+            'type': 'line',
+            'source': 'route',
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            'paint': {
+                'line-color': '#FFFFFF', // Warna outline putih
+                'line-width': 10, // Lebih tebal dari garis utama
+                'line-opacity': 0.8
+            }
+        });
+        // 4. Layer 2: Main Line (Garis Biru Navigasi)
         this.map.addLayer({
             'id': 'route-line',
             'type': 'line',
@@ -429,21 +466,23 @@ export class MapEngine {
                 'line-cap': 'round'
             },
             'paint': {
-                'line-color': '#007AFF', // iOS blue
+                'line-color': '#007AFF', // Biru iOS
                 'line-width': 6,
-                'line-opacity': 0.8
+                'line-opacity': 1
             }
-        }, this.map.getLayer('poi-label') ? 'poi-label' : undefined); // Place before labels if possible
-        // Fit bounds
-        if (typeof maptilersdk !== 'undefined') {
+        });
+        // 5. Fit Bounds (Animasi Kamera)
+        // HANYA jika bukan redraw ulang (ganti tema)
+        if (!isRedraw && typeof maptilersdk !== 'undefined') {
             const coordinates = route.geometry.coordinates;
-            if (coordinates && coordinates.length > 0) {
-                const bounds = coordinates.reduce((bounds, coord) => {
-                    return bounds.extend(coord);
-                }, new maptilersdk.LngLatBounds(coordinates[0], coordinates[0]));
+            if (Array.isArray(coordinates) && coordinates.length > 0) {
+                // Convert bounds
+                const bounds = new maptilersdk.LngLatBounds(coordinates[0], coordinates[0]);
+                coordinates.forEach((coord) => bounds.extend(coord));
                 this.map.fitBounds(bounds, {
-                    padding: 50,
-                    maxZoom: 16
+                    padding: { top: 150, bottom: 150, left: 50, right: 50 }, // Padding besar agar tidak tertutup panel
+                    maxZoom: 16,
+                    duration: 1500
                 });
             }
         }
@@ -452,12 +491,19 @@ export class MapEngine {
         }
     }
     clearRoute() {
+        // 1. Hapus Layer Utama (Garis Biru)
         if (this.map.getLayer('route-line')) {
             this.map.removeLayer('route-line');
         }
+        // 2. Hapus Layer Casing (Garis Putih/Abu - INI YANG KETINGGALAN)
+        if (this.map.getLayer('route-casing')) {
+            this.map.removeLayer('route-casing');
+        }
+        // 3. Hapus Source Data
         if (this.map.getSource('route')) {
             this.map.removeSource('route');
         }
+        // 4. Bersihkan Cache Data agar tidak digambar ulang oleh 'idle' listener
         this.routes = [];
         this.lastRouteData = null;
         this.activeRouteIndex = 0;
@@ -583,5 +629,15 @@ export class MapEngine {
                 geolocateControl.trigger();
             }
         }
+    }
+    resetCamera() {
+        this.map.flyTo({
+            center: [106.8456, -6.2088], // Jakarta Default
+            zoom: 15.5,
+            pitch: 45,
+            bearing: -17.6,
+            duration: 2000,
+            essential: true
+        });
     }
 }
