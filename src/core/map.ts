@@ -378,6 +378,13 @@ export class MapEngine {
         }
     }
 
+    clearMarkers(): void {
+        Object.keys(this.markers).forEach(id => {
+            this.markers[id].remove();
+        });
+        this.markers = {};
+    }
+
     // ========================================
     // EVENT CALLBACK REGISTRATION
     // ========================================

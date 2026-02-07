@@ -11,6 +11,14 @@ export interface Location {
   lng: number;
   lat: number;
   hidden?: boolean;
+  groupId?: string; // New: Link to a group
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  color?: string;
+  isCollapsed?: boolean;
 }
 
 export interface Coordinates {

@@ -16,7 +16,7 @@
   
   /* Text Colors */
   --text-main: #1D1D1F;
-  --text-secondary: #86868B;
+  --text-secondary: #6e6e73;
   
   /* Border Radius */
   --radius-lg: 24px; /* More rounded */
@@ -33,6 +33,37 @@
   --color-teal: #30B0C7;
   --color-orange: #FF9500;
   --color-purple: #AF52DE;
+
+  /* Variabel Baru untuk Modal & Form */
+  --modal-bg: #FFFFFF;
+  --modal-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  --input-bg: #F2F2F7; /* Abu muda ala iOS Light */
+  --input-border: transparent;
+  --input-text: #000000;
+  --label-text: #666666;
+  --divider-color: #E5E5EA;
+
+  /* Light Mode Defaults (Dropdown & Buttons) */
+  --dropdown-bg: #F2F2F7;       /* Abu muda (sama dengan input) */
+  --dropdown-text: #000000;
+  --menu-bg: #FFFFFF;           /* Background list dropdown saat dibuka */
+  --btn-cancel-bg: #E5E5EA;     /* Abu terang untuk tombol cancel */
+  --btn-cancel-text: #000000;
+  --hover-highlight: #F2F2F7;
+
+  /* Card & UI Consistency */
+  --card-bg: #FFFFFF;
+  --card-border: rgba(0, 0, 0, 0.05); /* Border super tipis */
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Shadow halus */
+  
+  --btn-secondary-bg: #F2F2F7;       /* System Gray 6 */
+  --btn-hover-bg: #E5E5EA;           /* System Gray 5 (Hover) */
+  --btn-active-bg: #D1D1D6;          /* System Gray 4 (Click) */
+  
+  --btn-text: #1D1D1F;              
+  --text-primary: #1D1D1F;           /* Hampir hitam, lebih lembut */
+  --text-secondary: #86868B;
+  --icon-color: #1D1D1F;
 }
 
 [data-theme="dark"] {
@@ -48,4 +79,35 @@
   /* Adjust primary for dark mode visibility if needed */
   --primary: #0A84FF; 
   --primary-hover: #0077ED;
+
+  /* Override Dark Mode */
+  --modal-bg: #1C1C1E;
+  --modal-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  --input-bg: #2C2C2E;
+  --input-border: rgba(255,255,255,0.1);
+  --input-text: #FFFFFF;
+  --label-text: #98989D;
+  --divider-color: rgba(255,255,255,0.1);
+
+  /* Dark Mode Overrides (Dropdown & Buttons) */
+  --dropdown-bg: #2C2C2E;
+  --dropdown-text: #FFFFFF;
+  --menu-bg: rgba(30, 30, 30, 0.95);
+  --btn-cancel-bg: #3A3A3C;
+  --btn-cancel-text: #FFFFFF;
+  --hover-highlight: rgba(255, 255, 255, 0.1);
+
+  /* Card & UI Consistency */
+  --card-bg: #1C1C1E;
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  
+  --btn-secondary-bg: #2C2C2E;
+  --btn-hover-bg: #3A3A3C;
+  --btn-active-bg: #48484A;
+  
+  --btn-text: #FFFFFF;
+  --text-primary: #FFFFFF;
+  --text-secondary: #98989D;
+  --icon-color: #FFFFFF;
 }

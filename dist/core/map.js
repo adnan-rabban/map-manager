@@ -303,6 +303,12 @@ export class MapEngine {
             delete this.markers[id];
         }
     }
+    clearMarkers() {
+        Object.keys(this.markers).forEach(id => {
+            this.markers[id].remove();
+        });
+        this.markers = {};
+    }
     // ========================================
     // EVENT CALLBACK REGISTRATION
     // ========================================

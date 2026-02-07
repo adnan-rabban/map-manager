@@ -4,7 +4,7 @@ import { Navigation } from './components/navigation.js';
 import { notify } from './components/notifications.js';
 import { CustomTooltip } from './components/tooltip.js';
 import { LayerSwitcher } from './core/layers.js';
-import type { Location, POI, LngLat, SearchFeature } from './types/types';
+import type { Location, Group, POI, LngLat, SearchFeature } from './types/types';
 
 class App {
     private store: Store;
@@ -73,18 +73,13 @@ class App {
                 
                 if (btnSave) {
                     btnSave.addEventListener('click', () => {
-                        const btnAdd = document.getElementById('btn-add');
-                        btnAdd?.click();
-                        
-                        const lngInput = document.getElementById('loc-lng') as HTMLInputElement;
-                        const latInput = document.getElementById('loc-lat') as HTMLInputElement;
-                        const nameInput = document.getElementById('loc-name') as HTMLInputElement;
-                        const descInput = document.getElementById('loc-desc') as HTMLInputElement;
-                        
-                        if (lngInput) lngInput.value = poi.lngLat.lng.toFixed(6);
-                        if (latInput) latInput.value = poi.lngLat.lat.toFixed(6);
-                        if (nameInput) nameInput.value = poi.name;
-                        if (descInput) descInput.value = poi.category;
+                        this.showLocationModal('add', {
+                            id: '', // Dummy
+                            name: poi.name,
+                            desc: poi.category,
+                            lat: poi.lngLat.lat,
+                            lng: poi.lngLat.lng
+                        });
                         
                         if (this.map.currentPopup) this.map.currentPopup.remove();
                     });
@@ -162,6 +157,7 @@ class App {
             const btnDelete = target.closest('.js-delete');
             const btnToggle = target.closest('.js-toggle-visibility');
             const btnMenu = target.closest('.js-menu');
+            const btnMove = target.closest('.js-move-group');
             const item = target.closest('.location-item') as HTMLElement;
 
             if (btnNav) {
@@ -178,7 +174,8 @@ class App {
             if (btnEdit) {
                 e.stopPropagation();
                 const id = (btnEdit as HTMLElement).dataset.id;
-                if (id) this.editLocation(id);
+                const loc = this.store.getAll().find(l => l.id === id);
+                if (loc) this.showLocationModal('edit', loc);
                 return;
             }
 
@@ -187,15 +184,31 @@ class App {
                 const id = (btnDelete as HTMLElement).dataset.id;
                 const loc = this.store.getAll().find(l => l.id === id);
                 
-                const deleteDialog = document.getElementById('delete-dialog-overlay');
-                const desc = deleteDialog?.querySelector('.modal-desc');
-                if (desc && loc) {
-                    const name = loc.name;
-                    desc.innerHTML = `Are you sure you want to delete <strong>${name}</strong>? This action cannot be undone.`;
+                if (loc) {
+                     const content = document.createElement('div');
+                     content.style.marginTop = '16px';
+                     content.innerHTML = `
+                        <p class="modal-desc">Are you sure you want to delete <strong>${loc.name}</strong>? This action cannot be undone.</p>
+                     `;
+                     
+                     this.createModal('Delete Location', content, () => {
+                         this.deleteLocation(loc.id);
+                         notify.show('Location deleted', 'success');
+                     }, 'Delete', true);
                 }
-                
-                deleteDialog?.classList.add('open');
-                deleteDialog?.setAttribute('data-delete-id', id || '');
+                closeGlobalMenu();
+                return;
+            }
+
+            if (btnMove) {
+                e.stopPropagation();
+                const locId = (btnMove as HTMLElement).dataset.id;
+                const groupId = (btnMove as HTMLElement).dataset.groupId;
+                if (locId) {
+                    this.store.assignLocationToGroup(locId, groupId || null);
+                    this.renderList();
+                    notify.show(groupId ? 'Moved to folder' : 'Removed from folder', 'success');
+                }
                 closeGlobalMenu();
                 return;
             }
@@ -228,7 +241,28 @@ class App {
                     const eyeIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
                     const eyeOffIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
+                    const groups = this.store.getGroups();
+                    let groupOptions = '';
+                    
+                    if (groups.length > 0) {
+                        const groupItems = groups.map(g => {
+                            const isCurrent = loc && loc.groupId === g.id;
+                            return `<button class="dropdown-item js-move-group" data-id="${id}" data-group-id="${g.id}">
+                                ${isCurrent ? '✓ ' : ''}Move to ${g.name}
+                            </button>`;
+                        }).join('');
+                        
+                        const removeGroupItem = loc && loc.groupId ? 
+                            `<button class="dropdown-item js-move-group" data-id="${id}" data-group-id="">Remove from Folder</button>` : '';
+
+                        groupOptions = `
+                                       ${groupItems}
+                                       ${removeGroupItem}
+                                       <div class="dropdown-divider"></div>`;
+                    }
+
                     menu.innerHTML = `
+                        ${groupOptions}
                         <button class="dropdown-item js-toggle-visibility" data-id="${id}">
                             ${isHidden ? eyeIcon : eyeOffIcon}
                             ${isHidden ? 'Show on Map' : 'Hide from Map'}
@@ -277,30 +311,9 @@ class App {
         if (listEl) listEl.addEventListener('click', handleAction);
         if (globalMenu) globalMenu.addEventListener('click', handleAction);
 
-        // Delete Dialog
-        const deleteDialog = document.getElementById('delete-dialog-overlay');
-        const btnCancelDelete = document.getElementById('btn-cancel-delete');
-        const btnConfirmDelete = document.getElementById('btn-confirm-delete');
-
-        const closeDeleteDialog = (): void => {
-            deleteDialog?.classList.remove('open');
-            deleteDialog?.removeAttribute('data-delete-id');
-        };
-
-        if (btnConfirmDelete) {
-            btnConfirmDelete.addEventListener('click', () => {
-                const deleteId = deleteDialog?.getAttribute('data-delete-id');
-                if (deleteId) {
-                    this.deleteLocation(deleteId);
-                    notify.show('Location deleted', 'success');
-                }
-                closeDeleteDialog();
-            });
-        }
-        
-        if (btnCancelDelete) {
-            btnCancelDelete.addEventListener('click', closeDeleteDialog);
-        }
+        // Delete Dialog - REMOVED (Replaced by createModal)
+        // const deleteDialog = document.getElementById('delete-dialog-overlay');
+        // ... (Cleanup old listeners to avoid errors if elements exist but unused)
 
         // Export/Import
         if (btnExport) {
@@ -345,7 +358,16 @@ class App {
                                 data = this.csvToJson(result);
                             }
 
-                            if (this.store.importData(data)) {
+                            
+                            // Auto-create Group from filename
+                            let tempGroupId: string | undefined;
+                            if (file && file.name) {
+                                const groupName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                                const newGroup = this.store.addGroup(groupName);
+                                tempGroupId = newGroup.id;
+                            }
+
+                            if (this.store.importData(data, tempGroupId)) {
                                 this.renderList();
                                 this.store.getAll().forEach(loc => {
                                     this.map.addMarker(
@@ -368,6 +390,316 @@ class App {
                 fileImport.value = ''; // Reset input agar bisa upload file yang sama lagi
             });
         }
+    }
+
+    private createModal(title: string, contentUi: HTMLElement, onSave: () => void, saveText: string = 'Save', isDestructive: boolean = false): void {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay open';
+        
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal';
+        
+        const header = document.createElement('h3');
+        header.className = 'modal-title';
+        header.textContent = title;
+        
+        const actions = document.createElement('div');
+        actions.className = 'modal-actions';
+        
+        const btnCancel = document.createElement('button');
+        btnCancel.className = 'btn-cancel';
+        btnCancel.textContent = 'Cancel';
+        btnCancel.addEventListener('click', () => modal.remove());
+        
+        const btnSave = document.createElement('button');
+        btnSave.className = 'btn-save';
+        btnSave.textContent = saveText;
+        
+        if (isDestructive) {
+            btnSave.style.backgroundColor = '#FF3B30'; // Red for destructive
+            btnSave.style.color = 'white';
+        }
+        
+        const closeModal = () => {
+            modal.classList.add('closing');
+            modal.addEventListener('animationend', () => {
+                modal.remove();
+            }, { once: true });
+        };
+
+        btnCancel.addEventListener('click', closeModal);
+        
+        btnSave.addEventListener('click', () => {
+            onSave();
+            closeModal();
+        });
+        
+        actions.appendChild(btnCancel);
+        actions.appendChild(btnSave);
+        
+        modalContent.appendChild(header);
+        modalContent.appendChild(contentUi);
+        modalContent.appendChild(actions);
+        modal.appendChild(modalContent);
+        
+        document.body.appendChild(modal);
+        
+        // Focus first input if exists
+        const input = contentUi.querySelector('input');
+        if (input) input.focus();
+    }
+    
+    private showRenameGroupModal(group: Group): void {
+        const content = document.createElement('div');
+        content.style.marginTop = '16px';
+        content.innerHTML = `
+            <div class="form-group">
+                <label>Folder Name</label>
+                <input type="text" class="form-control" value="${group.name}" id="rename-group-input">
+            </div>
+        `;
+        
+        this.createModal('Rename Folder', content, () => {
+            const input = content.querySelector('#rename-group-input') as HTMLInputElement;
+            if (input && input.value.trim()) {
+                this.store.updateGroup(group.id, input.value.trim());
+                this.renderList();
+            }
+        }, 'Save');
+    }
+
+    private showAddGroupModal(): void {
+        // 1. Siapkan konten HTML form
+        const content = document.createElement('div');
+        content.style.marginTop = '16px';
+        content.innerHTML = `
+            <div class="form-group">
+                <label>Folder Name</label>
+                <input type="text" class="form-control" id="new-group-name" placeholder="e.g. Vacation Spots" autocomplete="off">
+            </div>
+        `;
+        
+        // 2. Panggil Helper createModal
+        this.createModal('New Folder', content, () => {
+            const input = content.querySelector('#new-group-name') as HTMLInputElement;
+            const name = input ? input.value.trim() : '';
+            
+            if (name) {
+                this.store.addGroup(name);
+                this.renderList();
+                notify.show('Folder created successfully', 'success');
+            }
+        }, 'Create Folder'); // Teks tombol save
+        
+        // 3. Auto-focus ke input setelah modal muncul (Opsional, UX bagus)
+        setTimeout(() => {
+            const input = content.querySelector('input');
+            if (input) input.focus();
+        }, 100);
+    }
+
+    private showDeleteGroupModal(group: Group): void {
+        const content = document.createElement('div');
+        content.style.marginTop = '16px';
+        content.innerHTML = `
+            <p class="modal-desc">Are you sure you want to delete folder <strong>${group.name}</strong>? All locations inside will be moved to Uncategorized.</p>
+        `;
+        
+        this.createModal('Delete Folder', content, () => {
+            this.store.deleteGroup(group.id);
+            this.renderList();
+        }, 'Delete', true);
+    }
+    
+    private showLocationModal(mode: 'add'|'edit', location?: Location): void {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay open';
+        modal.id = 'location-modal';
+        
+        const groups = this.store.getGroups();
+        
+        // --- CUSTOM DROPDOWN LOGIC PREP ---
+        // Determine initial selected group
+        let selectedGroupId = location?.groupId || '';
+        const initialGroupName = selectedGroupId 
+            ? groups.find(g => g.id === selectedGroupId)?.name 
+            : 'Uncategorized';
+
+        // Build Options HTML
+        const optionsHtml = [
+            `<div class="custom-option ${selectedGroupId === '' ? 'selected' : ''}" data-value="">Uncategorized</div>`,
+            ...groups.map(g => 
+                `<div class="custom-option ${g.id === selectedGroupId ? 'selected' : ''}" data-value="${g.id}">${g.name}</div>`
+            )
+        ].join('');
+
+        modal.innerHTML = `
+            <div class="modal">
+                <h3 class="modal-title">${mode === 'add' ? 'Add Location' : 'Edit Location'}</h3>
+                <div class="form-group" style="margin-top:20px;">
+                    <label>Name</label>
+                    <input type="text" id="modal-name" class="form-control" value="${location?.name || ''}" placeholder="Location Name">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="modal-desc" class="form-control" value="${location?.desc || ''}" placeholder="Description (optional)">
+                </div>
+                
+                <div class="form-group">
+                   <label>Coordinates (Lat, Lng)</label>
+                   <div class="input-row">
+                       <div class="input-group">
+                           <input type="number" id="modal-lat" class="form-control" value="${location?.lat || ''}" step="any" placeholder="Latitude">
+                       </div>
+                       <div class="input-group">
+                           <input type="number" id="modal-lng" class="form-control" value="${location?.lng || ''}" step="any" placeholder="Longitude">
+                       </div>
+                   </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Folder / Group</label>
+                    <!-- Custom Select Markup -->
+                    <div class="custom-select-wrapper" id="modal-group-wrapper">
+                        <div class="custom-select-trigger" id="modal-group-trigger">
+                            <span>${initialGroupName}</span>
+                        </div>
+                        <div class="custom-options">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-cancel" id="btn-modal-cancel">Cancel</button>
+                    <button class="btn-save" id="btn-modal-save">Save</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // --- ELEMENTS ---
+        const btnCancel = modal.querySelector('#btn-modal-cancel');
+        const btnSave = modal.querySelector('#btn-modal-save');
+        const nameInput = modal.querySelector('#modal-name') as HTMLInputElement;
+        const latInput = modal.querySelector('#modal-lat') as HTMLInputElement;
+        const lngInput = modal.querySelector('#modal-lng') as HTMLInputElement;
+        
+        // Custom Dropdown Elements
+        const dropdownWrapper = modal.querySelector('#modal-group-wrapper') as HTMLElement;
+        const dropdownTrigger = modal.querySelector('#modal-group-trigger') as HTMLElement;
+        const dropdownOptions = modal.querySelector('.custom-options') as HTMLElement;
+        const triggerSpan = dropdownTrigger.querySelector('span') as HTMLElement;
+
+        nameInput.focus();
+
+        // --- DROPDOWN EVENT LISTENERS ---
+        dropdownTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownWrapper.classList.toggle('open');
+        });
+
+        // Option Selection
+        dropdownOptions.querySelectorAll('.custom-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Update selection state
+                dropdownOptions.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+
+                // Update Logic
+                selectedGroupId = (option as HTMLElement).dataset.value || '';
+                triggerSpan.textContent = option.textContent;
+                
+                // Close
+                dropdownWrapper.classList.remove('open');
+            });
+        });
+
+        // Close when clicking outside
+        const closeDropdown = (e: Event) => {
+            if (!dropdownWrapper.contains(e.target as Node)) {
+                dropdownWrapper.classList.remove('open');
+            }
+        };
+        document.addEventListener('click', closeDropdown);
+
+
+        // --- MODAL ACTIONS ---
+        const cleanup = () => {
+            document.removeEventListener('click', closeDropdown);
+            modal.classList.add('closing');
+            modal.addEventListener('animationend', () => {
+                modal.remove();
+            }, { once: true });
+        };
+
+        btnCancel?.addEventListener('click', cleanup);
+
+        btnSave?.addEventListener('click', () => {
+            const name = nameInput.value;
+            const desc = (modal.querySelector('#modal-desc') as HTMLInputElement).value;
+            
+            if (!name) {
+                notify.show('Name is required', 'error');
+                return;
+            }
+
+            // Get Lat/Lng from inputs
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                    notify.show('Invalid coordinates', 'error');
+                    return;
+            }
+
+            // Check Lat/Lng validity range
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                 notify.show('Coordinates out of range', 'error');
+                 return;
+            }
+
+            if (mode === 'add') {
+                this.store.add({
+                    name,
+                    desc,
+                    lat,
+                    lng,
+                    groupId: selectedGroupId || undefined
+                });
+                
+                const newLoc = this.store.getAll().slice(-1)[0]; 
+                 this.map.addMarker(
+                        newLoc.id, 
+                        { lng: newLoc.lng, lat: newLoc.lat }, 
+                        { onClick: () => this.onMarkerClick(newLoc) }
+                    );
+                 notify.show('Location saved successfully', 'success');
+
+            } else if (mode === 'edit' && location) {
+                 this.store.update(location.id, {
+                     name,
+                     desc,
+                     lat,
+                     lng,
+                     groupId: selectedGroupId || undefined 
+                 });
+
+                 // Re-add marker with new position
+                 this.map.addMarker(
+                    location.id,
+                    { lng, lat },
+                    { onClick: () => this.onMarkerClick({ ...location, lat, lng, name, desc }) } // Optimistic update
+                 );
+
+                 notify.show('Location updated successfully', 'success');
+            }
+
+            this.renderList();
+            cleanup();
+        });
     }
 
     private csvToJson(csv: string): any[] {
@@ -602,6 +934,16 @@ class App {
             });
         }
 
+        const btnAddGroup = document.getElementById('btn-add-group');
+        if (btnAddGroup) {
+            btnAddGroup.addEventListener('click', () => {
+                this.showAddGroupModal();
+            });
+        }
+
+
+
+
         if (btnClose) {
             btnClose.addEventListener('click', () => {
                 sidebar?.classList.add('collapsed');
@@ -615,8 +957,9 @@ class App {
         if (!listEl) return;
 
         const locations = this.store.getAll();
+        const groups = this.store.getGroups();
 
-        if (locations.length === 0) {
+        if (locations.length === 0 && groups.length === 0) {
             listEl.innerHTML = `
                 <div class="empty-state" style="padding: 40px 20px; text-align: center; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center;">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; opacity: 0.5;">
@@ -630,8 +973,155 @@ class App {
             return;
         }
 
-        listEl.innerHTML = locations.map(loc => `
-            <div class="location-item" data-id="${loc.id}">
+        listEl.innerHTML = '';
+        
+        // --- DRAG & DROP HANDLERS ---
+        const handleDragStart = (e: any) => {
+            e.dataTransfer.setData('text/plain', e.target.dataset.id);
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.classList.add('dragging');
+        };
+
+        const handleDragEnd = (e: any) => {
+            e.target.classList.remove('dragging');
+        };
+
+        const handleDragOver = (e: any) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            // Ensure we target the header or drop zone, not children
+            const target = e.currentTarget; 
+            if (target) {
+                target.classList.add('drag-over');
+            }
+        };
+
+        const handleDragLeave = (e: any) => {
+             const target = e.currentTarget;
+             // Check if we are really leaving the element, not just entering a child
+             // relatedTarget is where the mouse went
+             if (target && !target.contains(e.relatedTarget)) {
+                 target.classList.remove('drag-over');
+             }
+        };
+
+        const handleDropGroup = (e: any) => {
+            e.preventDefault();
+            const header = e.currentTarget;
+            header.classList.remove('drag-over');
+            const locId = e.dataTransfer.getData('text/plain');
+            const groupId = header.dataset.id;
+            
+            if (locId && groupId) {
+                this.store.moveLocation(locId, groupId);
+                this.renderList();
+                notify.show('Location moved to folder', 'success');
+            }
+        };
+
+        const handleDropUncategorized = (e: any) => {
+            e.preventDefault();
+            const zone = e.currentTarget;
+            zone.classList.remove('drag-over');
+            const locId = e.dataTransfer.getData('text/plain');
+            
+            if (locId) {
+                this.store.moveLocation(locId, null); // Move to uncategorized
+                this.renderList();
+                notify.show('Removed from folder', 'success');
+            }
+        };
+
+        // 1. Render Groups
+        groups.forEach(group => {
+            const groupLocs = locations.filter(l => l.groupId === group.id);
+            
+            const groupEl = document.createElement('div');
+            groupEl.className = 'group-item';
+            groupEl.innerHTML = `
+                <div class="group-header js-toggle-group" data-id="${group.id}">
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                        <svg class="folder-icon ${group.isCollapsed ? '' : 'open'}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span class="group-name">${group.name}</span>
+                        <span style="font-size:12px;color:var(--text-secondary);opacity:0.7;">(${groupLocs.length})</span>
+                    </div>
+                    <div class="group-actions">
+                        <button class="btn-icon-sm js-rename-group prop-stop" data-id="${group.id}" title="Rename Folder">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="btn-icon-sm js-delete-group prop-stop" data-id="${group.id}" title="Delete Folder">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="group-content-wrapper ${group.isCollapsed ? '' : 'open'}" id="group-${group.id}">
+                    <div class="group-content-inner">
+                        ${groupLocs.map(loc => this.createLocationItemHTML(loc)).join('')}
+                    </div>
+                </div>
+            `;
+            listEl.appendChild(groupEl);
+            
+            // Allow Drop on Group Header
+            const header = groupEl.querySelector('.group-header');
+            if (header) {
+                header.addEventListener('dragover', handleDragOver);
+                header.addEventListener('dragleave', handleDragLeave);
+                header.addEventListener('drop', handleDropGroup);
+            }
+        });
+
+        // 2. Render Uncategorized
+        const uncategorized = locations.filter(l => !l.groupId);
+        if (uncategorized.length > 0) {
+            const uncategorizedEl = document.createElement('div');
+            uncategorizedEl.className = 'uncategorized-list';
+            if (groups.length > 0) {
+                 uncategorizedEl.style.marginTop = '0px';
+                 uncategorizedEl.style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
+                 uncategorizedEl.style.paddingTop = '6px';
+            }
+            uncategorizedEl.innerHTML = uncategorized.map(loc => this.createLocationItemHTML(loc)).join('');
+            
+            // Add Header for Uncategorized to act as Drop Zone
+            const uncatHeader = document.createElement('div');
+            uncatHeader.className = 'uncategorized-header';
+            uncatHeader.textContent = 'Uncategorized';
+            uncatHeader.style.padding = '8px 12px';
+            uncatHeader.style.fontSize = '12px';
+            uncatHeader.style.fontWeight = '600';
+            uncatHeader.style.color = 'var(--text-secondary)';
+            uncatHeader.style.textTransform = 'uppercase';
+            uncatHeader.style.letterSpacing = '0.5px';
+            
+            // Make Uncategorized Header a Drop Zone
+            uncatHeader.addEventListener('dragover', handleDragOver);
+            uncatHeader.addEventListener('dragleave', handleDragLeave);
+            uncatHeader.addEventListener('drop', handleDropUncategorized);
+
+            if (uncategorizedEl.firstChild) {
+                uncategorizedEl.insertBefore(uncatHeader, uncategorizedEl.firstChild);
+            } else {
+                uncategorizedEl.appendChild(uncatHeader);
+            }
+
+            listEl.appendChild(uncategorizedEl);
+        }
+
+        // Attach Event Listeners for Groups
+        this.attachGroupListeners(listEl);
+        
+        // Attach Drag Events to Items
+        listEl.querySelectorAll('.location-item').forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragend', handleDragEnd);
+        });
+    }
+
+    private createLocationItemHTML(loc: Location): string {
+        return `
+            <div class="location-item" draggable="true" data-id="${loc.id}">
                 <div class="location-info">
                     <h3>${loc.name}</h3>
                     <p>${loc.desc || 'No description'}</p>
@@ -648,122 +1138,88 @@ class App {
                     </button>
                 </div>
             </div>
-        `).join('');
+        `;
+    }
+
+    private attachGroupListeners(container: HTMLElement): void {
+        // Toggle Collapse
+        container.querySelectorAll('.js-toggle-group').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const target = e.target as HTMLElement;
+                if (target.closest('.prop-stop')) return;
+                
+                const id = (el as HTMLElement).dataset.id;
+                if (id) {
+                    this.store.toggleGroupCollapse(id);
+                    
+                    // Manual DOM Toggle for smooth animation
+                    const groupWrapper = document.getElementById(`group-${id}`);
+                    const icon = el.querySelector('.folder-icon');
+                    
+                    if (groupWrapper) {
+                        groupWrapper.classList.toggle('open');
+                    }
+                    if (icon) {
+                        icon.classList.toggle('open');
+                    }
+                }
+            });
+        });
+
+        // Rename Group
+        container.querySelectorAll('.js-rename-group').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = (el as HTMLElement).dataset.id;
+                const group = this.store.getGroups().find(g => g.id === id);
+                if (group && id) {
+                    this.showRenameGroupModal(group);
+                }
+            });
+        });
+
+        // Delete Group
+        container.querySelectorAll('.js-delete-group').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = (el as HTMLElement).dataset.id;
+                const group = this.store.getGroups().find(g => g.id === id);
+                if (group && id) {
+                    this.showDeleteGroupModal(group);
+                }
+            });
+        });
     }
 
     private setupModal(): void {
-        const modal = document.getElementById('modal-overlay');
         const btnAdd = document.getElementById('btn-add');
-        const btnCancel = document.getElementById('btn-cancel');
-        const form = document.getElementById('location-form') as HTMLFormElement;
-
-        const openModal = (): void => {
-            form?.reset();
-            const idInput = document.getElementById('loc-id') as HTMLInputElement;
-            if (idInput) idInput.value = '';
-            const title = modal?.querySelector('h2');
-            if (title) title.textContent = 'Add Location';
-            modal?.classList.add('open');
-        };
-        
-        const closeModal = (): void => modal?.classList.remove('open');
-
-        btnAdd?.addEventListener('click', openModal);
-        btnCancel?.addEventListener('click', closeModal);
-
-        form?.addEventListener('submit', (e: Event) => {
-            e.preventDefault();
-            const idInput = document.getElementById('loc-id') as HTMLInputElement;
-            const nameInput = document.getElementById('loc-name') as HTMLInputElement;
-            const descInput = document.getElementById('loc-desc') as HTMLInputElement;
-            const lngInput = document.getElementById('loc-lng') as HTMLInputElement;
-            const latInput = document.getElementById('loc-lat') as HTMLInputElement;
-            
-            const id = idInput.value;
-            const name = nameInput.value;
-            const desc = descInput.value;
-            const lng = parseFloat(lngInput.value);
-            const lat = parseFloat(latInput.value);
-
-            if (isNaN(lng) || isNaN(lat)) {
-                notify.show('Invalid coordinates', 'error');
-                return;
-            }
-            
-            if (lat < -90 || lat > 90) {
-                notify.show('Latitude must be between -90 and 90', 'error');
-                return;
-            }
-            if (lng < -180 || lng > 180) {
-                notify.show('Longitude must be between -180 and 180', 'error');
-                return;
-            }
-
-            const data: Partial<Location> = { name, desc, lng, lat };
-            if (id) {
-                (data as Location).id = id;
-            }
-
-            try {
-                if (id) {
-                    this.store.update(data as Location);
-                    notify.show('Location updated successfully', 'success');
-                } else {
-                    const newLoc = this.store.add(data as Omit<Location, 'id'>);
-                    this.map.addMarker(
-                        newLoc.id, 
-                        { lng: newLoc.lng, lat: newLoc.lat }, 
-                        { onClick: () => this.onMarkerClick(newLoc) }
-                    );
-                    notify.show('Location saved successfully', 'success');
-                }
-
-                this.renderList();
-                closeModal();
-                this.map.flyTo({ lng, lat });
-            } catch (err) {
-                console.error(err);
-                notify.show('Failed to save location', 'error');
-            }
-        });
+        if (btnAdd) {
+            btnAdd.addEventListener('click', () => {
+                this.showLocationModal('add');
+            });
+        }
     }
 
     private deleteLocation(id: string): void {
         this.store.delete(id);
         this.map.removeMarker(id);
         this.renderList();
+        notify.show('Location deleted', 'success');
     }
 
     private editLocation(id: string): void {
         const loc = this.store.getAll().find(l => l.id === id);
-        if (!loc) return;
-
-        const idInput = document.getElementById('loc-id') as HTMLInputElement;
-        const nameInput = document.getElementById('loc-name') as HTMLInputElement;
-        const descInput = document.getElementById('loc-desc') as HTMLInputElement;
-        const lngInput = document.getElementById('loc-lng') as HTMLInputElement;
-        const latInput = document.getElementById('loc-lat') as HTMLInputElement;
-        
-        if (idInput) idInput.value = loc.id;
-        if (nameInput) nameInput.value = loc.name;
-        if (descInput) descInput.value = loc.desc || '';
-        if (lngInput) lngInput.value = loc.lng.toString();
-        if (latInput) latInput.value = loc.lat.toString();
-
-        const modal = document.getElementById('modal-overlay');
-        modal?.classList.add('open');
-        
-        const title = modal?.querySelector('h2');
-        if (title) title.textContent = 'Edit Location';
-        
-        this.map.flyTo({ lng: loc.lng, lat: loc.lat });
+        if (loc) {
+            this.showLocationModal('edit', loc);
+            this.map.flyTo({ lng: loc.lng, lat: loc.lat });
+        }
     }
 
     private toggleVisibility(id: string): void {
         const loc = this.store.getAll().find(l => l.id === id);
         if (loc) {
             loc.hidden = !loc.hidden;
-            this.store.update(loc);
+            this.store.update(loc.id, { hidden: loc.hidden });
 
             if (loc.hidden) {
                 this.map.removeMarker(id);
@@ -810,7 +1266,6 @@ class App {
         
         // Define close handler to reset state
         const handleClosePopup = () => {
-            console.log('handleClosePopup triggered');
             this.selectedLocation = null;
             const activeItem = document.querySelector('.location-item.active');
             if (activeItem) {
@@ -852,5 +1307,6 @@ class App {
         }
     }
 }
+
 
 const app = new App();

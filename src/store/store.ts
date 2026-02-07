@@ -1,10 +1,12 @@
-import type { Location, LocationsExport } from '../types/types';
+import type { Location, Group, LocationsExport } from '../types/types';
 
 export class Store {
   private locations: Location[];
+  private groups: Group[];
 
   constructor() {
-    this.locations = this.load();
+    this.locations = this.loadLocations();
+    this.groups = this.loadGroups();
     // Default data if empty for demo purposes
     if (this.locations.length === 0) {
       this.locations = [
@@ -20,7 +22,7 @@ export class Store {
     }
   }
 
-  private load(): Location[] {
+  private loadLocations(): Location[] {
     const data = localStorage.getItem("map-locations");
     const parsed: Location[] = data ? JSON.parse(data) : [];
     // Filter out invalid coordinates immediately affecting the app
@@ -30,8 +32,67 @@ export class Store {
     );
   }
 
+  private loadGroups(): Group[] {
+    const data = localStorage.getItem("map-groups");
+    return data ? JSON.parse(data) : [];
+  }
+
   private save(): void {
     localStorage.setItem("map-locations", JSON.stringify(this.locations));
+    localStorage.setItem("map-groups", JSON.stringify(this.groups));
+  }
+
+  getGroups(): Group[] {
+    return this.groups;
+  }
+
+  addGroup(name: string): Group {
+    const newGroup: Group = {
+      id: Date.now().toString(),
+      name,
+      isCollapsed: false
+    };
+    this.groups.push(newGroup);
+    this.save();
+    return newGroup;
+  }
+
+  updateGroup(id: string, name: string): void {
+    const group = this.groups.find(g => g.id === id);
+    if (group) {
+        group.name = name;
+        this.save();
+    }
+  }
+
+  deleteGroup(id: string): void {
+    // 1. Remove group
+    this.groups = this.groups.filter(g => g.id !== id);
+    
+    // 2. Cascade Delete: Remove locations in this group
+    this.locations = this.locations.filter(loc => loc.groupId !== id);
+
+    this.save();
+  }
+
+  toggleGroupCollapse(id: string): void {
+    const group = this.groups.find(g => g.id === id);
+    if (group) {
+        group.isCollapsed = !group.isCollapsed;
+        this.save();
+    }
+  }
+
+  assignLocationToGroup(locationId: string, groupId: string | null): void {
+      const loc = this.locations.find(l => l.id === locationId);
+      if (loc) {
+          if (groupId) {
+              loc.groupId = groupId;
+          } else {
+              delete loc.groupId;
+          }
+          this.save();
+      }
   }
 
   getAll(): Location[] {
@@ -48,10 +109,10 @@ export class Store {
     return newLocation;
   }
 
-  update(updatedLoc: Location): void {
-    const idx = this.locations.findIndex((l) => l.id === updatedLoc.id);
+  update(id: string, updatedFields: Partial<Location>): void {
+    const idx = this.locations.findIndex((l) => l.id === id);
     if (idx !== -1) {
-      this.locations[idx] = updatedLoc;
+      this.locations[idx] = { ...this.locations[idx], ...updatedFields };
       this.save();
     }
   }
@@ -61,7 +122,7 @@ export class Store {
     this.save();
   }
 
-  importData(newLocations: unknown): boolean {
+  importData(newLocations: unknown, targetGroupId?: string): boolean {
     if (!Array.isArray(newLocations)) return false;
     
     // Perbaikan: Validasi lebih fleksibel (ID opsional)
@@ -77,7 +138,8 @@ export class Store {
         // Pastikan lng/lat dikonversi ke number (jika dari CSV string)
         lng: parseFloat(l.lng),
         lat: parseFloat(l.lat),
-        hidden: l.hidden === 'true' || l.hidden === true ? true : false
+        hidden: l.hidden === 'true' || l.hidden === true ? true : false,
+        groupId: targetGroupId // Assign group if provided
     })).filter(l => !isNaN(l.lng) && !isNaN(l.lat)); // Final safety check
     
     if (valid.length === 0) return false;
@@ -94,5 +156,17 @@ export class Store {
     
     this.save();
     return true;
+  }
+
+  moveLocation(locationId: string, targetGroupId: string | null): void {
+      const loc = this.locations.find(l => l.id === locationId);
+      if (loc) {
+          if (targetGroupId) {
+              loc.groupId = targetGroupId;
+          } else {
+              delete loc.groupId;
+          }
+          this.save();
+      }
   }
 }
