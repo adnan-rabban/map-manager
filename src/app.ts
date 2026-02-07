@@ -374,31 +374,34 @@ class App {
         const lines = csv.split('\n').filter(line => line.trim() !== '');
         if (lines.length === 0) return [];
 
-        // Deteksi header sederhana
+        // 1. Auto-Detect Delimiter (Cek baris pertama)
         const firstLine = lines[0];
-        const headers = firstLine.split(',').map(h => h.trim().toLowerCase().replace(/['"]+/g, ''));
+        const semicolonCount = (firstLine.match(/;/g) || []).length;
+        const commaCount = (firstLine.match(/,/g) || []).length;
         
-        // Cek apakah header valid (harus ada lat dan lng minimal)
+        // Pilih yang lebih banyak muncul
+        const delimiter = semicolonCount > commaCount ? ';' : ',';
+
+        // 2. Parse Headers
+        const headers = firstLine.split(delimiter).map(h => h.trim().toLowerCase().replace(/['"\r]+/g, ''));
+        
         const hasHeader = headers.includes('lat') && headers.includes('lng');
-        
         const dataRows = hasHeader ? lines.slice(1) : lines;
         
         return dataRows.map(line => {
-            // Split dengan koma, tapi abaikan koma di dalam tanda kutip (basic logic)
-            // Note: Ini regex sederhana, tidak menghandle nested quotes/commas sempurna tapi cukup untuk format basic
-            const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+            // Gunakan delimiter yang sudah dideteksi
+            const values = line.split(delimiter).map(v => v.trim().replace(/^"|"$/g, ''));
             
             if (hasHeader) {
                 const obj: any = {};
                 headers.forEach((h, i) => {
-                    // Mapping header ke key object, handle kemungkinan kolom kosong
+                    // Hindari error jika values kurang dari headers
                     if (values[i] !== undefined) {
                         obj[h] = values[i];
                     }
                 });
                 return obj;
             } else {
-                // Fallback jika tidak ada header: Asumsi urutan -> Name, Lat, Lng, Desc
                 return {
                     name: values[0],
                     lat: values[1],
