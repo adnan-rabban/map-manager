@@ -70,58 +70,65 @@
     margin-bottom: 8px;
 }
 
-/* Style Dasar Button di Sidebar (Themed to Card Style) */
+/* --- 1. BUTTON BASE STYLE (Smoother Physics) --- */
 .panel-actions button,
 #btn-add-group {
+    /* Layout & Visuals */
     height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
+    
+    /* Theme Colors */
+    background-color: var(--card-bg) !important;
     border: 1px solid var(--card-border);
-    background-color: var(--card-bg) !important; 
     box-shadow: var(--card-shadow);
     color: var(--text-primary) !important;
+    
+    /* Typography & Spacing */
     font-size: 13px;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-    
-    /* Layout adjustments */
-    flex: none; 
-    width: auto; 
     padding: 0 12px;
+    cursor: pointer;
+    
+    /* ANIMATION PHYSICS (KEY FIX) */
+    /* Pisahkan transisi agar lebih lambat & smooth */
+    transition: 
+        transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), 
+        background-color 0.2s ease,
+        box-shadow 0.3s ease,
+        border-color 0.2s ease;
+        
+    will-change: transform; /* Paksa GPU rendering agar ultra-smooth */
 }
 
-/* Tombol Export & Import (Compact) */
-#btn-export, 
-#btn-import {
-    padding: 0 12px; /* Padding kiri-kanan secukupnya */
-    min-width: 0; /* Mencegah tombol melar */
-}
-
-/* Tombol New Folder (Square) */
+/* Fix specific width for new folder button */
 #btn-add-group {
     width: 36px;
-    height: 36px;
     padding: 0;
 }
 
-/* Hover State (Floating Up) */
+/* --- 2. HOVER STATE (Soft Lift Up) --- */
 .panel-actions button:hover,
 #btn-add-group:hover {
     background-color: var(--btn-hover-bg) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    
+    /* Naik sedikit saja tapi smooth */
+    transform: translateY(-3px); 
+    
+    /* Shadow yang melebar halus */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
     border-color: rgba(0,0,0,0.1);
 }
 
-/* Active State (Pressed) */
+/* --- 3. ACTIVE STATE (Click) --- */
 .panel-actions button:active,
 #btn-add-group:active {
+    transform: scale(0.96) translateY(0); /* Efek tekan yang nyata */
     background-color: var(--btn-active-bg) !important;
-    transform: translateY(0);
     box-shadow: none;
+    transition-duration: 0.1s; /* Reset cepat saat dilepas */
 }
 
 .panel-close-btn {
@@ -144,42 +151,61 @@
   gap: 8px;
 }
 
-/* --- Compact Location Card --- */
+/* --- 1. BASE STYLE (Static, No Movement) --- */
 .location-item {
-    /* Compact Padding */
+    /* Layout */
     padding: 10px 12px;
     margin-bottom: 6px;
-
-    /* Theme & Border */
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    border-left: 4px solid transparent; /* Border kiri tebal (placeholder) */
-    box-shadow: var(--card-shadow);
-    cursor: pointer;
-
-    /* Layout & Animation */
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transition: all 0.2s ease;
-    will-change: transform, height, margin;
-    opacity: 0;
-    transform: translateX(-20px);
-    animation: slideIn 0.6s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+    
+    /* Visual Dasar */
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    
+    /* BORDER SETUP: Kiri Tebal Transparan (Placeholder) */
+    border: 1px solid var(--card-border);
+    border-left: 4px solid transparent; 
+    
+    /* Interaction */
+    cursor: pointer;
+    /* Transisi smooth untuk warna, matikan transisi transform */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
+/* --- 2. HOVER STATE (Super Bright & Clean) --- */
 .location-item:hover {
-  background: var(--btn-hover-bg);
-  transform: scale(1.01);
-  box-shadow: var(--card-shadow);
+    /* Sangat tipis (1.5%), hampir putih */
+    background-color: rgba(0, 0, 0, 0.015) !important; 
+    
+    /* Pastikan border kiri TETAP TRANSPARAN */
+    border-left-color: transparent !important;
+    
+    /* Pastikan tidak ada gerakan */
+    transform: none !important;
+    
+    /* Shadow tetap standar */
+    box-shadow: var(--card-shadow) !important;
 }
 
+/* --- 3. ACTIVE STATE: Muncul Border Biru --- */
 .location-item.active {
-  border-color: var(--primary);
-  background: var(--card-bg);
-  box-shadow: var(--card-shadow);
-  outline: none;
+    background-color: var(--btn-hover-bg);
+    border-left-color: #007AFF !important;
+    transform: none; 
+}
+
+/* --- 4. DARK MODE HOVER (Subtle Lighten) --- */
+[data-theme="dark"] .location-item:hover {
+    /* Sesuaikan juga agar tidak terlalu kontras */
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-left-color: transparent !important;
+}
+
+[data-theme="dark"] .location-item.active {
+    border-left-color: #0A84FF !important;
 }
 
 /* Container Teks (Kiri) */
