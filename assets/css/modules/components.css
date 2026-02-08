@@ -70,65 +70,67 @@
     margin-bottom: 8px;
 }
 
-/* --- 1. BUTTON BASE STYLE (Smoother Physics) --- */
+/* =========================
+   SIDEBAR BUTTONS (Animation Upgrade Only)
+   ========================= */
+
+/* --- 1. BASE STYLE (Keep Size, Upgrade Physics) --- */
 .panel-actions button,
 #btn-add-group {
-    /* Layout & Visuals */
-    height: 36px;
-    display: flex;
+    /* DIMENSI TETAP (Jangan Diubah) */
+    height: 36px; 
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
     
-    /* Theme Colors */
+    /* VISUAL UPGRADE (Solid White + Smooth Shadow) */
     background-color: var(--card-bg) !important;
     border: 1px solid var(--card-border);
-    box-shadow: var(--card-shadow);
     color: var(--text-primary) !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* Shadow awal halus */
     
-    /* Typography & Spacing */
-    font-size: 13px;
-    font-weight: 500;
-    padding: 0 12px;
+    /* NEW PHYSICS (Kunci kehalusan) */
     cursor: pointer;
-    
-    /* ANIMATION PHYSICS (KEY FIX) */
-    /* Pisahkan transisi agar lebih lambat & smooth */
-    transition: 
-        transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), 
-        background-color 0.2s ease,
-        box-shadow 0.3s ease,
-        border-color 0.2s ease;
-        
-    will-change: transform; /* Paksa GPU rendering agar ultra-smooth */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    will-change: transform, box-shadow;
 }
 
-/* Fix specific width for new folder button */
+/* Fix khusus tombol kotak (New Folder) */
 #btn-add-group {
     width: 36px;
     padding: 0;
 }
 
-/* --- 2. HOVER STATE (Soft Lift Up) --- */
+/* --- 2. HOVER EFFECT (The "Lift Up" Feel) --- */
 .panel-actions button:hover,
 #btn-add-group:hover {
-    background-color: var(--btn-hover-bg) !important;
+    /* Gerakan Naik (Sama seperti Dark Mode) */
+    transform: translateY(-2px);
     
-    /* Naik sedikit saja tapi smooth */
-    transform: translateY(-3px); 
+    /* Shadow Melebar & Lembut */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    border-color: rgba(0,0,0,0.05);
     
-    /* Shadow yang melebar halus */
-    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-    border-color: rgba(0,0,0,0.1);
+    /* FIX: Gunakan Variabel (Kunci kompatibilitas Dark Mode) */
+    background-color: var(--btn-secondary-bg) !important; 
+    z-index: 5;
 }
 
-/* --- 3. ACTIVE STATE (Click) --- */
+/* --- 3. ACTIVE STATE (Click Feel) --- */
 .panel-actions button:active,
 #btn-add-group:active {
-    transform: scale(0.96) translateY(0); /* Efek tekan yang nyata */
-    background-color: var(--btn-active-bg) !important;
+    transform: scale(0.96) translateY(0); /* Efek membal */
     box-shadow: none;
-    transition-duration: 0.1s; /* Reset cepat saat dilepas */
+    background-color: var(--btn-hover-bg) !important;
+}
+
+/* --- 4. DARK MODE (Keep Existing Glassy Style) --- */
+/* Pastikan Dark Mode tetap aman dan konsisten animasinya */
+[data-theme="dark"] .panel-actions button:hover,
+[data-theme="dark"] #btn-add-group:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
 .panel-close-btn {
@@ -171,40 +173,52 @@
     
     /* Interaction */
     cursor: pointer;
-    /* Transisi smooth untuk warna, matikan transisi transform */
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    
+    /* SMOOTH TRANSITION: "Lampu menyala perlahan" effect */
+    /* Menggunakan cubic-bezier yang lembut untuk dimming in effect */
+    transition: 
+        background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- 2. HOVER STATE (Super Bright & Clean) --- */
+/* --- 2. HOVER STATE (Neutral Gray) --- */
 .location-item:hover {
-    /* Sangat tipis (1.5%), hampir putih */
-    background-color: rgba(0, 0, 0, 0.015) !important; 
+    /* Abu-abu sangat tipis, sekadar feedback kursor */
+    background-color: rgba(0, 0, 0, 0.02) !important;
     
-    /* Pastikan border kiri TETAP TRANSPARAN */
+    /* Border kiri tetap diam/transparan */
     border-left-color: transparent !important;
     
-    /* Pastikan tidak ada gerakan */
+    /* Tidak ada gerakan */
     transform: none !important;
-    
-    /* Shadow tetap standar */
-    box-shadow: var(--card-shadow) !important;
 }
 
-/* --- 3. ACTIVE STATE: Muncul Border Biru --- */
+/* --- 3. ACTIVE STATE (Distinct Blue Tint) --- */
 .location-item.active {
-    background-color: var(--btn-hover-bg);
+    /* Biru lebih terang (8%) - Beda jauh dengan hover abu-abu */
+    background-color: rgba(0, 122, 255, 0.08) !important;
+    
+    /* Indikator Border Kiri Nyala */
     border-left-color: #007AFF !important;
-    transform: none; 
+    
+    /* Pastikan border sisi lain tetap standar */
+    border-top-color: var(--card-border) !important;
+    border-right-color: var(--card-border) !important;
+    border-bottom-color: var(--card-border) !important;
+    
+    transform: none !important;
 }
 
-/* --- 4. DARK MODE HOVER (Subtle Lighten) --- */
+/* --- 4. DARK MODE HOVER --- */
 [data-theme="dark"] .location-item:hover {
-    /* Sesuaikan juga agar tidak terlalu kontras */
-    background-color: rgba(255, 255, 255, 0.04) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important; /* Abu terang dikit */
     border-left-color: transparent !important;
 }
 
+/* --- DARK MODE ACTIVE (Biru Neon Transparan) --- */
 [data-theme="dark"] .location-item.active {
+    background-color: rgba(10, 132, 255, 0.15) !important;
     border-left-color: #0A84FF !important;
 }
 
@@ -674,8 +688,7 @@
 /* =========================
    MODAL & FORMS
    ========================= */
-/* Definisi Keyframes */
-/* Definisi Keyframes */
+
 /* 1. Animasi Background (Overlay) - HANYA Blur & Opacity */
 @keyframes fadeBackdrop {
     from { 
@@ -744,18 +757,12 @@
 }
 
 .modal {
-  /* Animasi Kotak: POP UP */
-  /* Triggered via parent .open */
-  
-  /* Pastikan style modal content rapi */
   background: var(--modal-bg);
   padding: 24px;
   border-radius: 16px;
   box-shadow: var(--modal-shadow);
   max-width: 400px;
   width: 90%;
-  
-  /* Initial state for animation */
   opacity: 0; 
   color: var(--text-main);
   border: 1px solid var(--divider-color);
@@ -786,7 +793,6 @@
   margin: 0;
 }
 
-/* Container Tombol */
 /* Container Tombol */
 .modal-actions {
     display: flex;
@@ -1686,4 +1692,3 @@
     color: #0A84FF;
     font-weight: 600;
 }
-

@@ -54,7 +54,16 @@
   /* Card & UI Consistency */
   --card-bg: #FFFFFF;
   --card-border: rgba(0, 0, 0, 0.05); /* Border super tipis */
-  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Shadow halus */
+  /* Bayangan Berlapis yang Sangat Halus (Smooth Depth) */
+  --card-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.02),
+      0 8px 16px rgba(0, 0, 0, 0.03);
+  
+  /* Sidebar Container Shadow (Multi-layered, macOS-style) */
+  /* Layer 1: Definisi tajam tipis, Layer 2: Sebaran luas lembut */
+  --sidebar-shadow-smooth: 
+      1px 0 4px rgba(0, 0, 0, 0.03), 
+      6px 0 24px rgba(0, 0, 0, 0.08);
   
   --btn-secondary-bg: #F2F2F7;       /* System Gray 6 */
   --btn-hover-bg: #E5E5EA;           /* System Gray 5 (Hover) */
@@ -100,7 +109,15 @@
   /* Card & UI Consistency */
   --card-bg: #1C1C1E;
   --card-border: rgba(255, 255, 255, 0.1);
-  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  /* Bayangan Berlapis Dark Mode */
+  --card-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.2),
+      0 8px 16px rgba(0, 0, 0, 0.3);
+  
+  /* Dark Mode Sidebar Shadow */
+  --sidebar-shadow-smooth: 
+      1px 0 4px rgba(0, 0, 0, 0.1), 
+      8px 0 32px rgba(0, 0, 0, 0.4);
   
   --btn-secondary-bg: #2C2C2E;
   --btn-hover-bg: #3A3A3C;
