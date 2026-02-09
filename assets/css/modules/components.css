@@ -1895,10 +1895,20 @@
 
 /* Dark Mode Support */
 [data-theme="dark"] .location-actions-menu {
-    background: rgba(40, 40, 42, 0.9);
-    border-color: rgba(255,255,255,0.1);
+    /* Make background lighter/more visible, similar to light mode card but dark themed */
+    background: rgba(44, 44, 46, 0.95); /* Slightly lighter than before */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5); /* Stronger shadow for depth */
 }
 
-[data-theme="dark"] .dropdown-btn:hover {
-    background: rgba(255,255,255,0.1);
+/* Fix delete hover not showing red in dark mode due to specificity */
+[data-theme="dark"] .dropdown-item.delete:hover {
+    background: #ff3b30 !important; /* Force red background */
+    color: white !important;
+}
+
+[data-theme="dark"] .dropdown-btn:hover,
+[data-theme="dark"] .location-actions .btn-icon-sm:hover {
+    background: transparent !important;
+    color: #FFFFFF;
 }
