@@ -3,7 +3,17 @@ node_modules/
 
 # Build output
 dist/
+build/
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Private Scripts & Secrets
+*.bat
+.env
+.env.local
+
+# IDE / Editor
+.vscode/
+.idea/
