@@ -6,14 +6,20 @@ import { CustomTooltip } from './components/tooltip.js';
 import { LayerSwitcher } from './core/layers.js';
 import type { Location, Group, POI, LngLat, SearchFeature } from './types/types';
 
+// React Imports
+import React from 'react';
+import { createRoot, Root } from 'react-dom/client';
+import { App as ReactApp } from './components/react/App.js';
+
 class App {
     private store: Store;
     private map: MapEngine;
     private nav: Navigation;
     private layers: LayerSwitcher;
     private tooltip: CustomTooltip;
+    private reactRoot: Root | null = null;
     private selectedLocation: Location | null = null;
-
+    
     constructor() {
         this.store = new Store();
         this.map = new MapEngine('map-container');
@@ -25,6 +31,12 @@ class App {
     }
 
     private initUI(): void {
+        // Initialize React Root
+        const listContainer = document.getElementById('location-list');
+        if (listContainer) {
+            this.reactRoot = createRoot(listContainer);
+        }
+
         this.renderList();
         this.setupModal();
         this.setupSidebar();
@@ -32,7 +44,7 @@ class App {
         this.setupSearch();
         this.setupSettings();
         this.setupScrollbarBehavior();
-
+        
         // POI Click Handler
         this.map.onPOIClick((poi: POI) => {
             const popupHtml = `
@@ -103,11 +115,14 @@ class App {
 
         // Map click for form filling
         this.map.onClick(async (lngLat: LngLat) => {
-            const modal = document.getElementById('modal-overlay');
+            const modal = document.getElementById('modal-overlay'); // Ensure consistent ID usage
+            // OR document.getElementById('location-modal') as used in showLocationModal
+            // Check if ANY modal is open
+            const openModal =document.querySelector('.modal-overlay.open');
             
-            if (modal?.classList.contains('open')) {
-                const lngInput = document.getElementById('loc-lng') as HTMLInputElement;
-                const latInput = document.getElementById('loc-lat') as HTMLInputElement;
+            if (openModal && openModal.id === 'location-modal') {
+                const lngInput = document.getElementById('modal-lng') as HTMLInputElement;
+                const latInput = document.getElementById('modal-lat') as HTMLInputElement;
                 
                 if (lngInput) lngInput.value = lngLat.lng.toFixed(6);
                 if (latInput) latInput.value = lngLat.lat.toFixed(6);
@@ -115,8 +130,8 @@ class App {
                 notify.show('Fetching address...', 'info');
                 const feature = await this.map.reverseGeocode(lngLat.lng, lngLat.lat);
                 if (feature) {
-                    const nameInput = document.getElementById('loc-name') as HTMLInputElement;
-                    const descInput = document.getElementById('loc-desc') as HTMLInputElement;
+                    const nameInput = document.getElementById('modal-name') as HTMLInputElement;
+                    const descInput = document.getElementById('modal-desc') as HTMLInputElement;
                     
                     if (nameInput) nameInput.value = feature.place_name || feature.text;
                     const context = feature.context ? feature.context.map(c => c.text).join(', ') : '';
@@ -128,194 +143,64 @@ class App {
         });
     }
 
+    // --- React Integration ---
+    private renderList(): void {
+        if (!this.reactRoot) return;
+
+        const groups = this.store.getGroups();
+        const locations = this.store.getAll();
+
+        this.reactRoot.render(
+            <ReactApp 
+                initialGroups={groups}
+                initialLocations={locations}
+                onAssignLocationToGroup={(location, groupId) => {
+                    this.store.assignLocationToGroup(location.id, groupId);
+                    this.renderList(); // Re-render to update UI
+                }}
+                onFlyTo={(id) => {
+                    const loc = this.store.getAll().find(l => l.id === id);
+                    if (loc) {
+                        this.map.flyTo({ lng: loc.lng, lat: loc.lat });
+                        notify.show(`Viewing ${loc.name}`, 'info');
+                    }
+                }}
+                onEdit={(id) => {
+                    this.editLocation(id);
+                }}
+                onDelete={(id) => {
+                    const loc = this.store.getAll().find(l => l.id === id);
+                    if (loc) {
+                         const content = document.createElement('div');
+                         content.style.marginTop = '16px';
+                         content.innerHTML = `
+                            <p class="modal-desc">Are you sure you want to delete <strong>${loc.name}</strong>? This action cannot be undone.</p>
+                         `;
+                         
+                         this.createModal('Delete Location', content, () => {
+                             this.deleteLocation(loc.id);
+                             // notification handled in deleteLocation
+                         }, 'Delete', true);
+                    }
+                }}
+                onToggleVisibility={(id) => {
+                    this.toggleVisibility(id);
+                }}
+                onDeleteGroup={(group) => {
+                    this.showDeleteGroupModal(group);
+                }}
+                onRenameGroup={(group) => {
+                    this.showRenameGroupModal(group);
+                }}
+            />
+        );
+    }
+
     private setupDataManagement(): void {
         const btnExport = document.getElementById('btn-export');
         const btnImport = document.getElementById('btn-import');
         const fileImport = document.getElementById('file-import') as HTMLInputElement;
-        const listEl = document.getElementById('location-list');
-        const globalMenu = document.getElementById('global-context-menu');
-
-        const closeGlobalMenu = (): void => {
-            const menu = document.getElementById('global-context-menu');
-            if (!menu || !menu.classList.contains('active')) return;
-
-            menu.classList.add('closing');
-            menu.classList.remove('active');
-            menu.dataset.currentId = '';
-            
-            const onEnd = () => {
-                menu.classList.remove('closing');
-                menu.classList.add('hidden');
-                menu.removeEventListener('animationend', onEnd);
-            };
-            menu.addEventListener('animationend', onEnd, { once: true });
-        };
-
-        const handleAction = (e: Event): void => {
-            const target = e.target as HTMLElement;
-            const btnNav = target.closest('.js-nav');
-            const btnEdit = target.closest('.js-edit');
-            const btnDelete = target.closest('.js-delete');
-            const btnToggle = target.closest('.js-toggle-visibility');
-            const btnMenu = target.closest('.js-menu');
-            const btnMove = target.closest('.js-move-group');
-            const item = target.closest('.location-item') as HTMLElement;
-
-            if (btnNav) {
-                e.stopPropagation();
-                const id = (btnNav as HTMLElement).dataset.id;
-                const loc = this.store.getAll().find(l => l.id === id);
-                if (loc) {
-                    this.map.flyTo({ lng: loc.lng, lat: loc.lat });
-                    notify.show(`Viewing ${loc.name}`, 'info');
-                }
-                return;
-            }
-
-            if (btnEdit) {
-                e.stopPropagation();
-                const id = (btnEdit as HTMLElement).dataset.id;
-                const loc = this.store.getAll().find(l => l.id === id);
-                if (loc) this.showLocationModal('edit', loc);
-                return;
-            }
-
-            if (btnDelete) {
-                e.stopPropagation();
-                const id = (btnDelete as HTMLElement).dataset.id;
-                const loc = this.store.getAll().find(l => l.id === id);
-                
-                if (loc) {
-                     const content = document.createElement('div');
-                     content.style.marginTop = '16px';
-                     content.innerHTML = `
-                        <p class="modal-desc">Are you sure you want to delete <strong>${loc.name}</strong>? This action cannot be undone.</p>
-                     `;
-                     
-                     this.createModal('Delete Location', content, () => {
-                         this.deleteLocation(loc.id);
-                         notify.show('Location deleted', 'success');
-                     }, 'Delete', true);
-                }
-                closeGlobalMenu();
-                return;
-            }
-
-            if (btnMove) {
-                e.stopPropagation();
-                const locId = (btnMove as HTMLElement).dataset.id;
-                const groupId = (btnMove as HTMLElement).dataset.groupId;
-                if (locId) {
-                    this.store.assignLocationToGroup(locId, groupId || null);
-                    this.renderList();
-                    notify.show(groupId ? 'Moved to folder' : 'Removed from folder', 'success');
-                }
-                closeGlobalMenu();
-                return;
-            }
-
-            if (btnToggle) {
-                e.stopPropagation();
-                const id = (btnToggle as HTMLElement).dataset.id;
-                if (id) this.toggleVisibility(id);
-                closeGlobalMenu();
-                return;
-            }
-
-            if (btnMenu) {
-                e.stopPropagation();
-                const id = (btnMenu as HTMLElement).dataset.id;
-                const menu = document.getElementById('global-context-menu');
-                
-                if (menu?.classList.contains('active') && menu.dataset.currentId === id) {
-                    closeGlobalMenu();
-                    return;
-                }
-
-                if (menu && id) {
-                    menu.classList.remove('hidden', 'closing');
-                    menu.dataset.currentId = id;
-                    
-                    const loc = this.store.getAll().find(l => l.id === id);
-                    const isHidden = loc ? loc.hidden : false;
-                    
-                    const eyeIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-                    const eyeOffIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
-
-                    const groups = this.store.getGroups();
-                    let groupOptions = '';
-                    
-                    if (groups.length > 0) {
-                        const groupItems = groups.map(g => {
-                            const isCurrent = loc && loc.groupId === g.id;
-                            return `<button class="dropdown-item js-move-group" data-id="${id}" data-group-id="${g.id}">
-                                ${isCurrent ? '✓ ' : ''}Move to ${g.name}
-                            </button>`;
-                        }).join('');
-                        
-                        const removeGroupItem = loc && loc.groupId ? 
-                            `<button class="dropdown-item js-move-group" data-id="${id}" data-group-id="">Remove from Folder</button>` : '';
-
-                        groupOptions = `
-                                       ${groupItems}
-                                       ${removeGroupItem}
-                                       <div class="dropdown-divider"></div>`;
-                    }
-
-                    menu.innerHTML = `
-                        ${groupOptions}
-                        <button class="dropdown-item js-toggle-visibility" data-id="${id}">
-                            ${isHidden ? eyeIcon : eyeOffIcon}
-                            ${isHidden ? 'Show on Map' : 'Hide from Map'}
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item js-delete" data-id="${id}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            Delete
-                        </button>
-                    `;
-
-                    const rect = (btnMenu as HTMLElement).getBoundingClientRect();
-                    menu.style.display = 'block';
-                    void menu.offsetWidth;
-                    menu.classList.add('active');
-                    
-                    let top = rect.bottom + 4;
-                    let left = rect.right - 150;
-                    if (left < 10) left = rect.left;
-                    
-                    menu.style.top = `${top}px`;
-                    menu.style.left = `${left}px`;
-                    
-                    const originX = rect.right - left;
-                    menu.style.transformOrigin = `${originX}px top`;
-                }
-                return;
-            }
-
-            if (item && !btnNav && !btnEdit && !btnDelete && !btnMenu && !target.closest('.dropdown-menu')) {
-                const id = item.dataset.id;
-                const loc = this.store.getAll().find(l => l.id === id);
-                if (loc) {
-                    this.map.flyTo({ lng: loc.lng, lat: loc.lat });
-                }
-            }
-        };
-
-        document.addEventListener('click', (e: Event) => {
-            const target = e.target as HTMLElement;
-            if (!target.closest('.dropdown-menu') && !target.closest('.js-menu')) {
-                closeGlobalMenu();
-            }
-        });
-
-        if (listEl) listEl.addEventListener('click', handleAction);
-        if (globalMenu) globalMenu.addEventListener('click', handleAction);
-
-        // Delete Dialog - REMOVED (Replaced by createModal)
-        // const deleteDialog = document.getElementById('delete-dialog-overlay');
-        // ... (Cleanup old listeners to avoid errors if elements exist but unused)
-
+        
         // Export/Import
         if (btnExport) {
             btnExport.addEventListener('click', () => {
@@ -349,21 +234,15 @@ class App {
                         const result = event.target?.result;
                         if (typeof result === 'string') {
                             let data;
-                            
-                            // LOGIKA DETEKSI FORMAT (JSON vs CSV)
                             if (result.trim().startsWith('[') || result.trim().startsWith('{')) {
-                                // Coba parse sebagai JSON
                                 data = JSON.parse(result);
                             } else {
-                                // Jika bukan JSON, asumsikan CSV
                                 data = this.csvToJson(result);
                             }
 
-                            
-                            // Auto-create Group from filename
                             let tempGroupId: string | undefined;
                             if (file && file.name) {
-                                const groupName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                                const groupName = file.name.replace(/\.[^/.]+$/, ""); 
                                 const newGroup = this.store.addGroup(groupName);
                                 tempGroupId = newGroup.id;
                             }
@@ -388,7 +267,7 @@ class App {
                     }
                 };
                 reader.readAsText(file);
-                fileImport.value = ''; // Reset input agar bisa upload file yang sama lagi
+                fileImport.value = ''; 
             });
         }
     }
@@ -396,6 +275,7 @@ class App {
     private createModal(title: string, contentUi: HTMLElement, onSave: () => void, saveText: string = 'Save', isDestructive: boolean = false): void {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay open';
+        // Give generic modals an ID if needed, or rely on class logic
         
         const modalContent = document.createElement('div');
         modalContent.className = 'modal';
@@ -470,7 +350,6 @@ class App {
     }
 
     private showAddGroupModal(): void {
-        // 1. Siapkan konten HTML form
         const content = document.createElement('div');
         content.style.marginTop = '16px';
         content.innerHTML = `
@@ -480,7 +359,6 @@ class App {
             </div>
         `;
         
-        // 2. Panggil Helper createModal
         this.createModal('New Folder', content, () => {
             const input = content.querySelector('#new-group-name') as HTMLInputElement;
             const name = input ? input.value.trim() : '';
@@ -490,9 +368,8 @@ class App {
                 this.renderList();
                 notify.show('Folder created successfully', 'success');
             }
-        }, 'Create Folder'); // Teks tombol save
+        }, 'Create Folder'); 
         
-        // 3. Auto-focus ke input setelah modal muncul (Opsional, UX bagus)
         setTimeout(() => {
             const input = content.querySelector('input');
             if (input) input.focus();
@@ -507,15 +384,12 @@ class App {
         `;
         
             this.createModal('Delete Folder', content, () => {
-                // 1. Get all locations in this group first
                 const locationsToRemove = this.store.getAll().filter(l => l.groupId === group.id);
                 
-                // 2. Remove markers visually
                 locationsToRemove.forEach(loc => {
                     this.map.removeMarker(loc.id);
                 });
 
-                // 3. Delete group (locations will be auto-deleted by store logic due to cascade delete)
                 this.store.deleteGroup(group.id);
                 
                 this.renderList();
@@ -530,14 +404,11 @@ class App {
         
         const groups = this.store.getGroups();
         
-        // --- CUSTOM DROPDOWN LOGIC PREP ---
-        // Determine initial selected group
         let selectedGroupId = location?.groupId || '';
         const initialGroupName = selectedGroupId 
             ? groups.find(g => g.id === selectedGroupId)?.name 
             : 'Uncategorized';
 
-        // Build Options HTML
         const optionsHtml = [
             `<div class="custom-option ${selectedGroupId === '' ? 'selected' : ''}" data-value="">Uncategorized</div>`,
             ...groups.map(g => 
@@ -571,7 +442,6 @@ class App {
 
                 <div class="form-group">
                     <label>Folder / Group</label>
-                    <!-- Custom Select Markup -->
                     <div class="custom-select-wrapper" id="modal-group-wrapper">
                         <div class="custom-select-trigger" id="modal-group-trigger">
                             <span>${initialGroupName}</span>
@@ -591,14 +461,12 @@ class App {
 
         document.body.appendChild(modal);
 
-        // --- ELEMENTS ---
         const btnCancel = modal.querySelector('#btn-modal-cancel');
         const btnSave = modal.querySelector('#btn-modal-save');
         const nameInput = modal.querySelector('#modal-name') as HTMLInputElement;
         const latInput = modal.querySelector('#modal-lat') as HTMLInputElement;
         const lngInput = modal.querySelector('#modal-lng') as HTMLInputElement;
         
-        // Custom Dropdown Elements
         const dropdownWrapper = modal.querySelector('#modal-group-wrapper') as HTMLElement;
         const dropdownTrigger = modal.querySelector('#modal-group-trigger') as HTMLElement;
         const dropdownOptions = modal.querySelector('.custom-options') as HTMLElement;
@@ -606,30 +474,24 @@ class App {
 
         nameInput.focus();
 
-        // --- DROPDOWN EVENT LISTENERS ---
         dropdownTrigger.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdownWrapper.classList.toggle('open');
         });
 
-        // Option Selection
         dropdownOptions.querySelectorAll('.custom-option').forEach(option => {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // Update selection state
                 dropdownOptions.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
                 option.classList.add('selected');
 
-                // Update Logic
                 selectedGroupId = (option as HTMLElement).dataset.value || '';
                 triggerSpan.textContent = option.textContent;
                 
-                // Close
                 dropdownWrapper.classList.remove('open');
             });
         });
 
-        // Close when clicking outside
         const closeDropdown = (e: Event) => {
             if (!dropdownWrapper.contains(e.target as Node)) {
                 dropdownWrapper.classList.remove('open');
@@ -638,7 +500,6 @@ class App {
         document.addEventListener('click', closeDropdown);
 
 
-        // --- MODAL ACTIONS ---
         const cleanup = () => {
             document.removeEventListener('click', closeDropdown);
             modal.classList.add('closing');
@@ -658,7 +519,6 @@ class App {
                 return;
             }
 
-            // Get Lat/Lng from inputs
             const lat = parseFloat(latInput.value);
             const lng = parseFloat(lngInput.value);
             
@@ -667,7 +527,6 @@ class App {
                     return;
             }
 
-            // Check Lat/Lng validity range
             if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
                  notify.show('Coordinates out of range', 'error');
                  return;
@@ -699,11 +558,10 @@ class App {
                      groupId: selectedGroupId || undefined 
                  });
 
-                 // Re-add marker with new position
                  this.map.addMarker(
                     location.id,
                     { lng, lat },
-                    { onClick: () => this.onMarkerClick({ ...location, lat, lng, name, desc }) } // Optimistic update
+                    { onClick: () => this.onMarkerClick({ ...location, lat, lng, name, desc }) }
                  );
 
                  notify.show('Location updated successfully', 'success');
@@ -718,28 +576,23 @@ class App {
         const lines = csv.split('\n').filter(line => line.trim() !== '');
         if (lines.length === 0) return [];
 
-        // 1. Auto-Detect Delimiter (Cek baris pertama)
         const firstLine = lines[0];
         const semicolonCount = (firstLine.match(/;/g) || []).length;
         const commaCount = (firstLine.match(/,/g) || []).length;
         
-        // Pilih yang lebih banyak muncul
         const delimiter = semicolonCount > commaCount ? ';' : ',';
 
-        // 2. Parse Headers
         const headers = firstLine.split(delimiter).map(h => h.trim().toLowerCase().replace(/['"\r]+/g, ''));
         
         const hasHeader = headers.includes('lat') && headers.includes('lng');
         const dataRows = hasHeader ? lines.slice(1) : lines;
         
         return dataRows.map(line => {
-            // Gunakan delimiter yang sudah dideteksi
             const values = line.split(delimiter).map(v => v.trim().replace(/^"|"$/g, ''));
             
             if (hasHeader) {
                 const obj: any = {};
                 headers.forEach((h, i) => {
-                    // Hindari error jika values kurang dari headers
                     if (values[i] !== undefined) {
                         obj[h] = values[i];
                     }
@@ -816,8 +669,6 @@ class App {
         const settingsMenu = document.getElementById('settings-menu');
         const toggleDarkMode = document.getElementById('dark-mode-toggle') as HTMLInputElement;
         
-        // Load Saved Theme
-        // Load Saved Theme
         const savedTheme = localStorage.getItem('theme');
         const isDark = savedTheme === 'dark';
 
@@ -826,48 +677,33 @@ class App {
             if (toggleDarkMode) toggleDarkMode.checked = true;
         }
 
-        // Tunggu map benar-benar loaded dengan handling race condition (via wrapper)
         this.map.onReady(() => {
-             console.log('MapEngine Ready: syncing dark mode:', isDark);
              this.map.syncWithDarkMode(isDark);
         });
 
-        // Toggle Menu
         if (btnSettings && settingsMenu) {
-            console.log('Settings Setup: Elements found');
             btnSettings.addEventListener('click', (e: Event) => {
-                console.log('Settings Button Clicked!');
                 e.stopPropagation();
                 
                 settingsMenu.classList.toggle('active');
                 if (settingsMenu.classList.contains('active')) {
                     settingsMenu.classList.remove('hidden');
-                } else {
-                    // Small timeout to allow animation to play before hiding if we were doing display:none
-                    // But here we rely on opacity, so just toggle active is mostly enough.
-                    // However, user prompt explicitly mentioned 'hidden' class usage or start state.
-                    // The CSS handles opacity. ensuring 'hidden' is removed when active is crucial if hidden does display:none.
                 }
 
                 btnSettings.classList.toggle('active');
             });
 
-            // Close when clicking outside
             document.addEventListener('click', (e: Event) => {
                 const target = e.target as HTMLElement;
                 if (!settingsMenu.contains(target) && !btnSettings.contains(target)) {
                     if (settingsMenu.classList.contains('active')) {
-                         console.log('Closing settings menu (click outside)');
                          settingsMenu.classList.remove('active');
                          btnSettings.classList.remove('active');
                     }
                 }
             });
-        } else {
-            console.error('Settings Setup: Buttons not found!');
         }
 
-        // Toggle Dark Mode
         if (toggleDarkMode) {
             toggleDarkMode.addEventListener('change', () => {
                 const isDark = toggleDarkMode.checked;
@@ -953,9 +789,6 @@ class App {
             });
         }
 
-
-
-
         if (btnClose) {
             btnClose.addEventListener('click', () => {
                 sidebar?.classList.add('collapsed');
@@ -981,7 +814,6 @@ class App {
             });
         });
 
-        // ResizeObserver to detect overflow availability
         const resizeObserver = new ResizeObserver(() => {
             this.checkScrollbar();
         });
@@ -995,257 +827,11 @@ class App {
     private checkScrollbar(): void {
         const panels = document.querySelectorAll('.panel-content');
         panels.forEach(panel => {
-            // Check if content overflows vertically
             if (panel.scrollHeight > panel.clientHeight) {
                 panel.classList.add('has-scrollbar');
             } else {
                 panel.classList.remove('has-scrollbar');
             }
-        });
-    }
-
-    private renderList(): void {
-        const listEl = document.getElementById('location-list');
-        if (!listEl) return;
-
-        const locations = this.store.getAll();
-        const groups = this.store.getGroups();
-
-        if (locations.length === 0 && groups.length === 0) {
-            listEl.innerHTML = `
-                <div class="empty-state" style="padding: 40px 20px; text-align: center; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; opacity: 0.5;">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <p style="margin: 0; font-weight: 500;">No saved locations</p>
-                    <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.7;">Click the + button to save your first spot.</p>
-                </div>
-            `;
-            return;
-        }
-
-        listEl.innerHTML = '';
-        
-        // --- DRAG & DROP HANDLERS ---
-        const handleDragStart = (e: any) => {
-            e.dataTransfer.setData('text/plain', e.target.dataset.id);
-            e.dataTransfer.effectAllowed = 'move';
-            e.target.classList.add('dragging');
-        };
-
-        const handleDragEnd = (e: any) => {
-            e.target.classList.remove('dragging');
-        };
-
-        const handleDragOver = (e: any) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            
-            // Ensure we target the header or drop zone, not children
-            const target = e.currentTarget; 
-            if (target) {
-                target.classList.add('drag-over');
-            }
-        };
-
-        const handleDragLeave = (e: any) => {
-             const target = e.currentTarget;
-             // Check if we are really leaving the element, not just entering a child
-             // relatedTarget is where the mouse went
-             if (target && !target.contains(e.relatedTarget)) {
-                 target.classList.remove('drag-over');
-             }
-        };
-
-        const handleDropGroup = (e: any) => {
-            e.preventDefault();
-            const header = e.currentTarget;
-            header.classList.remove('drag-over');
-            const locId = e.dataTransfer.getData('text/plain');
-            const groupId = header.dataset.id;
-            
-            if (locId && groupId) {
-                this.store.moveLocation(locId, groupId);
-                this.renderList();
-                notify.show('Location moved to folder', 'success');
-            }
-        };
-
-        const handleDropUncategorized = (e: any) => {
-            e.preventDefault();
-            const zone = e.currentTarget;
-            zone.classList.remove('drag-over');
-            const locId = e.dataTransfer.getData('text/plain');
-            
-            if (locId) {
-                this.store.moveLocation(locId, null); // Move to uncategorized
-                this.renderList();
-                notify.show('Removed from folder', 'success');
-            }
-        };
-
-        // 1. Render Groups
-        groups.forEach(group => {
-            const groupLocs = locations.filter(l => l.groupId === group.id);
-            
-            const groupEl = document.createElement('div');
-            groupEl.className = 'group-item';
-            groupEl.innerHTML = `
-                <div class="group-header js-toggle-group" data-id="${group.id}">
-                    <div style="display:flex;align-items:center;gap:8px;flex:1;">
-                        <svg class="folder-icon ${group.isCollapsed ? '' : 'open'}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        <span class="group-name">${group.name}</span>
-                        <span style="font-size:12px;color:var(--text-secondary);opacity:0.7;">(${groupLocs.length})</span>
-                    </div>
-                    <div class="group-actions">
-                        <button class="btn-icon-sm js-rename-group prop-stop" data-id="${group.id}" data-tooltip="Rename Folder">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button class="btn-icon-sm js-delete-group prop-stop" data-id="${group.id}" data-tooltip="Delete Folder">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="group-content-wrapper ${group.isCollapsed ? '' : 'open'}" id="group-${group.id}">
-                    <div class="group-content-inner">
-                        ${groupLocs.map(loc => this.createLocationItemHTML(loc)).join('')}
-                    </div>
-                </div>
-            `;
-            listEl.appendChild(groupEl);
-            
-            // Allow Drop on Group Header
-            const header = groupEl.querySelector('.group-header');
-            if (header) {
-                header.addEventListener('dragover', handleDragOver);
-                header.addEventListener('dragleave', handleDragLeave);
-                header.addEventListener('drop', handleDropGroup);
-            }
-        });
-
-        // 2. Render Uncategorized
-        const uncategorized = locations.filter(l => !l.groupId);
-        if (uncategorized.length > 0) {
-            const uncategorizedEl = document.createElement('div');
-            uncategorizedEl.className = 'uncategorized-list';
-            if (groups.length > 0) {
-                 uncategorizedEl.style.marginTop = '0px';
-                 uncategorizedEl.style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
-                 uncategorizedEl.style.paddingTop = '6px';
-            }
-            uncategorizedEl.innerHTML = uncategorized.map(loc => this.createLocationItemHTML(loc)).join('');
-            
-            // Add Header for Uncategorized to act as Drop Zone
-            const uncatHeader = document.createElement('div');
-            uncatHeader.className = 'uncategorized-header';
-            uncatHeader.textContent = 'Uncategorized';
-            uncatHeader.style.padding = '8px 12px';
-            uncatHeader.style.fontSize = '12px';
-            uncatHeader.style.fontWeight = '600';
-            uncatHeader.style.color = 'var(--text-secondary)';
-            uncatHeader.style.textTransform = 'uppercase';
-            uncatHeader.style.letterSpacing = '0.5px';
-            
-            // Make Uncategorized Header a Drop Zone
-            uncatHeader.addEventListener('dragover', handleDragOver);
-            uncatHeader.addEventListener('dragleave', handleDragLeave);
-            uncatHeader.addEventListener('drop', handleDropUncategorized);
-
-            if (uncategorizedEl.firstChild) {
-                uncategorizedEl.insertBefore(uncatHeader, uncategorizedEl.firstChild);
-            } else {
-                uncategorizedEl.appendChild(uncatHeader);
-            }
-
-            listEl.appendChild(uncategorizedEl);
-        }
-
-        // Attach Event Listeners for Groups
-        this.attachGroupListeners(listEl);
-        
-        // Attach Drag Events to Items
-        listEl.querySelectorAll('.location-item').forEach(item => {
-            item.addEventListener('dragstart', handleDragStart);
-            item.addEventListener('dragend', handleDragEnd);
-        });
-
-        // Check scrollbar after rendering
-        setTimeout(() => this.checkScrollbar(), 0);
-    }
-
-    private createLocationItemHTML(loc: Location): string {
-        return `
-            <div class="location-item" draggable="true" data-id="${loc.id}">
-                <div class="location-info">
-                    <h3>${loc.name}</h3>
-                    <p>${loc.desc || 'No description'}</p>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="btn-icon js-nav" data-id="${loc.id}" data-tooltip="View on map">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    </button>
-                    <button class="btn-icon js-edit" data-id="${loc.id}" data-tooltip="Edit location">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
-                    <button class="btn-icon js-menu" data-id="${loc.id}" data-tooltip="More options">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    private attachGroupListeners(container: HTMLElement): void {
-        // Toggle Collapse
-        container.querySelectorAll('.js-toggle-group').forEach(el => {
-            el.addEventListener('click', (e) => {
-                const target = e.target as HTMLElement;
-                if (target.closest('.prop-stop')) return;
-                
-                const id = (el as HTMLElement).dataset.id;
-                if (id) {
-                    this.store.toggleGroupCollapse(id);
-                    
-                    // Manual DOM Toggle for smooth animation
-                    const groupWrapper = document.getElementById(`group-${id}`);
-                    const icon = el.querySelector('.folder-icon');
-                    
-                    if (groupWrapper) {
-                        groupWrapper.classList.toggle('open');
-                    }
-                    if (icon) {
-                        icon.classList.toggle('open');
-                    }
-
-                    // Check scrollbar after animation (approx match CSS transition time)
-                    setTimeout(() => this.checkScrollbar(), 450);
-                }
-            });
-        });
-
-        // Rename Group
-        container.querySelectorAll('.js-rename-group').forEach(el => {
-            el.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = (el as HTMLElement).dataset.id;
-                const group = this.store.getGroups().find(g => g.id === id);
-                if (group && id) {
-                    this.showRenameGroupModal(group);
-                }
-            });
-        });
-
-        // Delete Group
-        container.querySelectorAll('.js-delete-group').forEach(el => {
-            el.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = (el as HTMLElement).dataset.id;
-                const group = this.store.getGroups().find(g => g.id === id);
-                if (group && id) {
-                    this.showDeleteGroupModal(group);
-                }
-            });
         });
     }
 
@@ -1290,6 +876,7 @@ class App {
                 );
                 notify.show('Location visible', 'success');
             }
+            this.renderList(); // Force React update to show eye icon change
         }
     }
 
@@ -1322,19 +909,18 @@ class App {
             </div>
         `;
         
-        // Define close handler to reset state
         const handleClosePopup = () => {
             this.selectedLocation = null;
-            const activeItem = document.querySelector('.location-item.active');
-            if (activeItem) {
-                activeItem.classList.remove('active');
-            }
+            // React app handles active state, but here we might want to tell React somehow?
+            // For now, React doesn't know about selection changes initiated by Map.
+            // OPTIONAL: We could pass a prop `selectedId` to ReactApp if we wanted list to highlight.
+            // But we don't have that plumbing yet.
         };
 
         this.map.showPopup(
             { lng: location.lng, lat: location.lat }, 
             popupHtml,
-            handleClosePopup // Pass the close handler
+            handleClosePopup 
         );
 
         setTimeout(() => {
@@ -1355,16 +941,7 @@ class App {
                 });
             }
         }, 50);
-
-        const items = document.querySelectorAll('.location-item');
-        items.forEach(el => el.classList.remove('active'));
-        const activeEl = document.querySelector(`.location-item[data-id="${location.id}"]`);
-        if (activeEl) {
-            activeEl.classList.add('active');
-            activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
     }
 }
-
 
 const app = new App();

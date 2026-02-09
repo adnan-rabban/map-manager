@@ -1,246 +1,622 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Map Manager Pro - A powerful and intuitive map management application for saving, navigating, and organizing locations.">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Map Manager Pro - A powerful and intuitive map management application for saving, navigating, and organizing locations."
+    />
     <title>Map Manager Pro</title>
-    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
-    
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
+
     <!-- Performance Optimization: Preconnect -->
-    <link rel="preconnect" href="https://cdn.maptiler.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.maptiler.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- MapTiler SDK CSS -->
-    <link href="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.css" rel="stylesheet" />
+    <link
+      href="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.css"
+      rel="stylesheet"
+    />
     <!-- Custom CSS -->
-    <link href="assets/css/main.css" rel="stylesheet">
+    <link href="assets/css/main.css" rel="stylesheet" />
     <!-- Google Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-</head>
-<body>
-
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+  </head>
+  <body>
     <div id="app" class="panel-container">
-        <div id="app-loading" style="position:fixed;inset:0;background:#F5F5F7;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;flex-direction:column;gap:15px;transition:opacity 0.5s;">
-             <div style="width:30px;height:30px;border:3px solid #ddd;border-top-color:#007AFF;border-radius:50%;animation:spin 1s linear infinite;"></div>
-             <p style="color:#86868B;font-size:14px;">Loading Map Manager...</p>
-        </div>
-        <style>@keyframes spin {to{transform:rotate(360deg);}}</style>
-        <!-- Map Container -->
-        <div id="map-container"></div>
+      <div
+        id="app-loading"
+        style="
+          position: fixed;
+          inset: 0;
+          background: #f5f5f7;
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: sans-serif;
+          flex-direction: column;
+          gap: 15px;
+          transition: opacity 0.5s;
+        "
+      >
+        <div
+          style="
+            width: 30px;
+            height: 30px;
+            border: 3px solid #ddd;
+            border-top-color: #007aff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          "
+        ></div>
+        <p style="color: #86868b; font-size: 14px">Loading Map Manager...</p>
+      </div>
+      <style>
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      </style>
+      <!-- Map Container -->
+      <div id="map-container"></div>
 
-        <!-- Clear Route Button -->
-        <button id="btn-clear-route" class="btn-clear-route">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-            Clear Route
+      <!-- Clear Route Button -->
+      <button id="btn-clear-route" class="btn-clear-route">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="m15 9-6 6" />
+          <path d="m9 9 6 6" />
+        </svg>
+        Clear Route
+      </button>
+
+      <!-- Navigation Panel (Floating) -->
+      <div id="nav-panel" class="nav-panel">
+        <div class="nav-header">
+          <h2>Directions</h2>
+          <button
+            id="btn-close-nav"
+            class="btn-icon"
+            data-tooltip="Close Navigation"
+            aria-label="Close Navigation"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="m15 9-6 6" />
+              <path d="m9 9 6 6" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="nav-inputs">
+          <div class="input-wrapper">
+            <div class="input-icon start-dot"></div>
+            <input
+              type="text"
+              id="nav-start"
+              placeholder="Start Point"
+              autocomplete="off"
+            />
+            <button
+              id="btn-clear-start"
+              class="btn-input-clear hidden"
+              data-tooltip="Clear"
+              aria-label="Clear"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <button
+              id="btn-my-location"
+              class="btn-icon-inside"
+              data-tooltip="Use My Location"
+              aria-label="Use My Location"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"
+                ></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          <div class="connector-line"></div>
+          <div class="input-wrapper">
+            <div class="input-icon dest-pin"></div>
+            <input
+              type="text"
+              id="nav-dest"
+              placeholder="Destination"
+              autocomplete="off"
+            />
+            <button
+              id="btn-clear-dest"
+              class="btn-input-clear hidden"
+              data-tooltip="Clear"
+              aria-label="Clear"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <!-- Suggestions moved inside for positioning -->
+          <div id="nav-suggestions" class="nav-suggestions hidden"></div>
+        </div>
+
+        <button id="btn-start-nav" class="btn btn-primary btn-block">
+          Start Navigation
         </button>
+      </div>
 
-        <!-- Navigation Panel (Floating) -->
-        <div id="nav-panel" class="nav-panel">
-            <div class="nav-header">
-                <h2>Directions</h2>
-                <button id="btn-close-nav" class="btn-icon" data-tooltip="Close Navigation" aria-label="Close Navigation">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-                </button>
-            </div>
-            
-            <div class="nav-inputs">
-                <div class="input-wrapper">
-                    <div class="input-icon start-dot"></div>
-                    <input type="text" id="nav-start" placeholder="Start Point" autocomplete="off">
-                    <button id="btn-clear-start" class="btn-input-clear hidden" data-tooltip="Clear" aria-label="Clear">
-                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                    <button id="btn-my-location" class="btn-icon-inside" data-tooltip="Use My Location" aria-label="Use My Location">
-                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                </div>
-                <div class="connector-line"></div>
-                <div class="input-wrapper">
-                    <div class="input-icon dest-pin"></div>
-                    <input type="text" id="nav-dest" placeholder="Destination" autocomplete="off">
-                    <button id="btn-clear-dest" class="btn-input-clear hidden" data-tooltip="Clear" aria-label="Clear">
-                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </div>
-                <!-- Suggestions moved inside for positioning -->
-                <div id="nav-suggestions" class="nav-suggestions hidden"></div>
-            </div>
-
-            <button id="btn-start-nav" class="btn btn-primary btn-block">Start Navigation</button>
+      <!-- Toggle Button (Visible when sidebar is closed) -->
+      <button
+        id="btn-open-sidebar"
+        class="btn-toggle-sidebar"
+        data-tooltip="Open Sidebar"
+        aria-label="Open Sidebar"
+      >
+        <div class="icon-panel-left-open-anim">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect
+              width="18"
+              height="18"
+              x="3"
+              y="3"
+              rx="2"
+              ry="2"
+              class="icon-frame"
+            ></rect>
+            <path d="M9 3v18" class="icon-sidebar-line"></path>
+            <path d="m14 9 3 3-3 3" class="icon-chevron"></path>
+          </svg>
         </div>
+      </button>
 
+      <!-- Navigation Toggle Button (New) -->
+      <button
+        id="btn-open-nav"
+        class="btn-toggle-nav"
+        data-tooltip="Directions"
+        aria-label="Directions"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+        </svg>
+      </button>
 
+      <!-- Layer Switcher Button -->
+      <button
+        id="btn-layers"
+        class="btn-toggle-layers"
+        data-tooltip="Map Layers"
+        aria-label="Map Layers"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            class="icon-layers-path1"
+            d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"
+          />
+          <path
+            class="icon-layers-path2"
+            d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"
+          />
+          <path
+            class="icon-layers-path3"
+            d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"
+          />
+        </svg>
+      </button>
 
-        <!-- Toggle Button (Visible when sidebar is closed) -->
-        <button id="btn-open-sidebar" class="btn-toggle-sidebar" data-tooltip="Open Sidebar" aria-label="Open Sidebar">
-             <div class="icon-panel-left-open-anim">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" class="icon-frame"></rect>
-                    <path d="M9 3v18" class="icon-sidebar-line"></path>
-                    <path d="m14 9 3 3-3 3" class="icon-chevron"></path>
+      <!-- Layer Panel -->
+      <div id="layer-panel" class="layer-panel">
+        <h3>Map Style</h3>
+        <div class="layer-grid">
+          <div class="layer-option active" data-style="STREETS">
+            <div class="layer-preview preview-streets"></div>
+            <span>Streets</span>
+          </div>
+          <div class="layer-option" data-style="HYBRID">
+            <div class="layer-preview preview-hybrid"></div>
+            <span>Satellite Hybrid</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Menu -->
+      <button
+        id="btn-settings"
+        class="btn-settings"
+        aria-label="Settings"
+        data-tooltip="Settings"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path>
+          <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path>
+          <path d="M12 2v2"></path>
+          <path d="M12 22v-2"></path>
+          <path d="m17 20.66-1-1.73"></path>
+          <path d="M11 10.27 7 3.34"></path>
+          <path d="m20.66 17-1.73-1"></path>
+          <path d="m3.34 7 1.73 1"></path>
+          <path d="M14 12h8"></path>
+          <path d="M2 12h2"></path>
+          <path d="m20.66 7-1.73 1"></path>
+          <path d="m3.34 17 1.73-1"></path>
+          <path d="m17 3.34-1 1.73"></path>
+          <path d="m11 13.73-4 6.93"></path>
+        </svg>
+      </button>
+
+      <div id="settings-menu" class="settings-menu hidden">
+        <div class="menu-header">Settings</div>
+        <div class="menu-item">
+          <span>Dark Mode</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-mode-toggle" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sidebar Panel -->
+      <div id="sidebar-panel" class="panel">
+        <div class="panel-header">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <h1>Locations</h1>
+            </div>
+            <div id="search-container" class="search-container">
+              <div class="search-input-wrapper">
+                <input
+                  type="text"
+                  id="search-input"
+                  placeholder="Search places..."
+                  autocomplete="off"
+                />
+                <button
+                  id="btn-clear-search"
+                  class="btn-input-clear hidden"
+                  data-tooltip="Clear Search"
+                  aria-label="Clear Search"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <button
+                id="btn-trigger-search"
+                class="btn-input-search"
+                data-tooltip="Search"
+                aria-label="Search"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-             </div>
-        </button>
-        
-        <!-- Navigation Toggle Button (New) -->
-        <button id="btn-open-nav" class="btn-toggle-nav" data-tooltip="Directions" aria-label="Directions">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
-        </button>
-
-        <!-- Layer Switcher Button -->
-        <button id="btn-layers" class="btn-toggle-layers" data-tooltip="Map Layers" aria-label="Map Layers">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path class="icon-layers-path1" d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/>
-                <path class="icon-layers-path2" d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/>
-                <path class="icon-layers-path3" d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>
+              </button>
+              <div id="search-results" class="search-results hidden"></div>
+            </div>
+          </div>
+          <button
+            id="btn-close-sidebar"
+            class="panel-close-btn"
+            data-tooltip="Close Sidebar"
+            aria-label="Close Sidebar"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="m15 9-6 6" />
+              <path d="m9 9 6 6" />
             </svg>
-        </button>
-
-        <!-- Layer Panel -->
-        <div id="layer-panel" class="layer-panel">
-            <h3>Map Style</h3>
-            <div class="layer-grid">
-                <div class="layer-option active" data-style="STREETS">
-                    <div class="layer-preview preview-streets"></div>
-                    <span>Streets</span>
-                </div>
-                <div class="layer-option" data-style="HYBRID">
-                    <div class="layer-preview preview-hybrid"></div>
-                    <span>Satellite Hybrid</span>
-                </div>
-            </div>
+          </button>
         </div>
-
-        <!-- Settings Menu -->
-        <button id="btn-settings" class="btn-settings" aria-label="Settings" data-tooltip="Settings">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path>
-                <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path>
-                <path d="M12 2v2"></path>
-                <path d="M12 22v-2"></path>
-                <path d="m17 20.66-1-1.73"></path>
-                <path d="M11 10.27 7 3.34"></path>
-                <path d="m20.66 17-1.73-1"></path>
-                <path d="m3.34 7 1.73 1"></path>
-                <path d="M14 12h8"></path>
-                <path d="M2 12h2"></path>
-                <path d="m20.66 7-1.73 1"></path>
-                <path d="m3.34 17 1.73-1"></path>
-                <path d="m17 3.34-1 1.73"></path>
-                <path d="m11 13.73-4 6.93"></path>
+        <div class="panel-actions">
+          <button
+            id="btn-export"
+            class="btn btn-secondary btn-sm"
+            data-tooltip="Export Data"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="margin-right: 6px"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-        </button>
+            Export
+          </button>
+          <button
+            id="btn-import"
+            class="btn btn-secondary btn-sm"
+            data-tooltip="Import Data"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="margin-right: 6px"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Import
+          </button>
+          <input
+            type="file"
+            id="file-import"
+            accept=".json,.csv"
+            style="display: none"
+          />
 
-        <div id="settings-menu" class="settings-menu hidden">
-            <div class="menu-header">Settings</div>
-            <div class="menu-item">
-                <span>Dark Mode</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="dark-mode-toggle">
-                    <span class="slider round"></span>
-                </label>
-            </div>
+          <!-- New Folder Button (Moved Here) -->
+          <button id="btn-add-group" data-tooltip="New Folder">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+              ></path>
+              <line x1="12" y1="11" x2="12" y2="17"></line>
+              <line x1="9" y1="14" x2="15" y2="14"></line>
+            </svg>
+          </button>
         </div>
-
-        <!-- Sidebar Panel -->
-        <div id="sidebar-panel" class="panel">
-            <div class="panel-header">
-                <div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <h1>Locations</h1>
-                    </div>
-                    <div id="search-container" class="search-container">
-                        <div class="search-input-wrapper">
-                            <input type="text" id="search-input" placeholder="Search places..." autocomplete="off">
-                            <button id="btn-clear-search" class="btn-input-clear hidden" data-tooltip="Clear Search" aria-label="Clear Search">
-                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-                        </div>
-                        <button id="btn-trigger-search" class="btn-input-search" data-tooltip="Search" aria-label="Search">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        </button>
-                        <div id="search-results" class="search-results hidden"></div>
-                    </div>
-                </div>
-                <button id="btn-close-sidebar" class="panel-close-btn" data-tooltip="Close Sidebar" aria-label="Close Sidebar">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-                </button>
+        <div class="panel-content">
+          <div id="location-list" class="location-list">
+            <!-- Location items injected here by JS -->
+            <div style="padding: 20px; text-align: center; color: #888">
+              No locations yet. Click the + button.
             </div>
-            <div class="panel-actions">
-                <button id="btn-export" class="btn btn-secondary btn-sm" data-tooltip="Export Data">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    Export
-                </button>
-                <button id="btn-import" class="btn btn-secondary btn-sm" data-tooltip="Import Data">
-                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Import
-                </button>
-                <input type="file" id="file-import" accept=".json,.csv" style="display: none;">
-                
-                <!-- New Folder Button (Moved Here) -->
-                <button id="btn-add-group" data-tooltip="New Folder">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
-                </button>
-            </div>
-            <div class="panel-content">
-                <div id="location-list" class="location-list">
-                    <!-- Location items injected here by JS -->
-                    <div style="padding: 20px; text-align: center; color: #888;">
-                        No locations yet. Click the + button.
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Floating Add Button -->
-        <button id="btn-add" class="fab-add" data-tooltip="Add Location" aria-label="Add Location">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
+      <!-- Floating Add Button -->
+      <button
+        id="btn-add"
+        class="fab-add"
+        data-tooltip="Add Location"
+        aria-label="Add Location"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
 
-        <!-- Modal Form -->
-        <div id="modal-overlay" class="modal-overlay">
-            <div class="modal">
-                <h2 style="margin-bottom: 20px;">Add Location</h2>
-                <form id="location-form">
-                    <input type="hidden" id="loc-id">
-                    <div class="form-group">
-                        <label>Name</label>
-                        <input type="text" id="loc-name" class="form-control" required placeholder="e.g. Headquarters">
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <input type="text" id="loc-desc" class="form-control" placeholder="Short description">
-                    </div>
-                    <div class="form-group">
-                        <label>Coordinates (Lat, Lng)</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="number" step="any" id="loc-lat" class="form-control" placeholder="Latitude" required>
-                            <input type="number" step="any" id="loc-lng" class="form-control" placeholder="Longitude" required>
-                        </div>
-                        <small style="color: var(--text-secondary); display: block; margin-top: 5px;">Tip: Click on the map to autofill</small>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button type="button" id="btn-cancel" class="btn btn-secondary">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Location</button>
-                    </div>
-                </form>
+      <!-- Modal Form -->
+      <div id="modal-overlay" class="modal-overlay">
+        <div class="modal">
+          <h2 style="margin-bottom: 20px">Add Location</h2>
+          <form id="location-form">
+            <input type="hidden" id="loc-id" />
+            <div class="form-group">
+              <label>Name</label>
+              <input
+                type="text"
+                id="loc-name"
+                class="form-control"
+                required
+                placeholder="e.g. Headquarters"
+              />
             </div>
+            <div class="form-group">
+              <label>Description</label>
+              <input
+                type="text"
+                id="loc-desc"
+                class="form-control"
+                placeholder="Short description"
+              />
+            </div>
+            <div class="form-group">
+              <label>Coordinates (Lat, Lng)</label>
+              <div style="display: flex; gap: 10px">
+                <input
+                  type="number"
+                  step="any"
+                  id="loc-lat"
+                  class="form-control"
+                  placeholder="Latitude"
+                  required
+                />
+                <input
+                  type="number"
+                  step="any"
+                  id="loc-lng"
+                  class="form-control"
+                  placeholder="Longitude"
+                  required
+                />
+              </div>
+              <small
+                style="
+                  color: var(--text-secondary);
+                  display: block;
+                  margin-top: 5px;
+                "
+                >Tip: Click on the map to autofill</small
+              >
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" id="btn-cancel" class="btn btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Save Location
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
 
     <!-- Custom Delete Dialog -->
     <div id="delete-dialog-overlay" class="modal-overlay">
-        <div class="modal delete-modal">
-            <h2 class="modal-title">Delete Location</h2>
-            <p class="modal-desc">Are you sure you want to delete this location? This action cannot be undone.</p>
-            <div class="modal-footer">
-                <button id="btn-cancel-delete" class="btn btn-outline">Cancel</button>
-                <button id="btn-confirm-delete" class="btn btn-destructive">Delete</button>
-            </div>
+      <div class="modal delete-modal">
+        <h2 class="modal-title">Delete Location</h2>
+        <p class="modal-desc">
+          Are you sure you want to delete this location? This action cannot be
+          undone.
+        </p>
+        <div class="modal-footer">
+          <button id="btn-cancel-delete" class="btn btn-outline">Cancel</button>
+          <button id="btn-confirm-delete" class="btn btn-destructive">
+            Delete
+          </button>
         </div>
+      </div>
     </div>
 
     <!-- Global Context Menu -->
@@ -253,30 +629,49 @@
     <!-- <script src="dist/core/protection.js"></script> -->
 
     <!-- MapTiler SDK JS -->
-    <script defer src="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.umd.js"></script>
-    
+    <script
+      defer
+      src="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.umd.js"
+    ></script>
+
+    <!-- Module Resolution -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom": "https://esm.sh/react-dom@18.2.0?external=react",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?external=react",
+        "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+        "@dnd-kit/core": "https://esm.sh/@dnd-kit/core@6.1.0?external=react,react-dom",
+        "@dnd-kit/utilities": "https://esm.sh/@dnd-kit/utilities@3.2.2?external=react,react-dom",
+        "@dnd-kit/modifiers": "https://esm.sh/@dnd-kit/modifiers@7.0.0?external=react,react-dom",
+        "@dnd-kit/sortable": "https://esm.sh/@dnd-kit/sortable@8.0.0?external=react,react-dom"
+      }
+    }
+    </script>
+
     <!-- Application Logic -->
     <script type="module">
-        import './dist/app.js';
-        
-        // Remove loading screen when everything is ready
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const loader = document.getElementById('app-loading');
-                if(loader) {
-                    loader.style.opacity = '0';
-                    setTimeout(() => loader.remove(), 500);
-                }
-            }, 500);
-        });
+      import "./dist/app.js";
 
-        // Error handling
-        window.addEventListener('error', (e) => {
-             const loader = document.getElementById('app-loading');
-             if(loader) {
-                 loader.innerHTML = `<p style="color:red;padding:20px;text-align:center;">Failed to load application.<br><br>Error: ${e.message}<br><br>Please check console.</p>`;
-             }
-        });
+      // Remove loading screen when everything is ready
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          const loader = document.getElementById("app-loading");
+          if (loader) {
+            loader.style.opacity = "0";
+            setTimeout(() => loader.remove(), 500);
+          }
+        }, 500);
+      });
+
+      // Error handling
+      window.addEventListener("error", (e) => {
+        const loader = document.getElementById("app-loading");
+        if (loader) {
+          loader.innerHTML = `<p style="color:red;padding:20px;text-align:center;">Failed to load application.<br><br>Error: ${e.message}<br><br>Please check console.</p>`;
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

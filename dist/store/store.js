@@ -17,19 +17,39 @@ export class Store {
         }
     }
     loadLocations() {
-        const data = localStorage.getItem("map-locations");
-        const parsed = data ? JSON.parse(data) : [];
-        // Filter out invalid coordinates immediately affecting the app
-        return parsed.filter(l => l.lat >= -90 && l.lat <= 90 &&
-            l.lng >= -180 && l.lng <= 180);
+        try {
+            const data = localStorage.getItem("map-locations");
+            console.log('[Store] Loading locations raw:', data);
+            const parsed = data ? JSON.parse(data) : [];
+            const filtered = parsed.filter(l => l.lat >= -90 && l.lat <= 90 &&
+                l.lng >= -180 && l.lng <= 180);
+            console.log('[Store] Loaded locations parsed:', filtered.length);
+            return filtered;
+        }
+        catch (e) {
+            console.error('[Store] Failed to load locations:', e);
+            return [];
+        }
     }
     loadGroups() {
-        const data = localStorage.getItem("map-groups");
-        return data ? JSON.parse(data) : [];
+        try {
+            const data = localStorage.getItem("map-groups");
+            return data ? JSON.parse(data) : [];
+        }
+        catch (e) {
+            console.error('[Store] Failed to load groups:', e);
+            return [];
+        }
     }
     save() {
-        localStorage.setItem("map-locations", JSON.stringify(this.locations));
-        localStorage.setItem("map-groups", JSON.stringify(this.groups));
+        try {
+            console.log('[Store] Saving data:', this.locations.length, 'locations');
+            localStorage.setItem("map-locations", JSON.stringify(this.locations));
+            localStorage.setItem("map-groups", JSON.stringify(this.groups));
+        }
+        catch (e) {
+            console.error('[Store] Failed to save data:', e);
+        }
     }
     getGroups() {
         return this.groups;
