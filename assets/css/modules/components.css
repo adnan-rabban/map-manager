@@ -1,7 +1,11 @@
-/* COMPONENTS */
-/* UI Components & Interactive Elements */
+/* ===================================
+   COMPONENTS
+   UI Components & Interactive Elements
+   =================================== */
 
-/* GLASSMORPHISM SIDEBAR/PANEL */
+/* =========================
+   GLASSMORPHISM SIDEBAR/PANEL
+   ========================= */
 .panel {
   position: absolute;
   top: 20px;
@@ -48,10 +52,77 @@
 
 .panel-content {
   flex: 1;
-  overflow-y: auto;
+  /* overflow-y: auto; <-- REPLACED */
+  overflow-y: overlay; /* Allow content to be behind scrollbar, preventing layout jump */
   padding: 10px;
   border-bottom-left-radius: var(--radius-lg);
   border-bottom-right-radius: var(--radius-lg);
+
+  /* --- macOS Floating Scrollbar --- */
+  /* Remove scrollbar-gutter to prevent double spacing or awkward shifts with transparency */ 
+}
+
+/* Scrollbar Track (Invisible) */
+.panel-content::-webkit-scrollbar {
+  width: 14px;
+  background: transparent;
+}
+
+/* Scrollbar Thumb - Hidden by Default */
+.panel-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0); /* Sepenuhnya transparan */
+  border-radius: 99px;
+  border: 4px solid transparent;
+  background-clip: content-box;
+  /* Smooth fade out setelah tidak digunakan */
+  transition: background-color 1.2s ease-out;
+}
+
+/* Saat Hover pada Panel: Scrollbar muncul */
+.panel-content:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  transition: background-color 0.6s ease-out;
+}
+
+/* Saat Scrolling: Scrollbar muncul (menggunakan class) */
+.panel-content.is-scrolling::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  transition: background-color 0.6s ease-out;
+}
+
+/* Hover langsung pada Scrollbar: Lebih gelap */
+.panel-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.45);
+  transition: background-color 0.2s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+
+/* Active/Dragging State */
+.panel-content::-webkit-scrollbar-thumb:active {
+  background-color: rgba(0, 0, 0, 0.55);
+  transition: background-color 0.1s ease-out;
+}
+
+/* Dark Mode Variants */
+[data-theme="dark"] .panel-content::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0);
+}
+
+[data-theme="dark"] .panel-content:hover::-webkit-scrollbar-thumb,
+[data-theme="dark"] .panel-content.is-scrolling::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="dark"] .panel-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.45);
+}
+
+[data-theme="dark"] .panel-content::-webkit-scrollbar-thumb:active {
+  background-color: rgba(255, 255, 255, 0.55);
+}
+
+/* Smooth scrolling behavior */
+.panel-content {
+  scroll-behavior: smooth;
 }
 
 /* Container Actions */
@@ -66,7 +137,11 @@
     margin-bottom: 8px;
 }
 
-/* SIDEBAR BUTTONS */
+/* =========================
+   SIDEBAR BUTTONS (Animation Upgrade Only)
+   ========================= */
+
+/* --- 1. BASE STYLE (Keep Size, Upgrade Physics) --- */
 .panel-actions button,
 #btn-add-group {
     height: 36px; 
@@ -88,6 +163,7 @@
     padding: 0;
 }
 
+/* --- 2. HOVER EFFECT (The "Lift Up" Feel) --- */
 .panel-actions button:hover,
 #btn-add-group:hover {
     transform: translateY(-2px);
@@ -97,6 +173,7 @@
     z-index: 5;
 }
 
+/* --- 3. ACTIVE STATE (Click Feel) --- */
 .panel-actions button:active,
 #btn-add-group:active {
     transform: scale(0.96) translateY(0);
@@ -104,6 +181,7 @@
     background-color: var(--btn-hover-bg) !important;
 }
 
+/* --- 4. DARK MODE (Keep Existing Glassy Style) --- */
 [data-theme="dark"] .panel-actions button:hover,
 [data-theme="dark"] #btn-add-group:hover {
     transform: translateY(-2px);
@@ -121,41 +199,65 @@
   color: var(--text-secondary);
 }
 
-/* LOCATION LIST*/
+/* =========================
+   LOCATION LIST
+   ========================= */
 .location-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+/* --- 1. BASE STYLE (Static, No Movement) --- */
 .location-item {
+    /* Layout */
     padding: 10px 12px;
     margin-bottom: 6px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    
+    /* Visual Dasar */
     background-color: var(--card-bg);
     border-radius: 12px;
     box-shadow: var(--card-shadow);
+    
+    /* BORDER SETUP: Kiri Tebal Transparan (Placeholder) */
     border: 1px solid var(--card-border);
     border-left: 4px solid transparent; 
+    
+    /* Interaction */
     cursor: pointer;
+    
+    /* SMOOTH TRANSITION: "Lampu menyala perlahan" effect */
+    /* Menggunakan cubic-bezier yang lembut untuk dimming in effect */
     transition: 
         background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
         border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
         box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* --- 2. HOVER STATE (Neutral Gray) --- */
 .location-item:hover {
+    /* Abu-abu sangat tipis, sekadar feedback kursor */
     background-color: rgba(0, 0, 0, 0.02) !important;
+    
+    /* Border kiri tetap diam/transparan */
     border-left-color: transparent !important;
+    
+    /* Tidak ada gerakan */
     transform: none !important;
 }
 
+/* --- 3. ACTIVE STATE (Distinct Blue Tint) --- */
 .location-item.active {
+    /* Biru lebih terang (8%) - Beda jauh dengan hover abu-abu */
     background-color: rgba(0, 122, 255, 0.08) !important;
+    
+    /* Indikator Border Kiri Nyala */
     border-left-color: #007AFF !important;
     
+    /* Pastikan border sisi lain tetap standar */
     border-top-color: var(--card-border) !important;
     border-right-color: var(--card-border) !important;
     border-bottom-color: var(--card-border) !important;
@@ -163,11 +265,13 @@
     transform: none !important;
 }
 
+/* --- 4. DARK MODE HOVER --- */
 [data-theme="dark"] .location-item:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important; 
+    background-color: rgba(255, 255, 255, 0.05) !important; /* Abu terang dikit */
     border-left-color: transparent !important;
 }
 
+/* --- DARK MODE ACTIVE (Biru Neon Transparan) --- */
 [data-theme="dark"] .location-item.active {
     background-color: rgba(10, 132, 255, 0.15) !important;
     border-left-color: #0A84FF !important;
@@ -178,7 +282,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 2px; 
+    gap: 2px; /* Jarak super rapat */
     flex: 1;
     min-width: 0;
     margin-right: 8px;
@@ -239,7 +343,9 @@
     border: 1px dashed var(--primary);
 }
 
-/* BUTTONS */
+/* =========================
+   BUTTONS
+   ========================= */
 .btn {
   border: none;
   cursor: pointer;
@@ -262,7 +368,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
+    padding: 2px 6px;
     cursor: pointer;
     border-radius: 6px;
     user-select: none;
@@ -281,12 +387,12 @@
 
 .group-header .folder-icon {
     transition: transform 0.2s ease;
-    transform: rotate(-90deg); 
+    transform: rotate(-90deg); /* Default collapsed (right) */
     opacity: 0.6;
 }
 
 .group-header .folder-icon.open {
-    transform: rotate(0deg); 
+    transform: rotate(0deg); /* Open (down) */
 }
 
 .group-name {
@@ -299,7 +405,13 @@
     display: flex;
     gap: 4px;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, margin-right 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth shift */
+    margin-right: 0; /* Default */
+}
+
+/* When scrollbar is detected by JS, shift buttons left to avoid overlap */
+.panel-content.has-scrollbar .group-actions {
+    margin-right: 14px; /* Adjust based on scrollbar width */
 }
 
 .group-header:hover .group-actions {
@@ -323,11 +435,13 @@
 }
 
 /* --- macOS Smooth Accordion Animation --- */
+
+/* Wrapper utama: Menggunakan Grid untuk transisi tinggi */
 .group-content-wrapper {
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
-    opacity: 0; 
+    transition: grid-template-rows 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); /* Kurva 'Ease Out' yang smooth */
+    opacity: 0; /* Opsional: Fade in/out */
 }
 
 /* State ketika folder terbuka */
@@ -340,8 +454,8 @@
 .group-content-inner {
     overflow: hidden;
     min-height: 0;
-    transition: opacity 0.4s ease; 
-    padding-left: 16px; 
+    transition: opacity 0.4s ease; /* Fade content */
+    padding-left: 16px; /* VS Code style indentation */
     border-left: 1px solid transparent;
 }
 
@@ -457,7 +571,9 @@
   color: var(--text-secondary);
 }
 
-/* TOGGLE BUTTONS (SIDEBAR & NAV) */
+/* =========================
+   TOGGLE BUTTONS (SIDEBAR & NAV)
+   ========================= */
 .btn-toggle-sidebar {
   position: absolute;
   top: 20px;
@@ -567,8 +683,8 @@
 }
 
 [data-theme="dark"] .btn-clear-route {
-    background: rgba(44, 44, 46, 0.9); 
-    color: #ff453a; 
+    background: rgba(44, 44, 46, 0.9); /* Ubah background jadi gelap */
+    color: #ff453a; /* Merah yang lebih soft untuk dark mode */
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -576,7 +692,9 @@
     background: rgba(60, 60, 60, 1);
 }
 
-/* FAB (Floating Action Button) */
+/* =========================
+   FAB (Floating Action Button)
+   ========================= */
 .fab-add {
   position: absolute;
   bottom: 50px;
@@ -628,7 +746,9 @@
   transition-delay: 0s;
 }
 
-/* MODAL & FORMS */
+/* =========================
+   MODAL & FORMS
+   ========================= */
 
 /* 1. Animasi Background (Overlay) - HANYA Blur & Opacity */
 @keyframes fadeBackdrop {
@@ -665,13 +785,18 @@
 }
 
 .modal-overlay {
+  /* Fix posisi agar selalu full screen */
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
+  
+  /* Style */
   background-color: rgba(0, 0, 0, 0.4);
   z-index: 2000;
   display: flex;
   justify-content: center;
   align-items: center;
+
+  /* Hidden by default */
   opacity: 0;
   visibility: hidden;
 }
@@ -679,6 +804,7 @@
 .modal-overlay.open {
   opacity: 1;
   visibility: visible;
+  /* Animasi Background: NO SCALE */
   animation: fadeBackdrop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
@@ -704,7 +830,7 @@
 }
 
 .modal-overlay.open .modal {
-  animation: zoomInModal 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; 
+  animation: zoomInModal 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; /* Efek membal (bouncy) dikit ala iOS */
 }
 
 .delete-modal {
@@ -731,10 +857,10 @@
 /* Container Tombol */
 .modal-actions {
     display: flex;
-    justify-content: flex-end; 
-    gap: 12px; 
+    justify-content: flex-end; /* Rata kanan */
+    gap: 12px; /* Jarak antar tombol */
     margin-top: 24px;
-    border-top: none; 
+    border-top: none; /* Ensure no border */
 }
 
 /* Style Dasar Tombol Modal */
@@ -827,12 +953,15 @@
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  background: var(--input-bg); 
+  background: var(--input-bg); /* Ensure it stays correct on focus or maybe brighter? User didn't specify. Keeping same as base or 'white' in light mode? User input-bg for light is #F2F2F7 which is greyish. Standard is often white on focus. But let's stick to variable to be safe for now, or just don't change background on focus if not needed. */
 }
 
-/* DRAG AND DROP VISUALS (PREMIUM)*/
+
+/* =========================
+   DRAG AND DROP VISUALS (PREMIUM)
+   ========================= */
 .group-header, .uncategorized-header {
-    padding: 12px 0;
+    padding: 2px 0;
     border-radius: 12px;
     transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -885,7 +1014,9 @@
   transition: none !important;
 }
 
-/* SEARCH BAR */
+/* =========================
+   SEARCH BAR
+   ========================= */
 .search-container {
   margin-top: 20px;
   position: relative;
@@ -999,7 +1130,9 @@
   padding-right: 36px !important;
 }
 
-/* SEARCH RESULTS */
+/* =========================
+   SEARCH RESULTS
+   ========================= */
 .search-results {
   position: absolute;
   top: 100%;
@@ -1094,7 +1227,9 @@
   text-overflow: ellipsis;
 }
 
-/* NOTIFICATIONS */
+/* =========================
+   NOTIFICATIONS
+   ========================= */
 .notification-container {
   position: fixed;
   top: 15px;
@@ -1182,7 +1317,9 @@
   font-weight: 400;
 }
 
-/* TOOLTIPS (macOS Style)*/
+/* =========================
+   TOOLTIPS (macOS Style)
+   ========================= */
 .macos-tooltip {
   position: fixed;
   z-index: 10000;
@@ -1275,7 +1412,9 @@
   }
 }
 
-/* MISC UTILITIES */
+/* =========================
+   MISC UTILITIES
+   ========================= */
 .js-nav:hover {
   color: var(--primary);
   background: rgba(0, 122, 255, 0.1);
@@ -1308,7 +1447,9 @@
   display: none !important;
 }
 
-/* DARK MODE OVERRIDES */
+/* =========================
+   DARK MODE OVERRIDES
+   ========================= */
 
 /* Global Panel & Modal Backgrounds */
 [data-theme="dark"] .panel, 
@@ -1324,6 +1465,8 @@
     0 4px 24px rgba(0, 0, 0, 0.4),
     0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
+
 
 /* Secondary Buttons */
 [data-theme="dark"] .btn-secondary {
@@ -1385,6 +1528,8 @@
 [data-theme="dark"] .location-info p {
   color: rgba(235, 235, 245, 0.6);
 }
+
+
 
 /* Headers & Text */
 [data-theme="dark"] .panel-header h1,
@@ -1498,7 +1643,12 @@
     color: rgba(235, 235, 245, 0.8) !important;
 }
 
-/* CUSTOM INPUT VISUALS (Dark/Glass)*/
+
+/* =========================
+   CUSTOM INPUT VISUALS (Dark/Glass)
+   ========================= */
+
+/* Side-by-side Inputs */
 .input-row {
   display: flex;
   gap: 12px;
@@ -1507,8 +1657,8 @@
 }
 
 .input-row .input-group {
-    flex: 1;
-    min-width: 0;
+    flex: 1; /* Agar lebar terbagi 50:50 */
+    min-width: 0; /* Mencegah overflow */
 }
 
 /* Wrapper Utama */
@@ -1555,15 +1705,17 @@
 /* Menu Pilihan (Dropdown List) */
 .custom-options {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 8px); /* Muncul sedikit di bawah trigger */
     left: 0;
     right: 0;
-    background: var(--menu-bg);
+    background: var(--menu-bg); /* Themed background */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--divider-color);
     border-radius: 12px;
     z-index: 3000;
+    
+    /* Animasi Sembunyi (Default) */
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
@@ -1600,78 +1752,4 @@
     background-color: rgba(0, 122, 255, 0.15);
     color: #0A84FF;
     font-weight: 600;
-}
-
-/* SCROLLABLE AREAS (Smooth Physics)*/
-.panel-content,
-.search-results, 
-.custom-options {
-    -webkit-overflow-scrolling: touch; 
-    scroll-behavior: smooth;
-    overscroll-behavior: contain;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-/* SCROLLBAR (macOS / Floating Style)*/
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-    margin-block: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 100px;
-    border: 3px solid transparent;
-    background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.35);
-    border-width: 2px;
-}
-
-/* Dark Mode Adaptation */
-[data-theme="dark"] ::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.4);
-}
-
-/* DARK MODE SEARCH INPUT*/
-[data-theme="dark"] #search-input {
-    background-color: rgba(30, 30, 30, 0.6) !important; 
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #FFFFFF !important;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
-}
-
-/* Placeholder Text */
-[data-theme="dark"] #search-input::placeholder {
-    color: rgba(235, 235, 245, 0.5) !important;
-}
-
-/* Saat Input Diklik (Focus) */
-[data-theme="dark"] #search-input:focus {
-    background-color: rgba(40, 40, 40, 1) !important; 
-    border-color: #0A84FF !important; 
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.3) !important; 
-}
-
-/* Tombol "X" (Clear) di dalam input */
-[data-theme="dark"] .btn-input-clear {
-    color: rgba(255, 255, 255, 0.6);
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .btn-input-clear:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-    color: #FFFFFF;
 }

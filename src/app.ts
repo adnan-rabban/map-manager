@@ -31,6 +31,7 @@ class App {
         this.setupDataManagement();
         this.setupSearch();
         this.setupSettings();
+        this.setupScrollbarBehavior();
 
         // POI Click Handler
         this.map.onPOIClick((poi: POI) => {
@@ -502,13 +503,24 @@ class App {
         const content = document.createElement('div');
         content.style.marginTop = '16px';
         content.innerHTML = `
-            <p class="modal-desc">Are you sure you want to delete folder <strong>${group.name}</strong>? All locations inside will be moved to Uncategorized.</p>
+            <p class="modal-desc">Are you sure you want to delete folder <strong>${group.name}</strong>? All locations inside will be <strong>permanently deleted</strong>.</p>
         `;
         
-        this.createModal('Delete Folder', content, () => {
-            this.store.deleteGroup(group.id);
-            this.renderList();
-        }, 'Delete', true);
+            this.createModal('Delete Folder', content, () => {
+                // 1. Get all locations in this group first
+                const locationsToRemove = this.store.getAll().filter(l => l.groupId === group.id);
+                
+                // 2. Remove markers visually
+                locationsToRemove.forEach(loc => {
+                    this.map.removeMarker(loc.id);
+                });
+
+                // 3. Delete group (locations will be auto-deleted by store logic due to cascade delete)
+                this.store.deleteGroup(group.id);
+                
+                this.renderList();
+                notify.show('Folder deleted', 'success');
+            }, 'Delete', true);
     }
     
     private showLocationModal(mode: 'add'|'edit', location?: Location): void {
@@ -952,6 +964,46 @@ class App {
         }
     }
 
+    private setupScrollbarBehavior(): void {
+        const scrollContainers = document.querySelectorAll('.panel-content');
+        
+        scrollContainers.forEach(container => {
+            let isScrollingTimer: number;
+
+            container.addEventListener('scroll', () => {
+                container.classList.add('is-scrolling');
+                
+                window.clearTimeout(isScrollingTimer);
+                
+                isScrollingTimer = window.setTimeout(() => {
+                    container.classList.remove('is-scrolling');
+                }, 1500);
+            });
+        });
+
+        // ResizeObserver to detect overflow availability
+        const resizeObserver = new ResizeObserver(() => {
+            this.checkScrollbar();
+        });
+
+        scrollContainers.forEach(panel => resizeObserver.observe(panel));
+        
+        const listEl = document.getElementById('location-list');
+        if (listEl) resizeObserver.observe(listEl);
+    }
+
+    private checkScrollbar(): void {
+        const panels = document.querySelectorAll('.panel-content');
+        panels.forEach(panel => {
+            // Check if content overflows vertically
+            if (panel.scrollHeight > panel.clientHeight) {
+                panel.classList.add('has-scrollbar');
+            } else {
+                panel.classList.remove('has-scrollbar');
+            }
+        });
+    }
+
     private renderList(): void {
         const listEl = document.getElementById('location-list');
         if (!listEl) return;
@@ -1047,10 +1099,10 @@ class App {
                         <span style="font-size:12px;color:var(--text-secondary);opacity:0.7;">(${groupLocs.length})</span>
                     </div>
                     <div class="group-actions">
-                        <button class="btn-icon-sm js-rename-group prop-stop" data-id="${group.id}" title="Rename Folder">
+                        <button class="btn-icon-sm js-rename-group prop-stop" data-id="${group.id}" data-tooltip="Rename Folder">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="btn-icon-sm js-delete-group prop-stop" data-id="${group.id}" title="Delete Folder">
+                        <button class="btn-icon-sm js-delete-group prop-stop" data-id="${group.id}" data-tooltip="Delete Folder">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </div>
@@ -1117,6 +1169,9 @@ class App {
             item.addEventListener('dragstart', handleDragStart);
             item.addEventListener('dragend', handleDragEnd);
         });
+
+        // Check scrollbar after rendering
+        setTimeout(() => this.checkScrollbar(), 0);
     }
 
     private createLocationItemHTML(loc: Location): string {
@@ -1162,6 +1217,9 @@ class App {
                     if (icon) {
                         icon.classList.toggle('open');
                     }
+
+                    // Check scrollbar after animation (approx match CSS transition time)
+                    setTimeout(() => this.checkScrollbar(), 450);
                 }
             });
         });
