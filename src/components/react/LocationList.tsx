@@ -39,7 +39,7 @@ export const LocationList: React.FC<LocationListProps> = ({
     const uncategorizedLocations = locations.filter(l => !l.groupId);
 
     return (
-        <div className="location-list-container">
+        <div className="location-list" style={{ display: 'flex', flexDirection: 'column' }}>
             {/* Render Groups First */}
             <div className="groups-section">
                 {groups.map(group => (
@@ -57,31 +57,31 @@ export const LocationList: React.FC<LocationListProps> = ({
                 ))}
             </div>
 
-            <hr style={{ margin: '16px 0', border: 'none', borderTop: '1px solid var(--border-color)' }} />
 
-            {/* Render Uncategorized Zone */}
+
             <div 
                 ref={setNodeRef} 
-                className="uncategorized-section"
+                className={`uncategorized-list ${isOver ? 'drag-over' : ''}`}
                 style={{
-                    minHeight: '100px',
-                    backgroundColor: isOver ? 'rgba(0, 122, 255, 0.05)' : 'transparent',
-                    borderRadius: '8px',
-                    border: isOver ? '2px dashed var(--accent-color)' : '2px dashed transparent',
-                    transition: 'all 0.2s ease',
-                    padding: '8px'
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
                 }}
             >
-                <div style={{ 
-                    fontSize: '12px', 
-                    fontWeight: 600, 
-                    color: 'var(--text-secondary)', 
-                    marginBottom: '8px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                }}>
-                    Uncategorized ({uncategorizedLocations.length})
-                </div>
+                {/* Only show "Uncategorized" label if there are other groups, otherwise it's just "the list" */}
+                {groups.length > 0 && (
+                    <div style={{ 
+                        fontSize: '12px', 
+                        fontWeight: 600, 
+                        color: 'var(--text-secondary)', 
+                        marginBottom: '8px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        padding: '0 8px'
+                    }}>
+                        Uncategorized ({uncategorizedLocations.length})
+                    </div>
+                )}
 
                 {uncategorizedLocations.length > 0 ? (
                     uncategorizedLocations.map(loc => (

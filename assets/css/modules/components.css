@@ -52,8 +52,8 @@
 
 .panel-content {
   flex: 1;
-  /* overflow-y: auto; <-- REPLACED */
-  overflow-y: overlay; /* Allow content to be behind scrollbar, preventing layout jump */
+  /* Reverting to overlay to preserve card width/layout as requested */
+  overflow-y: overlay; 
   padding: 10px;
   border-bottom-left-radius: var(--radius-lg);
   border-bottom-right-radius: var(--radius-lg);
@@ -206,6 +206,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* height: 100%;  <-- REMOVED to allow shrink-to-fit */
+  /* overflow-y: auto; <-- REMOVED, handled by panel-content */
 }
 
 /* --- 1. BASE STYLE (Static, No Movement) --- */
@@ -341,6 +343,20 @@
     background: rgba(0, 122, 255, 0.05);
     min-height: 40px;
     border: 1px dashed var(--primary);
+}
+
+/* =========================
+   DRAG OVERLAY (Ghosting Fix)
+   ========================= */
+.location-item.overlay-item {
+    opacity: 1 !important;
+    background-color: var(--card-bg) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+    transform: scale(1.05) !important;
+    cursor: grabbing !important;
+    z-index: 9999 !important;
+    border: 1px solid var(--card-border) !important;
+    backdrop-filter: blur(12px); /* Maintain glass effect if used */
 }
 
 /* =========================
@@ -1783,32 +1799,33 @@
 }
 
 .location-actions-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 4px;
-    background: rgba(255, 255, 255, 0.9);
+    position: fixed;
+    min-width: 140px;
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 0.5px solid rgba(0,0,0,0.1);
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: 
-        0 4px 12px rgba(0,0,0,0.15),
+        0 4px 6px rgba(0,0,0,0.02), 
+        0 12px 32px rgba(0,0,0,0.12), 
         0 0 0 1px rgba(0,0,0,0.05);
-    padding: 4px;
-    z-index: 100;
-    min-width: 120px;
-    display: flex;
+    padding: 6px;
+    display: flex; /* Always flex when mounted, visibility controlled by opacity */
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
+    z-index: 9999;
+    
+    /* Pre-animation state */
     opacity: 0;
     transform: scale(0.95) translateY(-5px);
+    transition: 
+        opacity 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+        transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     transform-origin: top right;
-    transition: opacity 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     pointer-events: none;
 }
 
-.location-actions-menu.open {
+.location-actions-menu.visible {
     opacity: 1;
     transform: scale(1) translateY(0);
     pointer-events: auto;
@@ -1827,12 +1844,14 @@
     cursor: pointer;
     text-align: left;
     width: 100%;
-    transition: background 0.15s;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smoother transition */
 }
 
+/* Edit / Default Hover - Subtle Gray */
 .dropdown-item:hover {
-    background: var(--primary);
-    color: white;
+    background: rgba(0, 0, 0, 0.05); /* Subtle gray instead of primary blue */
+    color: var(--text-main);
+    /* transform: translateX(2px); <-- REMOVED as per user request */
 }
 
 .dropdown-item svg {
@@ -1840,6 +1859,7 @@
     height: 14px;
     stroke-width: 2;
     opacity: 0.7;
+    transition: opacity 0.2s;
 }
 
 .dropdown-item:hover svg {
@@ -1848,6 +1868,24 @@
 
 .dropdown-item.delete {
     color: #ff3b30;
+}
+
+/* Delete Hover - High Contrast Red */
+.dropdown-item.delete:hover {
+    background: #D32F2F; /* Darker red for better contrast */
+    color: white;
+    box-shadow: 0 2px 8px rgba(211, 47, 47, 0.25);
+}
+
+.dropdown-item.delete:hover svg {
+    stroke: white; /* Ensure icon turns white */
+    opacity: 1;
+}
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
 }
 
 .dropdown-item.delete:hover {

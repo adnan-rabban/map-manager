@@ -11,6 +11,7 @@ export const App = ({ initialGroups, initialLocations, onAssignLocationToGroup, 
     // NOTE: For this hybrid approach, we will rely on Props updates triggering re-renders, 
     // EXCEPT for the 'overlay' which needs immediate feedback.
     const [activeId, setActiveId] = useState(null);
+    const [dragWidth, setDragWidth] = useState(undefined);
     const sensors = useSensors(useSensor(PointerSensor, {
         activationConstraint: {
             distance: 5, // Prevent accidental drags on simple clicks
@@ -22,11 +23,20 @@ export const App = ({ initialGroups, initialLocations, onAssignLocationToGroup, 
         }
     }));
     const handleDragStart = (event) => {
-        setActiveId(event.active.id);
+        const { active } = event;
+        setActiveId(active.id);
+        // Capture width of the dragged element
+        if (active.data.current?.type === 'LOCATION') {
+            const element = document.querySelector(`[data-id="${active.id}"]`);
+            if (element) {
+                setDragWidth(element.offsetWidth);
+            }
+        }
     };
     const handleDragEnd = (event) => {
         const { active, over } = event;
         setActiveId(null);
+        setDragWidth(undefined);
         console.log('[ReactApp] Drag End:', { active: active.id, over: over?.id });
         if (!over)
             return;
@@ -57,5 +67,5 @@ export const App = ({ initialGroups, initialLocations, onAssignLocationToGroup, 
         }
     };
     const activeLocation = activeId ? initialLocations.find(l => l.id === activeId) : null;
-    return (_jsxs(DndContext, { sensors: sensors, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsx(LocationList, { groups: initialGroups, locations: initialLocations, onFlyTo: onFlyTo, onEdit: onEdit, onDelete: onDelete, onToggleVisibility: onToggleVisibility, onDeleteGroup: onDeleteGroup, onRenameGroup: onRenameGroup }), _jsx(DragOverlay, { modifiers: [restrictToWindowEdges], children: activeId && activeLocation ? (_jsx(LocationItem, { location: activeLocation, isOverlay: true })) : null })] }));
+    return (_jsxs(DndContext, { sensors: sensors, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsx(LocationList, { groups: initialGroups, locations: initialLocations, onFlyTo: onFlyTo, onEdit: onEdit, onDelete: onDelete, onToggleVisibility: onToggleVisibility, onDeleteGroup: onDeleteGroup, onRenameGroup: onRenameGroup }), _jsx(DragOverlay, { modifiers: [restrictToWindowEdges], children: activeId && activeLocation ? (_jsx(LocationItem, { location: activeLocation, isOverlay: true, width: dragWidth })) : null })] }));
 };

@@ -15,8 +15,9 @@
   flex-grow: 1;
   height: 100%;
   z-index: var(--z-map);
-  position: absolute;
+  position: fixed; /* Pinned to viewport */
   top: 0; 
   left: 0;
   width: 100%;
+  overflow: hidden;
 }
