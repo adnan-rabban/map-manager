@@ -136,10 +136,12 @@ export class MapEngine {
     add3DBuildings() {
         if (!this.map || !this.map.getStyle())
             return;
-        // Check if layer already exists
+        if (this.currentBaseStyle === this.STYLE_IDS.SATELLITE ||
+            this.currentBaseStyle === this.STYLE_IDS.HYBRID) {
+            return;
+        }
         if (this.map.getLayer('3d-buildings'))
             return;
-        // Check if source exists
         const style = this.map.getStyle();
         if (!style || !style.sources) {
             console.warn("No sources found in style");
@@ -148,20 +150,42 @@ export class MapEngine {
         const sources = style.sources;
         let sourceId = 'openmaptiles';
         if (!sources[sourceId]) {
-            // Try to find a vector source
             const sourceKeys = Object.keys(sources);
             const found = sourceKeys.find(k => sources[k].type === 'vector');
             if (found)
                 sourceId = found;
             else {
-                // If no vector source, check if we have composite (Mapbox/MapTiler custom)
                 if (sources['composite'])
                     sourceId = 'composite';
                 else {
-                    // console.warn("No vector source found for 3D buildings");
                     return;
                 }
             }
+        }
+        let existingLayerId = null;
+        if (style.layers) {
+            const buildingLayer = style.layers.find((l) => l.source === sourceId &&
+                (l['source-layer'] === 'building' || l.id.includes('building')) &&
+                l.type === 'fill-extrusion');
+            if (buildingLayer) {
+                existingLayerId = buildingLayer.id;
+            }
+        }
+        if (existingLayerId) {
+            // LAYER EXISTS:
+            // We do NOT override color/opacity as per user request to keep default map styling.
+            // Only update height to ensure our robust fix is applied to prevent crashes
+            this.map.setPaintProperty(existingLayerId, 'fill-extrusion-height', [
+                'interpolate', ['linear'], ['zoom'],
+                15, 0,
+                15.05, ['to-number', ['get', 'render_height'], 0]
+            ]);
+            this.map.setPaintProperty(existingLayerId, 'fill-extrusion-base', [
+                'interpolate', ['linear'], ['zoom'],
+                15, 0,
+                15.05, ['to-number', ['get', 'render_min_height'], 0]
+            ]);
+            return; // EXIT EARLY - Do not add a new layer
         }
         this.map.addLayer({
             'id': '3d-buildings',
@@ -174,12 +198,12 @@ export class MapEngine {
                 'fill-extrusion-height': [
                     'interpolate', ['linear'], ['zoom'],
                     15, 0,
-                    15.05, ['get', 'render_height']
+                    15.05, ['to-number', ['get', 'render_height'], 0]
                 ],
                 'fill-extrusion-base': [
                     'interpolate', ['linear'], ['zoom'],
                     15, 0,
-                    15.05, ['get', 'render_min_height']
+                    15.05, ['to-number', ['get', 'render_min_height'], 0]
                 ],
                 'fill-extrusion-opacity': this.isDarkMode ? 0.7 : 0.6
             }
