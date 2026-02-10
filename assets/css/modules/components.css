@@ -1634,7 +1634,7 @@
 }
 
 .custom-option:hover {
-  background-color: #007aff; 
+  background-color: #007aff;
   color: white;
 }
 
@@ -1779,4 +1779,30 @@
 [data-theme="dark"] .location-actions .btn-icon-sm:hover {
   background: transparent !important;
   color: #ffffff;
+}
+
+.location-submenu-card {
+  background: rgb(255, 255, 255);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.02),
+    0 12px 5px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  padding: 6px;
+  color: var(--text-primary);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  max-width: 200px;
+}
+
+[data-theme="dark"] .location-submenu-card {
+  background: rgb(44, 44, 46);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+}
+
+.submenu-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
 }

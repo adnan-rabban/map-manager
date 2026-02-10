@@ -13,6 +13,7 @@ interface LocationListProps {
     onToggleVisibility: (id: string) => void;
     onDeleteGroup: (group: Group) => void;
     onRenameGroup: (group: Group) => void;
+    onAssignLocationToGroup: (location: Location, groupId: string | null) => void;
 }
 
 export const LocationList: React.FC<LocationListProps> = ({
@@ -23,7 +24,8 @@ export const LocationList: React.FC<LocationListProps> = ({
     onDelete,
     onToggleVisibility,
     onDeleteGroup,
-    onRenameGroup
+    onRenameGroup,
+    onAssignLocationToGroup
 }) => {
     const { setNodeRef, isOver } = useDroppable({
         id: 'uncategorized-zone',
@@ -50,6 +52,8 @@ export const LocationList: React.FC<LocationListProps> = ({
                         onToggleVisibility={onToggleVisibility}
                         onDeleteGroup={onDeleteGroup}
                         onRenameGroup={onRenameGroup}
+                        groups={groups}
+                        onAssignLocationToGroup={onAssignLocationToGroup}
                     />
                 ))}
             </div>
@@ -88,6 +92,8 @@ export const LocationList: React.FC<LocationListProps> = ({
                             onEdit={onEdit} 
                             onDelete={onDelete} 
                             onToggleVisibility={onToggleVisibility}
+                            groups={groups}
+                            onAssignLocationToGroup={onAssignLocationToGroup}
                         />
                     ))
                 ) : (

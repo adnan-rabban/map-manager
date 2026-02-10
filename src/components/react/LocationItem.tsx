@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@dnd-kit/core";
-import { Location } from "../../types/types";
-import { Eye, EyeOff, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { Location, Group } from "../../types/types";
+import { Eye, EyeOff, MoreVertical, Edit, Trash2, ChevronRight, Folder, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LocationItemProps {
   location: Location;
@@ -12,7 +13,85 @@ interface LocationItemProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   onToggleVisibility?: (id: string) => void;
+  groups?: Group[];
+  onAssignLocationToGroup?: (location: Location, groupId: string | null) => void;
 }
+
+const MenuItem = ({
+  id,
+  icon: Icon,
+  label,
+  onClick,
+  isDanger = false,
+  hasSubmenu = false,
+  isHovered,
+  onMouseEnter,
+  children,
+  layoutId
+}: {
+  id: string;
+  icon: any;
+  label: string;
+  onClick?: (e: React.MouseEvent) => void;
+  isDanger?: boolean;
+  hasSubmenu?: boolean;
+  isHovered: boolean;
+  onMouseEnter: () => void;
+  children?: React.ReactNode;
+  layoutId: string;
+}) => {
+  return (
+    <div
+      className="dropdown-item-wrapper"
+      onMouseEnter={onMouseEnter}
+      style={{ position: 'relative' }}
+    >
+      <button
+        className={`dropdown-item ${isDanger ? 'delete' : ''}`}
+        onClick={(e) => {
+          if (!hasSubmenu) {
+            e.stopPropagation();
+            onClick?.(e);
+          }
+        }}
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          background: 'transparent',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          color: isHovered && isDanger ? '#ffffff' : (isDanger ? '#ff3b30' : 'var(--text-primary)')
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Icon size={14} style={{ marginRight: "8px" }} />
+          {label}
+        </div>
+        {hasSubmenu && <ChevronRight size={14} />}
+      </button>
+
+      {isHovered && (
+        <motion.div
+          layoutId={layoutId} 
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: isDanger ? '#ff3b30' : 'var(--hover-highlight)',
+            borderRadius: '6px',
+            zIndex: 0
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        />
+      )}
+
+      <AnimatePresence>
+        {hasSubmenu && isHovered && children}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export const LocationItem: React.FC<LocationItemProps> = ({
   location,
@@ -22,6 +101,8 @@ export const LocationItem: React.FC<LocationItemProps> = ({
   onEdit,
   onDelete,
   onToggleVisibility,
+  groups = [],
+  onAssignLocationToGroup,
 }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: location.id,
@@ -34,6 +115,8 @@ export const LocationItem: React.FC<LocationItemProps> = ({
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [hoveredMainItem, setHoveredMainItem] = useState<string | null>(null);
+  const [hoveredSubItem, setHoveredSubItem] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<{
     top: number;
     left: number;
@@ -49,6 +132,8 @@ export const LocationItem: React.FC<LocationItemProps> = ({
     setTimeout(() => {
       setIsMenuOpen(false);
       setMenuPosition(null);
+      setHoveredMainItem(null);
+      setHoveredSubItem(null);
     }, 200);
   };
 
@@ -127,9 +212,15 @@ export const LocationItem: React.FC<LocationItemProps> = ({
     borderRadius: "12px",
   };
 
+  const handleMoveToGroup = (groupId: string | null) => {
+    onAssignLocationToGroup?.(location, groupId);
+    closeMenu();
+  };
+
   return (
     <>
-      <div
+      <motion.div
+        layoutId={location.id}
         ref={!isOverlay ? setNodeRef : undefined}
         {...(!isOverlay ? listeners : {})}
         {...(!isOverlay ? attributes : {})}
@@ -163,7 +254,7 @@ export const LocationItem: React.FC<LocationItemProps> = ({
             <MoreVertical size={16} />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {isMenuOpen &&
         menuPosition &&
@@ -176,33 +267,176 @@ export const LocationItem: React.FC<LocationItemProps> = ({
               top: menuPosition.top,
               left: menuPosition.left,
               zIndex: 9999,
+              padding: '4px',
+              overflow: 'visible'
             }}
+            onMouseLeave={() => {
+              setHoveredMainItem(null);
+              setHoveredSubItem(null);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
-            <button
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeMenu();
-                onEdit?.(location.id);
-              }}
-            >
-              <Edit size={14} style={{ marginRight: "8px" }} />
-              Edit
-            </button>
+            <div style={{ position: 'relative' }}>
+              <MenuItem
+                id="edit"
+                icon={Edit}
+                label="Edit"
+                onClick={() => {
+                  closeMenu();
+                  onEdit?.(location.id);
+                }}
+                isHovered={hoveredMainItem === "edit"}
+                onMouseEnter={() => setHoveredMainItem("edit")}
+                layoutId={`main-menu-highlight-${location.id}`}
+              />
 
-            <div className="dropdown-divider" />
+              <MenuItem
+                id="move-to"
+                icon={Folder}
+                label="Move to"
+                hasSubmenu={true}
+                isHovered={hoveredMainItem === "move-to"}
+                onMouseEnter={() => setHoveredMainItem("move-to")}
+                layoutId={`main-menu-highlight-${location.id}`}
+              >
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: '100%',
+                    paddingLeft: '8px',
+                    zIndex: 10000,
+                    height: '100%',
+                  }}
+                >
+                  <div 
+                    className="location-submenu-card"
+                    style={{ minWidth: '180px' }}
+                  >
+                    <div className="submenu-grid">
+                      <div
+                        style={{ position: 'relative' }}
+                        onMouseEnter={() => setHoveredSubItem('uncategorized')}
+                      >
+                        <button
+                          className="dropdown-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMoveToGroup(null);
+                          }}
+                          style={{ position: 'relative', zIndex: 10, width: '100%', background: 'transparent', color: 'var(--text-primary)' }}
+                        >
+                          <Folder size={14} style={{ marginRight: "8px", opacity: 0.5 }} />
+                          Uncategorized
+                        </button>
+                        {hoveredSubItem === 'uncategorized' && (
+                          <motion.div
+                            layoutId={`submenu-highlight-${location.id}`}
+                            style={{
+                              position: 'absolute',
+                              inset: 0,
+                              backgroundColor: 'var(--hover-highlight)',
+                              borderRadius: '6px',
+                              zIndex: 0
+                            }}
+                          />
+                        )}
+                      </div>
 
-            <button
-              className="dropdown-item delete"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeMenu();
-                onDelete?.(location.id);
-              }}
-            >
-              <Trash2 size={14} style={{ marginRight: "8px" }} />
-              Delete
-            </button>
+                      {groups.map(group => (
+                        <div
+                          key={group.id}
+                          style={{ position: 'relative' }}
+                          onMouseEnter={() => setHoveredSubItem(group.id)}
+                        >
+                          <button
+                            className="dropdown-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveToGroup(group.id);
+                            }}
+                            style={{ position: 'relative', zIndex: 10, width: '100%', background: 'transparent', color: 'var(--text-primary)' }}
+                          >
+                            <Folder size={14} style={{ marginRight: "8px", color: 'var(--accent-color)' }} />
+                            {group.name}
+                          </button>
+                          {hoveredSubItem === group.id && (
+                            <motion.div
+                              layoutId={`submenu-highlight-${location.id}`}
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                backgroundColor: 'var(--hover-highlight)',
+                                borderRadius: '6px',
+                                zIndex: 0
+                              }}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="dropdown-divider" style={{ margin: '4px 0', backgroundColor: 'var(--divider-color)' }} />
+
+                    <motion.button
+                      whileHover={{ 
+                        backgroundColor: "rgba(37, 99, 235, 0.1)", 
+                        color: "#2563eb",
+                      }}
+                      onMouseEnter={() => setHoveredSubItem(null)} // Clear previous hover state
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Placeholder for add folder logic
+                        console.log("Add folder clicked");
+                      }}
+                      style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 12px',
+                        fontSize: '13px',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        width: '100%', 
+                        justifyContent: 'center',
+                        color: 'var(--text-secondary)',
+                        fontWeight: 500,
+                        marginTop: '2px',
+                        transition: 'all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)' // Match other items transition
+                      }}
+                    >
+                      <Plus size={14} style={{ marginRight: "6px" }} />
+                      Add Folder
+                    </motion.button>
+
+                  </div>
+                </motion.div>
+              </MenuItem>
+
+              <div className="dropdown-divider" style={{ margin: '4px 0' }} />
+
+              <MenuItem
+                id="delete"
+                icon={Trash2}
+                label="Delete"
+                isDanger
+                onClick={() => {
+                  closeMenu();
+                  onDelete?.(location.id);
+                }}
+                isHovered={hoveredMainItem === "delete"}
+                onMouseEnter={() => setHoveredMainItem("delete")}
+                layoutId={`main-menu-highlight-${location.id}`}
+              />
+            </div>
           </div>,
           document.body,
         )}

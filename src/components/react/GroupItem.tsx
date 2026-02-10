@@ -14,6 +14,8 @@ interface GroupItemProps {
     onToggleVisibility: (id: string) => void;
     onDeleteGroup: (group: Group) => void;
     onRenameGroup: (group: Group) => void;
+    groups: Group[];
+    onAssignLocationToGroup: (location: Location, groupId: string | null) => void;
 }
 
 export const GroupItem: React.FC<GroupItemProps> = ({ 
@@ -24,7 +26,9 @@ export const GroupItem: React.FC<GroupItemProps> = ({
     onDelete, 
     onToggleVisibility,
     onDeleteGroup,
-    onRenameGroup
+    onRenameGroup,
+    groups,
+    onAssignLocationToGroup
 }) => {
     const { setNodeRef, isOver } = useDroppable({
         id: group.id,
@@ -122,6 +126,8 @@ return (
                                         onEdit={onEdit} 
                                         onDelete={onDelete} 
                                         onToggleVisibility={onToggleVisibility}
+                                        groups={groups}
+                                        onAssignLocationToGroup={onAssignLocationToGroup}
                                     />
                                 ))
                             ) : (

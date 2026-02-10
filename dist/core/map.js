@@ -172,9 +172,6 @@ export class MapEngine {
             }
         }
         if (existingLayerId) {
-            // LAYER EXISTS:
-            // We do NOT override color/opacity as per user request to keep default map styling.
-            // Only update height to ensure our robust fix is applied to prevent crashes
             this.map.setPaintProperty(existingLayerId, 'fill-extrusion-height', [
                 'interpolate', ['linear'], ['zoom'],
                 15, 0,
@@ -185,7 +182,7 @@ export class MapEngine {
                 15, 0,
                 15.05, ['to-number', ['get', 'render_min_height'], 0]
             ]);
-            return; // EXIT EARLY - Do not add a new layer
+            return;
         }
         this.map.addLayer({
             'id': '3d-buildings',

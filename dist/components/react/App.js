@@ -53,5 +53,5 @@ export const App = ({ initialGroups, initialLocations, onAssignLocationToGroup, 
         }
     };
     const activeLocation = activeId ? initialLocations.find(l => l.id === activeId) : null;
-    return (_jsxs(DndContext, { sensors: sensors, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsx(LocationList, { groups: initialGroups, locations: initialLocations, onFlyTo: onFlyTo, onEdit: onEdit, onDelete: onDelete, onToggleVisibility: onToggleVisibility, onDeleteGroup: onDeleteGroup, onRenameGroup: onRenameGroup }), _jsx(DragOverlay, { modifiers: [restrictToWindowEdges], children: activeId && activeLocation ? (_jsx(LocationItem, { location: activeLocation, isOverlay: true, width: dragWidth })) : null })] }));
+    return (_jsxs(DndContext, { sensors: sensors, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsx(LocationList, { groups: initialGroups, locations: initialLocations, onFlyTo: onFlyTo, onEdit: onEdit, onDelete: onDelete, onToggleVisibility: onToggleVisibility, onDeleteGroup: onDeleteGroup, onRenameGroup: onRenameGroup, onAssignLocationToGroup: onAssignLocationToGroup }), _jsx(DragOverlay, { modifiers: [restrictToWindowEdges], children: activeId && activeLocation ? (_jsx(LocationItem, { location: activeLocation, isOverlay: true, width: dragWidth })) : null })] }));
 };

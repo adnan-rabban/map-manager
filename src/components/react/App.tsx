@@ -116,6 +116,7 @@ export const App: React.FC<AppProps> = ({
                 onToggleVisibility={onToggleVisibility}
                 onDeleteGroup={onDeleteGroup}
                 onRenameGroup={onRenameGroup}
+                onAssignLocationToGroup={onAssignLocationToGroup}
             />
 
             <DragOverlay modifiers={[restrictToWindowEdges]}>
