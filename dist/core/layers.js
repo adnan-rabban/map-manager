@@ -30,7 +30,6 @@ export class LayerSwitcher {
             opt.addEventListener('click', () => {
                 const styleId = opt.dataset.style;
                 if (styleId) {
-                    console.log(`🎨 Layer Switcher: User selected ${styleId}`);
                     this.setLayer(styleId);
                 }
                 // Update active state in UI

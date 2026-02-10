@@ -25,22 +25,19 @@ export const LocationList: React.FC<LocationListProps> = ({
     onDeleteGroup,
     onRenameGroup
 }) => {
-    // Defines the "Uncategorized" drop zone (root level)
     const { setNodeRef, isOver } = useDroppable({
         id: 'uncategorized-zone',
         data: {
             type: 'UNCATEGORIZED',
-            id: null // Represents null groupId
+            id: null
         }
     });
 
-    // Separation of concerns: Grouped vs Uncategorized locations
     const groupedLocations = locations.filter(l => l.groupId);
     const uncategorizedLocations = locations.filter(l => !l.groupId);
 
     return (
         <div className="location-list" style={{ display: 'flex', flexDirection: 'column' }}>
-            {/* Render Groups First */}
             <div className="groups-section">
                 {groups.map(group => (
                     <GroupItem 
@@ -65,10 +62,9 @@ export const LocationList: React.FC<LocationListProps> = ({
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '8px'
+                    gap: '4px'
                 }}
             >
-                {/* Only show "Uncategorized" label if there are other groups, otherwise it's just "the list" */}
                 {groups.length > 0 && (
                     <div style={{ 
                         fontSize: '12px', 

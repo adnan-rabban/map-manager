@@ -19,11 +19,9 @@ export class Store {
     loadLocations() {
         try {
             const data = localStorage.getItem("map-locations");
-            console.log('[Store] Loading locations raw:', data);
             const parsed = data ? JSON.parse(data) : [];
             const filtered = parsed.filter(l => l.lat >= -90 && l.lat <= 90 &&
                 l.lng >= -180 && l.lng <= 180);
-            console.log('[Store] Loaded locations parsed:', filtered.length);
             return filtered;
         }
         catch (e) {
@@ -43,7 +41,6 @@ export class Store {
     }
     save() {
         try {
-            console.log('[Store] Saving data:', this.locations.length, 'locations');
             localStorage.setItem("map-locations", JSON.stringify(this.locations));
             localStorage.setItem("map-groups", JSON.stringify(this.groups));
         }

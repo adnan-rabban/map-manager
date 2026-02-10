@@ -3,21 +3,19 @@ import { useDroppable } from '@dnd-kit/core';
 import { GroupItem } from './GroupItem.js';
 import { LocationItem } from './LocationItem.js';
 export const LocationList = ({ groups, locations, onFlyTo, onEdit, onDelete, onToggleVisibility, onDeleteGroup, onRenameGroup }) => {
-    // Defines the "Uncategorized" drop zone (root level)
     const { setNodeRef, isOver } = useDroppable({
         id: 'uncategorized-zone',
         data: {
             type: 'UNCATEGORIZED',
-            id: null // Represents null groupId
+            id: null
         }
     });
-    // Separation of concerns: Grouped vs Uncategorized locations
     const groupedLocations = locations.filter(l => l.groupId);
     const uncategorizedLocations = locations.filter(l => !l.groupId);
     return (_jsxs("div", { className: "location-list", style: { display: 'flex', flexDirection: 'column' }, children: [_jsx("div", { className: "groups-section", children: groups.map(group => (_jsx(GroupItem, { group: group, locations: groupedLocations.filter(l => l.groupId === group.id), onFlyTo: onFlyTo, onEdit: onEdit, onDelete: onDelete, onToggleVisibility: onToggleVisibility, onDeleteGroup: onDeleteGroup, onRenameGroup: onRenameGroup }, group.id))) }), _jsxs("div", { ref: setNodeRef, className: `uncategorized-list ${isOver ? 'drag-over' : ''}`, style: {
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '8px'
+                    gap: '4px'
                 }, children: [groups.length > 0 && (_jsxs("div", { style: {
                             fontSize: '12px',
                             fontWeight: 600,

@@ -122,7 +122,7 @@ export class MapEngine {
         const newStyleUrl = this.getEffectiveStyleUrl(this.currentBaseStyle);
         const cachedRoute = this.lastRouteData; // Simpan data rute sebelum ganti style
 
-        console.log(`🗺️  Switching map style to: ${newStyleUrl}`);
+
         
         this.map.setStyle(newStyleUrl);
         
@@ -134,7 +134,7 @@ export class MapEngine {
 
             // Restore Route jika ada data tersimpan
             if (cachedRoute && cachedRoute.routes) {
-                console.log("♻️ Restoring route after theme switch (Idle State)...");
+
                 // Pass 'true' agar kamera tidak reset/zoom-out
                 this.drawRoutes(cachedRoute.routes, cachedRoute.activeIndex, true);
             }
@@ -146,7 +146,7 @@ export class MapEngine {
      * Dipanggil dari app.ts saat user toggle dark mode
      */
     syncWithDarkMode(isDark: boolean): void {
-        console.log(`🌓 Dark mode sync: ${isDark}`);
+
         
         this.isDarkMode = isDark;
 
@@ -167,7 +167,7 @@ export class MapEngine {
      * @param styleId - ID style yang dipilih user (STREETS, SATELLITE, HYBRID)
      */
     setStyle(styleId: string): void {
-        console.log(`🎨 User selected style: ${styleId}`);
+
         
         // Normalisasi style ID
         const normalizedStyleId = styleId.toUpperCase();
@@ -447,7 +447,7 @@ export class MapEngine {
             // PENTING: geometries=geojson wajib ada untuk animasi kamera!
             const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&steps=true&geometries=geojson`;
             
-            console.log("🚗 Fetching route from OSRM:", url);
+
 
             const response = await fetch(url);
             if (!response.ok) throw new Error('Route request failed');
@@ -522,7 +522,7 @@ export class MapEngine {
             return;
         }
 
-        console.log("🎨 Drawing route...", route.geometry);
+
 
         // 2. Add Source
         this.map.addSource('route', {

@@ -1,11 +1,3 @@
-/* ===================================
-   COMPONENTS
-   UI Components & Interactive Elements
-   =================================== */
-
-/* =========================
-   GLASSMORPHISM SIDEBAR/PANEL
-   ========================= */
 .panel {
   position: absolute;
   top: 20px;
@@ -21,9 +13,11 @@
   z-index: var(--z-ui);
   display: flex;
   flex-direction: column;
-  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  transition:
+    transform 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   will-change: transform, opacity;
-  overflow: visible; 
+  overflow: visible;
   opacity: 1;
 }
 
@@ -52,57 +46,44 @@
 
 .panel-content {
   flex: 1;
-  /* Reverting to overlay to preserve card width/layout as requested */
-  overflow-y: overlay; 
+  overflow-y: overlay;
   padding: 10px;
   border-bottom-left-radius: var(--radius-lg);
   border-bottom-right-radius: var(--radius-lg);
-
-  /* --- macOS Floating Scrollbar --- */
-  /* Remove scrollbar-gutter to prevent double spacing or awkward shifts with transparency */ 
 }
 
-/* Scrollbar Track (Invisible) */
 .panel-content::-webkit-scrollbar {
   width: 14px;
   background: transparent;
 }
 
-/* Scrollbar Thumb - Hidden by Default */
 .panel-content::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0); /* Sepenuhnya transparan */
+  background-color: rgba(0, 0, 0, 0);
   border-radius: 99px;
   border: 4px solid transparent;
   background-clip: content-box;
-  /* Smooth fade out setelah tidak digunakan */
   transition: background-color 1.2s ease-out;
 }
 
-/* Saat Hover pada Panel: Scrollbar muncul */
 .panel-content:hover::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.25);
   transition: background-color 0.6s ease-out;
 }
 
-/* Saat Scrolling: Scrollbar muncul (menggunakan class) */
 .panel-content.is-scrolling::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.25);
   transition: background-color 0.6s ease-out;
 }
 
-/* Hover langsung pada Scrollbar: Lebih gelap */
 .panel-content::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.45);
-  transition: background-color 0.2s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+  transition: background-color 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
-/* Active/Dragging State */
 .panel-content::-webkit-scrollbar-thumb:active {
   background-color: rgba(0, 0, 0, 0.55);
   transition: background-color 0.1s ease-out;
 }
-
-/* Dark Mode Variants */
 [data-theme="dark"] .panel-content::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0);
 }
@@ -120,72 +101,62 @@
   background-color: rgba(255, 255, 255, 0.55);
 }
 
-/* Smooth scrolling behavior */
 .panel-content {
   scroll-behavior: smooth;
 }
 
-/* Container Actions */
 .panel-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
-    padding: 10px 20px;
-    width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 20px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
 }
 
-/* =========================
-   SIDEBAR BUTTONS (Animation Upgrade Only)
-   ========================= */
-
-/* --- 1. BASE STYLE (Keep Size, Upgrade Physics) --- */
 .panel-actions button,
 #btn-add-group {
-    height: 36px; 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    background-color: var(--card-bg) !important;
-    border: 1px solid var(--card-border);
-    color: var(--text-primary) !important;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    will-change: transform, box-shadow;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border);
+  color: var(--text-primary) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, box-shadow;
 }
 
 #btn-add-group {
-    width: 36px;
-    padding: 0;
+  width: 36px;
+  padding: 0;
 }
 
-/* --- 2. HOVER EFFECT (The "Lift Up" Feel) --- */
 .panel-actions button:hover,
 #btn-add-group:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    border-color: rgba(0,0,0,0.05);
-    background-color: var(--btn-secondary-bg) !important; 
-    z-index: 5;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--btn-secondary-bg) !important;
+  z-index: 5;
 }
 
-/* --- 3. ACTIVE STATE (Click Feel) --- */
 .panel-actions button:active,
 #btn-add-group:active {
-    transform: scale(0.96) translateY(0);
-    box-shadow: none;
-    background-color: var(--btn-hover-bg) !important;
+  transform: scale(0.96) translateY(0);
+  box-shadow: none;
+  background-color: var(--btn-hover-bg) !important;
 }
 
-/* --- 4. DARK MODE (Keep Existing Glassy Style) --- */
 [data-theme="dark"] .panel-actions button:hover,
 [data-theme="dark"] #btn-add-group:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .panel-close-btn {
@@ -199,169 +170,134 @@
   color: var(--text-secondary);
 }
 
-/* =========================
-   LOCATION LIST
-   ========================= */
 .location-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  /* height: 100%;  <-- REMOVED to allow shrink-to-fit */
-  /* overflow-y: auto; <-- REMOVED, handled by panel-content */
 }
 
-/* --- 1. BASE STYLE (Static, No Movement) --- */
 .location-item {
-    /* Layout */
-    padding: 10px 12px;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    
-    /* Visual Dasar */
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    box-shadow: var(--card-shadow);
-    
-    /* BORDER SETUP: Kiri Tebal Transparan (Placeholder) */
-    border: 1px solid var(--card-border);
-    border-left: 4px solid transparent; 
-    
-    /* Interaction */
-    cursor: pointer;
-    
-    /* SMOOTH TRANSITION: "Lampu menyala perlahan" effect */
-    /* Menggunakan cubic-bezier yang lembut untuk dimming in effect */
-    transition: 
-        background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- 2. HOVER STATE (Neutral Gray) --- */
 .location-item:hover {
-    /* Abu-abu sangat tipis, sekadar feedback kursor */
-    background-color: rgba(0, 0, 0, 0.02) !important;
-    
-    /* Border kiri tetap diam/transparan */
-    border-left-color: transparent !important;
-    
-    /* Tidak ada gerakan */
-    transform: none !important;
+  background-color: rgba(0, 0, 0, 0.02) !important;
+  border-left-color: transparent !important;
+  transform: none !important;
 }
 
-/* --- 3. ACTIVE STATE (Distinct Blue Tint) --- */
 .location-item.active {
-    /* Biru lebih terang (8%) - Beda jauh dengan hover abu-abu */
-    background-color: rgba(0, 122, 255, 0.08) !important;
-    
-    /* Indikator Border Kiri Nyala */
-    border-left-color: #007AFF !important;
-    
-    /* Pastikan border sisi lain tetap standar */
-    border-top-color: var(--card-border) !important;
-    border-right-color: var(--card-border) !important;
-    border-bottom-color: var(--card-border) !important;
-    
-    transform: none !important;
+  background-color: rgba(0, 122, 255, 0.08) !important;
+  border-left-color: #007aff !important;
+  border-top-color: var(--card-border) !important;
+  border-right-color: var(--card-border) !important;
+  border-bottom-color: var(--card-border) !important;
+  transform: none !important;
 }
 
-/* --- 4. DARK MODE HOVER --- */
 [data-theme="dark"] .location-item:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important; /* Abu terang dikit */
-    border-left-color: transparent !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-left-color: transparent !important;
 }
 
-/* --- DARK MODE ACTIVE (Biru Neon Transparan) --- */
 [data-theme="dark"] .location-item.active {
-    background-color: rgba(10, 132, 255, 0.15) !important;
-    border-left-color: #0A84FF !important;
+  background-color: rgba(10, 132, 255, 0.15) !important;
+  border-left-color: #0a84ff !important;
 }
 
-/* Container Teks (Kiri) */
 .location-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 2px; /* Jarak super rapat */
-    flex: 1;
-    min-width: 0;
-    margin-right: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  margin-right: 8px;
 }
 
-/* Judul Lokasi */
 .location-info h3 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Deskripsi Lokasi */
 .location-info p {
-    margin: 0;
-    font-size: 12px;
-    color: var(--text-secondary);
-    line-height: 1.3;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Container Icon (Kanan) */
 .location-actions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .location-item[draggable="true"] {
-    cursor: grab;
+  cursor: grab;
 }
 
 .location-item[draggable="true"]:active {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
 .location-item.dragging {
-    opacity: 0.5;
-    border: 1px dashed var(--text-secondary);
-    background: var(--bg-secondary);
+  opacity: 0.5;
+  border: 1px dashed var(--text-secondary);
+  background: var(--bg-secondary);
 }
 
 .uncategorized-list {
-    transition: background 0.2s, min-height 0.2s;
-    border-radius: 6px;
+  transition:
+    background 0.2s,
+    min-height 0.2s;
+  border-radius: 6px;
 }
 
 .uncategorized-list.drag-over {
-    background: rgba(0, 122, 255, 0.05);
-    min-height: 40px;
-    border: 1px dashed var(--primary);
+  background: rgba(0, 122, 255, 0.05);
+  min-height: 40px;
+  border: 1px dashed var(--primary);
 }
 
-/* =========================
-   DRAG OVERLAY (Ghosting Fix)
-   ========================= */
+.uncategorized-list .location-item {
+  margin-bottom: 0;
+}
+
 .location-item.overlay-item {
-    opacity: 1 !important;
-    background-color: var(--card-bg) !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
-    transform: scale(1.05) !important;
-    cursor: grabbing !important;
-    z-index: 9999 !important;
-    border: 1px solid var(--card-border) !important;
-    backdrop-filter: blur(12px); /* Maintain glass effect if used */
+  opacity: 1 !important;
+  background-color: var(--card-bg) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+  transform: scale(1.05) !important;
+  cursor: grabbing !important;
+  z-index: 9999 !important;
+  border: 1px solid var(--card-border) !important;
+  backdrop-filter: blur(12px);
 }
 
-/* =========================
-   BUTTONS
-   ========================= */
 .btn {
   border: none;
   cursor: pointer;
@@ -375,104 +311,101 @@
   justify-content: center;
 }
 
-/* Group / Folder Styles */
 .group-item {
-    margin-bottom: 5px;
+  margin-bottom: 5px;
 }
 
 .group-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2px 6px;
-    cursor: pointer;
-    border-radius: 6px;
-    user-select: none;
-    transition: background 0.1s, border-color 0.1s;
-    border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 6px;
+  user-select: none;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+  border: 1px solid transparent;
 }
 
 .group-header:hover {
-    background: var(--bg-secondary);
+  background: var(--bg-secondary);
 }
 
 .group-header.drag-over {
-    background: rgba(0, 122, 255, 0.1);
-    border-color: var(--primary);
+  background: rgba(0, 122, 255, 0.1);
+  border-color: var(--primary);
 }
 
 .group-header .folder-icon {
-    transition: transform 0.2s ease;
-    transform: rotate(-90deg); /* Default collapsed (right) */
-    opacity: 0.6;
+  transition: transform 0.2s ease;
+  transform: rotate(-90deg);
+  opacity: 0.6;
 }
 
 .group-header .folder-icon.open {
-    transform: rotate(0deg); /* Open (down) */
+  transform: rotate(0deg);
 }
 
 .group-name {
-    font-weight: 600;
-    font-size: 14px;
-    margin-left: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  margin-left: 4px;
 }
 
 .group-actions {
-    display: flex;
-    gap: 4px;
-    opacity: 0;
-    transition: opacity 0.2s, margin-right 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth shift */
-    margin-right: 0; /* Default */
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    margin-right 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-right: 0;
 }
 
-/* When scrollbar is detected by JS, shift buttons left to avoid overlap */
 .panel-content.has-scrollbar .group-actions {
-    margin-right: 14px; /* Adjust based on scrollbar width */
+  margin-right: 14px;
 }
 
 .group-header:hover .group-actions {
-    opacity: 1;
+  opacity: 1;
 }
 
 .btn-icon-sm {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 4px;
 }
 .btn-icon-sm:hover {
-    background: rgba(0,0,0,0.05);
-    color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
 }
 
-/* --- macOS Smooth Accordion Animation --- */
-
-/* Wrapper utama: Menggunakan Grid untuk transisi tinggi */
 .group-content-wrapper {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); /* Kurva 'Ease Out' yang smooth */
-    opacity: 0; /* Opsional: Fade in/out */
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  opacity: 0;
 }
 
-/* State ketika folder terbuka */
 .group-content-wrapper.open {
-    grid-template-rows: 1fr;
-    opacity: 1;
+  grid-template-rows: 1fr;
+  opacity: 1;
 }
 
-/* Container dalam: Wajib ada min-height: 0 agar grid trick bekerja */
 .group-content-inner {
-    overflow: hidden;
-    min-height: 0;
-    transition: opacity 0.4s ease; /* Fade content */
-    padding-left: 16px; /* VS Code style indentation */
-    border-left: 1px solid transparent;
+  overflow: hidden;
+  min-height: 0;
+  transition: opacity 0.4s ease;
+  padding-left: 16px;
+  border-left: 1px solid transparent;
 }
 
 .btn-sm {
@@ -492,22 +425,22 @@
 }
 
 .btn-secondary {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   color: var(--text-main);
-  border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn-secondary:hover {
-  background: rgba(255,255,255,0.9);
-  border-color: rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .btn-outline {
   background: white;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   color: var(--text-main);
   padding: 8px 16px;
   border-radius: var(--radius-md);
@@ -516,8 +449,8 @@
 }
 
 .btn-outline:hover {
-  background: rgba(0,0,0,0.02);
-  border-color: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .btn-destructive {
@@ -539,7 +472,7 @@
   color: var(--text-secondary);
   padding: 6px;
   border: none;
-  cursor: pointer; 
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -549,7 +482,7 @@
 
 .btn-icon:hover {
   color: var(--text-main);
-  background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .btn-icon-inside {
@@ -577,7 +510,6 @@
   margin-top: 8px;
 }
 
-/* Specific override for Directions Close Button */
 #btn-close-nav {
   transition: none;
 }
@@ -587,9 +519,6 @@
   color: var(--text-secondary);
 }
 
-/* =========================
-   TOGGLE BUTTONS (SIDEBAR & NAV)
-   ========================= */
 .btn-toggle-sidebar {
   position: absolute;
   top: 20px;
@@ -607,7 +536,7 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  opacity: 0; 
+  opacity: 0;
   pointer-events: none;
   transform: scale(0.8);
   will-change: opacity, transform;
@@ -659,7 +588,7 @@
   color: #ff3b30;
   padding: 10px 20px;
   border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -690,7 +619,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s, background 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s;
 }
 
 .btn-follow-user:hover {
@@ -699,18 +630,15 @@
 }
 
 [data-theme="dark"] .btn-clear-route {
-    background: rgba(44, 44, 46, 0.9); /* Ubah background jadi gelap */
-    color: #ff453a; /* Merah yang lebih soft untuk dark mode */
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(44, 44, 46, 0.9);
+  color: #ff453a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .btn-clear-route:hover {
-    background: rgba(60, 60, 60, 1);
+  background: rgba(60, 60, 60, 1);
 }
 
-/* =========================
-   FAB (Floating Action Button)
-   ========================= */
 .fab-add {
   position: absolute;
   bottom: 50px;
@@ -762,57 +690,54 @@
   transition-delay: 0s;
 }
 
-/* =========================
-   MODAL & FORMS
-   ========================= */
-
-/* 1. Animasi Background (Overlay) - HANYA Blur & Opacity */
 @keyframes fadeBackdrop {
-    from { 
-        opacity: 0; 
-        backdrop-filter: blur(0px);
-        -webkit-backdrop-filter: blur(0px);
-    }
-    to { 
-        opacity: 1; 
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-    }
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
-/* 2. Animasi Kotak Modal (Content) - Scale & Opacity */
 @keyframes zoomInModal {
-    from { 
-        opacity: 0; 
-        transform: scale(0.92) translateY(10px); /* Mulai agak kecil & turun sedikit */
-    }
-    to { 
-        opacity: 1; 
-        transform: scale(1) translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-/* Animasi Keluar (Closing) */
 @keyframes fadeOutBackdrop {
-    to { opacity: 0; backdrop-filter: blur(0px); }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
 }
 @keyframes zoomOutModal {
-    to { opacity: 0; transform: scale(0.9); }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 }
 
 .modal-overlay {
-  /* Fix posisi agar selalu full screen */
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  
-  /* Style */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.4);
   z-index: 2000;
   display: flex;
   justify-content: center;
   align-items: center;
-
-  /* Hidden by default */
   opacity: 0;
   visibility: hidden;
 }
@@ -820,17 +745,16 @@
 .modal-overlay.open {
   opacity: 1;
   visibility: visible;
-  /* Animasi Background: NO SCALE */
   animation: fadeBackdrop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .modal-overlay.closing {
-    animation: fadeOutBackdrop 0.2s ease-in forwards;
-    pointer-events: none;
+  animation: fadeOutBackdrop 0.2s ease-in forwards;
+  pointer-events: none;
 }
 
 .modal-overlay.closing .modal {
-    animation: zoomOutModal 0.2s ease-in forwards;
+  animation: zoomOutModal 0.2s ease-in forwards;
 }
 
 .modal {
@@ -840,7 +764,7 @@
   box-shadow: var(--modal-shadow);
   max-width: 400px;
   width: 90%;
-  opacity: 0; 
+  opacity: 0;
   color: var(--text-main);
   border: 1px solid var(--divider-color);
 }
@@ -870,46 +794,41 @@
   margin: 0;
 }
 
-/* Container Tombol */
 .modal-actions {
-    display: flex;
-    justify-content: flex-end; /* Rata kanan */
-    gap: 12px; /* Jarak antar tombol */
-    margin-top: 24px;
-    border-top: none; /* Ensure no border */
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  border-top: none;
 }
 
-/* Style Dasar Tombol Modal */
 .modal-actions button {
-    padding: 12px 24px;
-    border-radius: 10px; /* Sudut melengkung modern */
-    font-size: 14px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    min-width: 80px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  min-width: 80px;
 }
 
 .modal-actions button:hover {
-    opacity: 0.9;
+  opacity: 0.9;
 }
 
-/* Tombol Cancel (Themed) */
-.modal-actions button.btn-cancel, 
-.modal-actions button:first-child:not(.btn-save) { /* Fallback selector */
-    background-color: var(--btn-cancel-bg);
-    color: var(--btn-cancel-text);
+.modal-actions button.btn-cancel,
+.modal-actions button:first-child:not(.btn-save) {
+  background-color: var(--btn-cancel-bg);
+  color: var(--btn-cancel-text);
 }
 
-/* Tombol Save (Biru Terang) */
 .modal-actions button.btn-save,
 .modal-actions button:last-child {
-    background-color: #007AFF;
-    color: #FFFFFF;
+  background-color: #007aff;
+  color: #ffffff;
 }
 
-/* Keep modal-footer compatible or remove if using only modal-actions */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -929,8 +848,14 @@
   transition: opacity 0.2s;
   min-width: 80px;
 }
-.modal-footer button:first-child { background-color: #3A3A3C; color: #FFFFFF; }
-.modal-footer button:last-child { background-color: #007AFF; color: #FFFFFF; }
+.modal-footer button:first-child {
+  background-color: #3a3a3c;
+  color: #ffffff;
+}
+.modal-footer button:last-child {
+  background-color: #007aff;
+  color: #ffffff;
+}
 
 .form-group {
   margin-bottom: 16px;
@@ -963,42 +888,40 @@
   color: var(--input-text);
   font-size: 16px;
   font-family: inherit;
-  transition: border 0.2s, background 0.2s;
+  transition:
+    border 0.2s,
+    background 0.2s;
 }
 
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  background: var(--input-bg); /* Ensure it stays correct on focus or maybe brighter? User didn't specify. Keeping same as base or 'white' in light mode? User input-bg for light is #F2F2F7 which is greyish. Standard is often white on focus. But let's stick to variable to be safe for now, or just don't change background on focus if not needed. */
+  background: var(--input-bg);
 }
 
-
-/* =========================
-   DRAG AND DROP VISUALS (PREMIUM)
-   ========================= */
-.group-header, .uncategorized-header {
-    padding: 2px 0;
-    border-radius: 12px;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+.group-header,
+.uncategorized-header {
+  padding: 2px 0;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.group-header.drag-over, 
+.group-header.drag-over,
 .uncategorized-header.drag-over {
-    background-color: rgba(0, 122, 255, 0.15) !important;
-    border: 2px solid #007AFF;
-    transform: scale(1.02);
+  background-color: rgba(0, 122, 255, 0.15) !important;
+  border: 2px solid #007aff;
+  transform: scale(1.02);
 }
 
 .location-item.dragging {
-    opacity: 0.4;
-    transform: scale(0.95);
-    background: var(--bg-secondary);
-    border: none;
+  opacity: 0.4;
+  transform: scale(0.95);
+  background: var(--bg-secondary);
+  border: none;
 }
 
-/* Ensure uncategorized header is visible as drop zone when needed */
 .uncategorized-header {
-    border: 2px solid transparent; 
+  border: 2px solid transparent;
 }
 .marker-wrapper {
   cursor: pointer;
@@ -1017,7 +940,7 @@
   background-color: var(--primary);
   border: 3px solid white;
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   will-change: transform;
 }
@@ -1026,13 +949,11 @@
   transform: scale(1.3);
 }
 
-.mapboxgl-marker, .maplibregl-marker {
+.mapboxgl-marker,
+.maplibregl-marker {
   transition: none !important;
 }
 
-/* =========================
-   SEARCH BAR
-   ========================= */
 .search-container {
   margin-top: 20px;
   position: relative;
@@ -1060,7 +981,7 @@
 }
 
 #search-input::placeholder {
-  color: #8E8E93;
+  color: #8e8e93;
 }
 
 #search-input:focus {
@@ -1074,7 +995,7 @@
   transform: translateY(-50%);
   background: rgba(142, 142, 147, 0.2);
   border: none;
-  color: #8E8E93;
+  color: #8e8e93;
   cursor: pointer;
   padding: 3px;
   width: 18px;
@@ -1123,7 +1044,6 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  
 
   display: flex;
   align-items: center;
@@ -1148,9 +1068,6 @@
   padding-right: 36px !important;
 }
 
-/* =========================
-   SEARCH RESULTS
-   ========================= */
 .search-results {
   position: absolute;
   top: 100%;
@@ -1161,10 +1078,10 @@
   backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: 12px;
-  box-shadow: 
-    0 4px 6px rgba(0,0,0,0.02), 
-    0 12px 32px rgba(0,0,0,0.12), 
-    0 0 0 1px rgba(0,0,0,0.05);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.02),
+    0 12px 32px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
   max-height: 70vh;
   overflow-y: auto;
   scrollbar-width: none;
@@ -1191,7 +1108,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   transition: background 0.2s;
   opacity: 0;
   animation: slideInItem 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
@@ -1209,7 +1126,7 @@
   flex-shrink: 0;
   width: 32px;
   height: 32px;
-  background: rgba(0,0,0,0.04);
+  background: rgba(0, 0, 0, 0.04);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1245,9 +1162,6 @@
   text-overflow: ellipsis;
 }
 
-/* =========================
-   NOTIFICATIONS
-   ========================= */
 .notification-container {
   position: fixed;
   top: 15px;
@@ -1266,7 +1180,9 @@
   -webkit-backdrop-filter: blur(25px);
   padding: 14px 24px;
   border-radius: 50px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.2);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
   border: none;
   color: var(--text-main);
   font-size: 14px;
@@ -1297,21 +1213,21 @@
   justify-content: center;
   font-size: 18px;
   background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .notification-toast.info .notification-icon {
-  background: linear-gradient(135deg, #007AFF, #00C6FF);
+  background: linear-gradient(135deg, #007aff, #00c6ff);
   color: white;
 }
 
 .notification-toast.success .notification-icon {
-  background: linear-gradient(135deg, #34C759, #30D158);
+  background: linear-gradient(135deg, #34c759, #30d158);
   color: white;
 }
 
 .notification-toast.error .notification-icon {
-  background: linear-gradient(135deg, #FF3B30, #FF453A);
+  background: linear-gradient(135deg, #ff3b30, #ff453a);
   color: white;
 }
 
@@ -1335,23 +1251,14 @@
   font-weight: 400;
 }
 
-/* =========================
-   TOOLTIPS (macOS Style)
-   ========================= */
 .macos-tooltip {
   position: fixed;
   z-index: 10000;
   pointer-events: none;
-  
-  /* Gaya khas macOS dengan background semi-transparan */
   background: rgba(246, 246, 246, 0.85);
   backdrop-filter: blur(30px) saturate(200%);
   -webkit-backdrop-filter: blur(30px) saturate(200%);
-  
-  /* Border halus khas macOS */
   border: 0.5px solid rgba(0, 0, 0, 0.08);
-  
-  /* Tipografi macOS */
   color: #1d1d1f;
   padding: 4px 10px;
   border-radius: 6px;
@@ -1359,20 +1266,20 @@
   font-weight: 500;
   letter-spacing: 0.2px;
   line-height: 1.4;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-  
-  /* Shadow lembut & subtle khas macOS */
-  box-shadow: 
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+    sans-serif;
+
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.08),
     0 1px 2px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  
-  /* Animasi muncul */
+
   opacity: 0;
   transform: scale(0.88) translateY(-2px);
   transform-origin: center bottom;
-  transition: 
-    opacity 0.12s ease-out, 
+  transition:
+    opacity 0.12s ease-out,
     transform 0.12s ease-out,
     visibility 0.12s;
   visibility: hidden;
@@ -1382,7 +1289,7 @@
   opacity: 1;
   transform: scale(1) translateY(0);
   visibility: visible;
-  transition: 
+  transition:
     opacity 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
     visibility 0s linear 0s;
@@ -1393,22 +1300,20 @@
   visibility: hidden;
 }
 
-/* Dark mode - mengikuti gaya Big Sur/Monterey/Ventura */
 @media (prefers-color-scheme: dark) {
   .macos-tooltip {
     background: rgba(50, 50, 52, 0.88);
     border: 0.5px solid rgba(255, 255, 255, 0.12);
     color: #f5f5f7;
-    box-shadow: 
+    box-shadow:
       0 4px 16px rgba(0, 0, 0, 0.4),
       0 2px 4px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 }
 
-/* Varian untuk tooltip dengan arrow (opsional) */
 .macos-tooltip::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -4px;
   left: 50%;
@@ -1430,9 +1335,6 @@
   }
 }
 
-/* =========================
-   MISC UTILITIES
-   ========================= */
 .js-nav:hover {
   color: var(--primary);
   background: rgba(0, 122, 255, 0.1);
@@ -1465,12 +1367,7 @@
   display: none !important;
 }
 
-/* =========================
-   DARK MODE OVERRIDES
-   ========================= */
-
-/* Global Panel & Modal Backgrounds */
-[data-theme="dark"] .panel, 
+[data-theme="dark"] .panel,
 [data-theme="dark"] .settings-menu,
 [data-theme="dark"] .modal,
 [data-theme="dark"] .notification-toast,
@@ -1479,17 +1376,14 @@
   backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
+  box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.4),
     0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-
-
-/* Secondary Buttons */
 [data-theme="dark"] .btn-secondary {
-  background: rgba(255, 255, 255, 0.1); 
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
 }
@@ -1497,33 +1391,31 @@
 [data-theme="dark"] .btn-secondary:hover {
   background: rgba(80, 80, 80, 0.6);
   border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="dark"] .btn-secondary svg {
-    stroke: #FFFFFF;
+  stroke: #ffffff;
 }
 
-/* Icon Buttons */
 [data-theme="dark"] .btn-icon {
   color: rgba(255, 255, 255, 0.8);
 }
 
 [data-theme="dark"] .btn-icon:hover {
-  color: #FFFFFF;
+  color: #ffffff;
   background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="dark"] .btn-icon svg {
-    stroke: currentColor;
+  stroke: currentColor;
 }
 
-/* Location Items */
 [data-theme="dark"] .location-item {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-left: 3px solid transparent; 
+  border-left: 3px solid transparent;
   transition: all 0.2s ease-out;
 }
 
@@ -1535,90 +1427,83 @@
 
 [data-theme="dark"] .location-item.active,
 [data-theme="dark"] .location-item:active {
-    border-left-color: #007AFF;
-    background: rgba(255, 255, 255, 0.15);
+  border-left-color: #007aff;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 [data-theme="dark"] .location-info h3 {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 [data-theme="dark"] .location-info p {
   color: rgba(235, 235, 245, 0.6);
 }
 
-
-
-/* Headers & Text */
 [data-theme="dark"] .panel-header h1,
 [data-theme="dark"] .modal-title,
 [data-theme="dark"] .settings-header,
 [data-theme="dark"] .menu-header {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
-/* Toggle Buttons (Sidebar/Nav) */
 [data-theme="dark"] .btn-toggle-sidebar,
 [data-theme="dark"] .btn-toggle-nav {
-    background: rgba(44, 44, 46, 0.8);
-    color: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(44, 44, 46, 0.8);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .btn-toggle-sidebar:hover,
 [data-theme="dark"] .btn-toggle-nav:hover {
-    background: rgba(58, 58, 60, 1);
+  background: rgba(58, 58, 60, 1);
 }
 
-/* MapLibre/MapBox Control Overrides */
 [data-theme="dark"] .maplibregl-ctrl-group,
 [data-theme="dark"] .mapboxgl-ctrl-group {
-    background: rgba(44, 44, 46, 0.8) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  background: rgba(44, 44, 46, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 [data-theme="dark"] .maplibregl-ctrl-group button,
 [data-theme="dark"] .mapboxgl-ctrl-group button {
-    background: transparent !important;
+  background: transparent !important;
 }
 
 [data-theme="dark"] .maplibregl-ctrl-group button + button,
 [data-theme="dark"] .mapboxgl-ctrl-group button + button {
-    border-top-color: rgba(255, 255, 255, 0.1) !important;
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Force icons to white using filter */
 [data-theme="dark"] .maplibregl-ctrl-icon,
 [data-theme="dark"] .mapboxgl-ctrl-icon {
-    filter: brightness(0) invert(1) !important;
+  filter: brightness(0) invert(1) !important;
 }
 
-/* Custom Toggle Buttons - Strict Overrides */
 [data-theme="dark"] #btn-open-sidebar,
 [data-theme="dark"] #btn-open-nav,
 [data-theme="dark"] #btn-layers,
-[data-theme="dark"] .btn-toggle-sidebar, 
+[data-theme="dark"] .btn-toggle-sidebar,
 [data-theme="dark"] .btn-toggle-nav,
 [data-theme="dark"] .btn-toggle-layers {
-    background-color: rgba(44, 44, 46, 0.8) !important;
-    color: #FFFFFF !important;
+  background-color: rgba(44, 44, 46, 0.8) !important;
+  color: #ffffff !important;
 }
 
 [data-theme="dark"] #btn-open-sidebar svg,
 [data-theme="dark"] #btn-open-nav svg,
 [data-theme="dark"] #btn-layers svg,
-[data-theme="dark"] .btn-toggle-sidebar svg, 
+[data-theme="dark"] .btn-toggle-sidebar svg,
 [data-theme="dark"] .btn-toggle-nav svg,
 [data-theme="dark"] .btn-toggle-layers svg {
-    stroke: #FFFFFF !important;
-    color: #FFFFFF !important;
+  stroke: #ffffff !important;
+  color: #ffffff !important;
 }
 
 [data-theme="dark"] #btn-open-sidebar:hover,
 [data-theme="dark"] #btn-open-nav:hover,
 [data-theme="dark"] #btn-layers:hover {
-    background-color: rgba(60, 60, 60, 1) !important;
+  background-color: rgba(60, 60, 60, 1) !important;
 }
 
 [data-theme="dark"] .btn-toggle-layers.active,
@@ -1626,47 +1511,39 @@
 [data-theme="dark"] #btn-layers.active,
 [data-theme="dark"] #btn-open-nav.active,
 [data-theme="dark"] #btn-settings.active {
-    background-color: var(--primary) !important;
-    color: #FFFFFF !important;
-    border-color: transparent !important;
-    box-shadow: 0 0 12px rgba(10, 132, 255, 0.4) !important;
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 12px rgba(10, 132, 255, 0.4) !important;
 }
 
-/* Modal Text & Actions Overrides */
 [data-theme="dark"] .modal-desc,
 [data-theme="dark"] .modal p {
-    color: rgba(235, 235, 245, 0.8) !important;
+  color: rgba(235, 235, 245, 0.8) !important;
 }
 
 [data-theme="dark"] .btn-outline {
-    background: rgba(255, 255, 255, 0.1);
-    color: #FFFFFF;
-    border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 [data-theme="dark"] .btn-outline:hover {
-    background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 [data-theme="dark"] .modal-title {
-    color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
-/* Notification Toast Overrides */
 [data-theme="dark"] .notification-title {
-    color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 [data-theme="dark"] .notification-message {
-    color: rgba(235, 235, 245, 0.8) !important;
+  color: rgba(235, 235, 245, 0.8) !important;
 }
 
-
-/* =========================
-   CUSTOM INPUT VISUALS (Dark/Glass)
-   ========================= */
-
-/* Side-by-side Inputs */
 .input-row {
   display: flex;
   gap: 12px;
@@ -1675,240 +1552,231 @@
 }
 
 .input-row .input-group {
-    flex: 1; /* Agar lebar terbagi 50:50 */
-    min-width: 0; /* Mencegah overflow */
+  flex: 1;
+  min-width: 0;
 }
 
-/* Wrapper Utama */
 .custom-select-wrapper {
-    position: relative;
-    user-select: none;
-    width: 100%;
-    font-family: inherit;
+  position: relative;
+  user-select: none;
+  width: 100%;
+  font-family: inherit;
 }
 
 .custom-select-trigger {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    font-size: 14px;
-    background-color: var(--dropdown-bg);
-    color: var(--dropdown-text);
-    border-radius: 10px;
-    cursor: pointer;
-    border: 1px solid var(--input-border);
-    transition: all 0.2s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 14px;
+  background-color: var(--dropdown-bg);
+  color: var(--dropdown-text);
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid var(--input-border);
+  transition: all 0.2s;
 }
 
 .custom-select-trigger:hover {
-    background-color: var(--hover-highlight);
+  background-color: var(--hover-highlight);
 }
 
 .custom-select-trigger::after {
-    content: '';
-    width: 0; 
-    height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid #888;
-    transition: transform 0.2s;
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #888;
+  transition: transform 0.2s;
 }
 
 .custom-select-wrapper.open .custom-select-trigger::after {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
-/* Menu Pilihan (Dropdown List) */
 .custom-options {
-    position: absolute;
-    top: calc(100% + 8px); /* Muncul sedikit di bawah trigger */
-    left: 0;
-    right: 0;
-    background: var(--menu-bg); /* Themed background */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--divider-color);
-    border-radius: 12px;
-    z-index: 3000;
-    
-    /* Animasi Sembunyi (Default) */
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    padding: 6px;
-    max-height: 200px;
-    overflow-y: auto;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--menu-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--divider-color);
+  border-radius: 12px;
+  z-index: 3000;
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 6px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-/* State Terbuka */
 .custom-select-wrapper.open .custom-options {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
-/* Item Pilihan */
 .custom-option {
-    padding: 10px 12px;
-    color: var(--dropdown-text);
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background 0.2s;
-    font-size: 14px;
+  padding: 10px 12px;
+  color: var(--dropdown-text);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+  font-size: 14px;
 }
 
 .custom-option:hover {
-    background-color: #007AFF; /* Biru macOS saat hover */
-    color: white;
+  background-color: #007aff; 
+  color: white;
 }
 
 .custom-option.selected {
-    background-color: rgba(0, 122, 255, 0.15);
-    color: #0A84FF;
-    font-weight: 600;
+  background-color: rgba(0, 122, 255, 0.15);
+  color: #0a84ff;
+  font-weight: 600;
 }
 
-/* =========================
-   LOCATION CARD DROPDOWN
-   ========================= */
 .location-actions {
-    position: relative; /* Context for absolute dropdown */
+  position: relative;
 }
 
 .dropdown-btn {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
-.dropdown-btn:hover, .dropdown-btn.active {
-    background: rgba(0,0,0,0.05);
-    color: var(--text-primary);
+.dropdown-btn:hover,
+.dropdown-btn.active {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
 }
 
 .location-actions-menu {
-    position: fixed;
-    min-width: 140px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-radius: 12px;
-    box-shadow: 
-        0 4px 6px rgba(0,0,0,0.02), 
-        0 12px 32px rgba(0,0,0,0.12), 
-        0 0 0 1px rgba(0,0,0,0.05);
-    padding: 6px;
-    display: flex; /* Always flex when mounted, visibility controlled by opacity */
-    flex-direction: column;
-    gap: 4px;
-    z-index: 9999;
-    
-    /* Pre-animation state */
-    opacity: 0;
-    transform: scale(0.95) translateY(-5px);
-    transition: 
-        opacity 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
-        transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-    transform-origin: top right;
-    pointer-events: none;
+  position: fixed;
+  min-width: 140px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.02),
+    0 12px 32px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 9999;
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: top center;
+  pointer-events: none;
 }
 
 .location-actions-menu.visible {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    pointer-events: auto;
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
 }
 
 .dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    color: var(--text-main);
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    text-align: left;
-    width: 100%;
-    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smoother transition */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-main);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Edit / Default Hover - Subtle Gray */
 .dropdown-item:hover {
-    background: rgba(0, 0, 0, 0.05); /* Subtle gray instead of primary blue */
-    color: var(--text-main);
-    /* transform: translateX(2px); <-- REMOVED as per user request */
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-main);
 }
 
 .dropdown-item svg {
-    width: 14px;
-    height: 14px;
-    stroke-width: 2;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+  opacity: 0.7;
+  transition: opacity 0.2s;
 }
 
 .dropdown-item:hover svg {
-    opacity: 1;
+  opacity: 1;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--divider-color);
+  margin: 4px 6px;
 }
 
 .dropdown-item.delete {
-    color: #ff3b30;
+  color: #ff3b30;
 }
 
-/* Delete Hover - High Contrast Red */
 .dropdown-item.delete:hover {
-    background: #D32F2F; /* Darker red for better contrast */
-    color: white;
-    box-shadow: 0 2px 8px rgba(211, 47, 47, 0.25);
+  background: #d32f2f;
+  color: white;
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.25);
 }
 
 .dropdown-item.delete:hover svg {
-    stroke: white; /* Ensure icon turns white */
-    opacity: 1;
+  opacity: 1;
 }
 
-/* Dark Mode Adjustments */
 [data-theme="dark"] .dropdown-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .dropdown-item.delete:hover {
-    background: #ff3b30;
-    color: white;
+  background: #ff3b30;
+  color: white;
 }
 
-/* Dark Mode Support */
 [data-theme="dark"] .location-actions-menu {
-    /* Make background lighter/more visible, similar to light mode card but dark themed */
-    background: rgba(44, 44, 46, 0.95); /* Slightly lighter than before */
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.5); /* Stronger shadow for depth */
+  background: rgba(44, 44, 46, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
-/* Fix delete hover not showing red in dark mode due to specificity */
 [data-theme="dark"] .dropdown-item.delete:hover {
-    background: #ff3b30 !important; /* Force red background */
-    color: white !important;
+  background: #ff3b30 !important;
+  color: white !important;
 }
 
 [data-theme="dark"] .dropdown-btn:hover,
 [data-theme="dark"] .location-actions .btn-icon-sm:hover {
-    background: transparent !important;
-    color: #FFFFFF;
+  background: transparent !important;
+  color: #ffffff;
 }

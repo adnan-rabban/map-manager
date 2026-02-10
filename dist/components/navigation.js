@@ -23,7 +23,6 @@ export class Navigation {
         this.startInput = document.getElementById('nav-start');
         this.destInput = document.getElementById('nav-dest');
         this.suggestions = document.getElementById('nav-suggestions');
-        // Buttons
         const btnCloseNav = document.getElementById('btn-close-nav');
         const btnStartNav = document.getElementById('btn-start-nav');
         const btnMyLocation = document.getElementById('btn-my-location');
@@ -44,7 +43,7 @@ export class Navigation {
         if (btnClear) {
             btnClear.addEventListener('click', () => {
                 this.map.clearRoute();
-                this.map.resetCamera(); // Reset camera to default view
+                this.map.resetCamera();
                 this.stopRealTimeNavigation();
                 btnClear.classList.remove('visible');
                 const instructions = document.getElementById('nav-instructions');
@@ -52,7 +51,6 @@ export class Navigation {
                     instructions.remove();
             });
         }
-        // Input Autocomplete
         if (this.startInput) {
             this.setupAutocomplete(this.startInput, 'btn-clear-start', (coords) => this.startCoords = coords);
         }
@@ -62,22 +60,19 @@ export class Navigation {
     }
     togglePanel(show) {
         const sidebar = document.getElementById('sidebar-panel');
-        const appContainer = document.getElementById('app'); // Container utama
+        const appContainer = document.getElementById('app');
         const btnSidebar = document.getElementById('btn-open-sidebar');
         if (show) {
             this.panel?.classList.add('open');
-            // Tutup sidebar dan pastikan tombol toggle muncul
             if (sidebar)
                 sidebar.classList.add('collapsed');
             if (appContainer)
                 appContainer.classList.add('collapsed-view');
-            // Fix: Force button visibility
             if (btnSidebar)
                 btnSidebar.style.display = 'flex';
         }
         else {
             this.panel?.classList.remove('open');
-            // Opsional: Jika navigasi ditutup, jangan otomatis buka sidebar, biarkan user yang buka
             if (sidebar)
                 sidebar.classList.remove('collapsed');
             if (appContainer)
@@ -123,7 +118,6 @@ export class Navigation {
         });
     }
     resetRouteUI() {
-        // Remove Dynamic Cards
         const headerCard = document.querySelector('.route-header-card');
         const listCard = document.querySelector('.route-list-card');
         const followBtn = document.getElementById('btn-follow-user');
@@ -133,15 +127,12 @@ export class Navigation {
             listCard.remove();
         if (followBtn)
             followBtn.remove();
-        // Restore Original "Start Navigation" (Calculate) Button
         const origBtn = document.getElementById('btn-start-nav');
         if (origBtn)
             origBtn.style.display = 'block';
-        // Hide Clear Route Button
         const clearBtn = document.getElementById('btn-clear-route');
         if (clearBtn)
             clearBtn.classList.remove('visible');
-        // Clear Map Route layer
         this.map.clearRoute();
         this.activeRoute = null;
     }
@@ -166,7 +157,7 @@ export class Navigation {
                 toggleClearBtn();
                 this.suggestions?.classList.add('hidden');
                 callback(null);
-                this.resetRouteUI(); // Reset UI when cleared
+                this.resetRouteUI();
             });
         }
         input.addEventListener('input', (e) => {
@@ -174,7 +165,6 @@ export class Navigation {
             const query = target.value;
             toggleClearBtn();
             clearTimeout(debounceTimer);
-            // If user is typing, assume they want a new route -> Reset UI
             if (query.length > 0) {
                 this.resetRouteUI();
             }
@@ -257,8 +247,6 @@ export class Navigation {
             textEl.textContent = instruction.text;
         if (distEl)
             distEl.textContent = distance < 1000 ? `${Math.round(distance)} m` : `${(distance / 1000).toFixed(1)} km`;
-        // Update Icon based on instruction icon string
-        // Simplified mapping for brevity (real implementation would switch SVG paths)
     }
     async startNavigation() {
         if (!this.startCoords || !this.destCoords) {
@@ -269,14 +257,13 @@ export class Navigation {
         if (!response || !response.routes || response.routes.length === 0)
             return;
         const routes = response.routes;
-        this.activeRoute = routes[0]; // Store active route
-        this.lastAnnouncedStepIndex = -1; // Reset announcements
-        this.createHUD(); // Ensure HUD exists
+        this.activeRoute = routes[0];
+        this.lastAnnouncedStepIndex = -1;
+        this.createHUD();
         const btnClear = document.getElementById('btn-clear-route');
         if (btnClear)
             btnClear.classList.add('visible');
         this.displayInstructions(routes[0]);
-        // Fix: Actually draw the route on the map!
         this.map.drawRoutes(routes);
         this.map.onRouteChanged((route) => {
             this.activeRoute = route;
@@ -284,11 +271,9 @@ export class Navigation {
         });
     }
     displayInstructions(route) {
-        // Clear existing dynamic elements
         const existingCard = document.querySelector('.route-header-card');
         const existingList = document.querySelector('.route-list-card');
         const existingBtn = document.getElementById('btn-follow-user');
-        // Hide original start button if present to prevent duplication
         const origBtn = document.getElementById('btn-start-nav');
         if (origBtn)
             origBtn.style.display = 'none';
@@ -298,11 +283,9 @@ export class Navigation {
             existingList.remove();
         if (existingBtn)
             existingBtn.remove();
-        // Fallback cleanup
         document.querySelectorAll('.nav-card.route-card').forEach(el => el.remove());
         const distanceKm = (route.distance / 1000).toFixed(1);
         const durationMins = Math.round(route.duration / 60);
-        // 1. Route Header Card (Summary)
         const headerCard = document.createElement('div');
         headerCard.className = 'nav-card route-header-card';
         headerCard.innerHTML = `
@@ -312,7 +295,6 @@ export class Navigation {
             </div>
             <div class="route-via">via Fastest Route</div>
         `;
-        // 2. Steps List Card (Scrollable)
         const listCard = document.createElement('div');
         listCard.className = 'nav-card route-list-card';
         let listHtml = `<div class="route-steps-scroller">`;
@@ -332,7 +314,6 @@ export class Navigation {
         }
         listHtml += `</div>`;
         listCard.innerHTML = listHtml;
-        // 3. Follow Button (Bottom)
         const btnFn = document.createElement('button');
         btnFn.id = 'btn-follow-user';
         btnFn.className = 'btn-wide-action';
@@ -340,11 +321,9 @@ export class Navigation {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             <span>Start Navigation</span>
         `;
-        // Append All
         this.panel?.appendChild(headerCard);
         this.panel?.appendChild(listCard);
         this.panel?.appendChild(btnFn);
-        // Event Listeners
         btnFn.addEventListener('click', () => {
             if (this.isNavigating) {
                 this.stopRealTimeNavigation();
@@ -364,7 +343,6 @@ export class Navigation {
         this.isNavigating = true;
         this.createHUD();
         this.hudPanel?.classList.remove('hidden');
-        // Update Button State
         const btnFollow = document.getElementById('btn-follow-user');
         if (btnFollow) {
             btnFollow.innerHTML = `
@@ -374,7 +352,6 @@ export class Navigation {
             btnFollow.style.backgroundColor = '#FF3B30';
             btnFollow.style.color = 'white';
         }
-        // Create Navigation Puck
         if (!this.navMarker) {
             const el = document.createElement('div');
             el.className = 'nav-puck-wrapper';
@@ -396,54 +373,42 @@ export class Navigation {
         }
         notify.show("Starting Real-Time Navigation...", 'success');
         this.watchId = navigator.geolocation.watchPosition((pos) => {
-            // Safeguard: If navigation stopped while this callback was pending
             if (!this.isNavigating)
                 return;
             const { longitude, latitude, heading, speed } = pos.coords;
             const coords = [longitude, latitude];
-            const currentSpeed = speed || 0; // m/s
+            const currentSpeed = speed || 0;
             const bearing = heading || 0;
-            // 1. Update Puck Position & Rotation
             if (this.navMarker)
                 this.navMarker.setLngLat(coords);
             if (this.navPuckEl)
                 this.navPuckEl.style.transform = `rotate(${bearing}deg)`;
-            // 2. Dynamic Camera Logic
-            // Faster = Zoom Out, Tilt Up. Slower = Zoom In, Pitch Down (more top-down for precision?).
-            // Actually usually faster = pitch up to see distinct, slower = pitch down?
-            // User Request: "Straight/Fast: Zoom out. Turn/Slow: Zoom in."
             let targetZoom = 18;
             let targetPitch = 50;
-            if (currentSpeed > 15) { // > 54 km/h
-                targetZoom = 15; // Zoom out
-                targetPitch = 60; // See further
+            if (currentSpeed > 15) {
+                targetZoom = 15;
+                targetPitch = 60;
             }
-            else if (currentSpeed > 8) { // > 30 km/h
+            else if (currentSpeed > 8) {
                 targetZoom = 16.5;
                 targetPitch = 55;
             }
-            else { // Slow / Stopped
-                targetZoom = 18.5; // Zoom in for details
+            else {
+                targetZoom = 18.5;
                 targetPitch = 45;
             }
             this.map.map.easeTo({
                 center: coords,
                 zoom: targetZoom,
                 pitch: targetPitch,
-                bearing: bearing, // Rotate map to follow user heading
+                bearing: bearing,
                 duration: 1000,
-                easing: (t) => t // Linear-ish for smoothness
+                easing: (t) => t
             });
-            // 3. Navigation Instruction Logic (Threshold Announcements)
             if (this.activeRoute && this.activeRoute.instructions) {
-                // Find next step
-                // Naive approach: Find nearest step that hasn't been passed
-                // Ideally we track progress index.
-                // Simple Logic: Find closest instruction
                 let minDist = Infinity;
                 let closestStepIndex = -1;
                 this.activeRoute.instructions.forEach((instr, idx) => {
-                    // Calculate distance from user to maneuver point
                     if (instr.maneuver && instr.maneuver.location) {
                         const d = this.getDist(latitude, longitude, instr.maneuver.location[1], instr.maneuver.location[0]);
                         if (d < minDist) {
@@ -452,13 +417,10 @@ export class Navigation {
                         }
                     }
                 });
-                // Only consider "upcoming" (we skip simplistic "past" checks for this demo)
                 if (closestStepIndex !== -1) {
                     const step = this.activeRoute.instructions[closestStepIndex];
                     this.updateHUD(step, minDist);
-                    // Threshold Announcement (e.g. at 50m)
                     if (minDist < 50 && closestStepIndex > this.lastAnnouncedStepIndex) {
-                        // Announce!
                         const utterance = new SpeechSynthesisUtterance(`In 50 meters, ${step.text}`);
                         window.speechSynthesis.speak(utterance);
                         notify.show(`Turn: ${step.text}`, 'info');
@@ -495,8 +457,7 @@ export class Navigation {
             }
             this.navMarker = null;
         }
-        this.hudPanel?.classList.add('hidden'); // Hide HUD
-        // Reset Button
+        this.hudPanel?.classList.add('hidden');
         const btnFollow = document.getElementById('btn-follow-user');
         if (btnFollow) {
             btnFollow.innerHTML = `
@@ -506,7 +467,6 @@ export class Navigation {
             btnFollow.style.backgroundColor = '';
             btnFollow.style.color = '';
         }
-        // Reset Camera
         this.map.map.easeTo({ pitch: 0, bearing: 0, zoom: 15, duration: 1000 });
         notify.show("Navigation stopped.", 'info');
     }
