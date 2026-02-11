@@ -17,6 +17,12 @@ export class Navigation {
     private navMarker: any = null;
     private navPuckEl: HTMLElement | null = null;
     private userLocationPopup: any = null;
+    
+    private lastBearing: number = 0;
+    private lastCoords: [number, number] | null = null;
+    private lastTimestamp: number = 0;
+    private deviceHeading: number | null = null;
+    private orientationHandler: ((event: DeviceOrientationEvent) => void) | null = null;
 
     constructor(mapEngine: MapEngine) {
         this.map = mapEngine;
@@ -104,29 +110,73 @@ export class Navigation {
             this.startInput.value = "Locating...";
         }
         
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        };
+        
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                this.startCoords = {
-                    lng: pos.coords.longitude,
-                    lat: pos.coords.latitude
-                };
-                if (this.startInput) {
-                    this.startInput.value = "My Location";
+                const accuracy = pos.coords.accuracy;
+                
+                if (accuracy > 100) {
+                    console.warn(`Low GPS accuracy: ${accuracy}m`);
+                    notify.show(`Location found (accuracy: ${Math.round(accuracy)}m). Try moving to open area for better signal.`, 'warning');
                 }
+                
+                const lng = pos.coords.longitude;
+                const lat = pos.coords.latitude;
+                
+                console.log('GPS Coordinates:', { lng, lat, accuracy });
+                
+                this.startCoords = { lng, lat };
+                
+                if (this.startInput) {
+                    this.startInput.value = `My Location (±${Math.round(accuracy)}m)`;
+                }
+                
+                this.map.flyTo({
+                    center: [lng, lat],
+                    zoom: 17,
+                    pitch: 45,
+                    essential: true,
+                    duration: 2000
+                });
+
                 this.destInput?.focus();
                 
                 const clearBtn = document.getElementById('btn-clear-start');
                 if (clearBtn) clearBtn.classList.remove('hidden');
 
-                notify.show("Location found", 'success');
+                notify.show(`Location found with ${Math.round(accuracy)}m accuracy`, 'success');
             },
             (err) => {
-                console.error(err);
+                console.error('Geolocation Error:', err);
+                
                 if (this.startInput) {
                     this.startInput.value = "";
                 }
-                notify.show("Could not get location", 'error');
-            }
+                
+                let errorMessage = "Could not get location. ";
+                
+                switch(err.code) {
+                    case err.PERMISSION_DENIED:
+                        errorMessage += "Please allow location access.";
+                        break;
+                    case err.POSITION_UNAVAILABLE:
+                        errorMessage += "GPS signal unavailable. Try moving to open area.";
+                        break;
+                    case err.TIMEOUT:
+                        errorMessage += "Request timeout. Please try again.";
+                        break;
+                    default:
+                        errorMessage += "Unknown error occurred.";
+                }
+                
+                notify.show(errorMessage, 'error');
+            },
+            options
         );
     }
 
@@ -189,194 +239,134 @@ export class Navigation {
                 this.suggestions?.classList.add('hidden');
                 return;
             }
-
+            
             debounceTimer = window.setTimeout(async () => {
                 const results = await this.map.searchPlaces(query);
-                if (input.value !== query) return;
                 this.showSuggestions(results, input, callback);
             }, 300);
         });
     }
 
-    private showSuggestions(features: SearchFeature[], activeInput: HTMLInputElement, coordCallback: CoordinatesCallback): void {
-        if (!this.suggestions) return;
-
-        if (features.length === 0) {
-            this.suggestions.classList.add('hidden');
+    private showSuggestions(results: SearchFeature[], input: HTMLInputElement, callback: CoordinatesCallback): void {
+        const suggestions = this.suggestions;
+        if (!suggestions) return;
+        
+        suggestions.innerHTML = '';
+        
+        if (results.length === 0) {
+            suggestions.classList.add('hidden');
             return;
         }
-
-        this.suggestions.innerHTML = features.map(f => {
-            const parts = f.place_name.split(',');
-            const mainText = parts[0];
-            const subText = parts.slice(1).join(',').trim();
-            const badgeHtml = f.category ? `<span class="ios-badge">${f.category}</span>` : '';
-            
-            return `
-            <div class="search-result-item">
-                <div class="result-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                </div>
-                <div class="result-text">
-                    <div class="result-main">${mainText} ${badgeHtml}</div>
-                    <div class="result-sub">${subText || ''}</div>
-                </div>
-            </div>
-            `;
-        }).join('');
         
-        this.suggestions.classList.remove('hidden');
-
-        const items = this.suggestions.querySelectorAll('.search-result-item');
-        items.forEach((item, index) => {
-            item.addEventListener('click', () => {
-                const feature = features[index];
-                activeInput.value = feature.place_name;
-                coordCallback({
-                    lng: feature.center[0],
-                    lat: feature.center[1]
-                });
-                this.suggestions?.classList.add('hidden');
+        results.forEach((r) => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.textContent = r.place_name || r.text || 'Unknown';
+            div.addEventListener('click', () => {
+                input.value = r.place_name || r.text || '';
+                const center = r.center;
+                if (center && center.length >= 2) {
+                    callback({ lng: center[0], lat: center[1] });
+                }
+                suggestions.classList.add('hidden');
             });
+            suggestions.appendChild(div);
         });
-    }
-
-    private activeRoute: Route | null = null;
-    private lastAnnouncedStepIndex: number = -1;
-    private hudPanel: HTMLElement | null = null;
-
-    private createHUD(): void {
-        if (document.getElementById('nav-hud')) return;
-
-        const app = document.getElementById('app');
-        const hud = document.createElement('div');
-        hud.id = 'nav-hud';
-        hud.className = 'nav-hud hidden';
-        hud.innerHTML = `
-            <div class="nav-hud-icon">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-            </div>
-            <div class="nav-hud-content">
-                <div class="nav-hud-text">Proceed to route</div>
-                <div class="nav-hud-dist">-- m</div>
-            </div>
-        `;
-        app?.appendChild(hud);
-        this.hudPanel = hud;
-    }
-
-    private updateHUD(instruction: any, distance: number): void {
-        if (!this.hudPanel) return;
         
-        const iconEl = this.hudPanel.querySelector('.nav-hud-icon');
-        const textEl = this.hudPanel.querySelector('.nav-hud-text');
-        const distEl = this.hudPanel.querySelector('.nav-hud-dist');
-        
-        if (textEl) textEl.textContent = instruction.text;
-        if (distEl) distEl.textContent = distance < 1000 ? `${Math.round(distance)} m` : `${(distance/1000).toFixed(1)} km`;
+        suggestions.classList.remove('hidden');
     }
 
     private async startNavigation(): Promise<void> {
         if (!this.startCoords || !this.destCoords) {
-            notify.show("Please set both start and destination", 'error');
+            notify.show("Please set start and destination", 'warning');
             return;
         }
 
         const response = await this.map.getRoute(this.startCoords, this.destCoords);
-        if (!response || !response.routes || response.routes.length === 0) return;
-        const routes = response.routes;
+        const routes = response?.routes;
+        
+        if (!routes || routes.length === 0) {
+            notify.show("No route found", 'error');
+            return;
+        }
 
+        this.map.drawRoutes(routes, 0);
         this.activeRoute = routes[0];
-        this.lastAnnouncedStepIndex = -1;
-        this.createHUD();
+        this.buildRouteUI(routes);
 
         const btnClear = document.getElementById('btn-clear-route');
         if (btnClear) btnClear.classList.add('visible');
-
-        this.displayInstructions(routes[0]);
-        
-        this.map.drawRoutes(routes);
-        
-        this.map.onRouteChanged((route: Route) => {
-            this.activeRoute = route;
-            this.displayInstructions(route);
-        });
     }
 
-    private displayInstructions(route: Route): void {
-        const existingCard = document.querySelector('.route-header-card');
-        const existingList = document.querySelector('.route-list-card');
-        const existingBtn = document.getElementById('btn-follow-user');
-        
+
+
+    private activeRoute: Route | null = null;
+    private hudPanel: HTMLElement | null = null;
+    private lastAnnouncedStepIndex: number = -1;
+
+    private buildRouteUI(routes: Route[]): void {
         const origBtn = document.getElementById('btn-start-nav');
         if (origBtn) origBtn.style.display = 'none';
 
-        if (existingCard) existingCard.remove();
-        if (existingList) existingList.remove();
-        if (existingBtn) existingBtn.remove();
-        document.querySelectorAll('.nav-card.route-card').forEach(el => el.remove());
+        const existingFollow = document.getElementById('btn-follow-user');
+        if (existingFollow) existingFollow.remove();
 
-        const distanceKm = (route.distance / 1000).toFixed(1);
-        const durationMins = Math.round(route.duration / 60);
-        const headerCard = document.createElement('div');
-        headerCard.className = 'nav-card route-header-card';
-        headerCard.innerHTML = `
-            <div class="route-stats-large">
-                <span class="stat-time">${durationMins} min</span>
-                <span class="stat-dist">(${distanceKm} km)</span>
-            </div>
-            <div class="route-via">via Fastest Route</div>
+        const btnFollow = document.createElement('button');
+        btnFollow.id = 'btn-follow-user';
+        btnFollow.className = 'btn-primary';
+        btnFollow.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Start "Follow User" Mode
         `;
-
-        const listCard = document.createElement('div');
-        listCard.className = 'nav-card route-list-card';
-        
-        let listHtml = `<div class="route-steps-scroller">`;
-        if (route.instructions) {
-            route.instructions.forEach((step, index) => {
-                const isLast = index === route.instructions!.length - 1;
-                listHtml += `
-                    <div class="step-item ${isLast ? 'last' : ''}">
-                        <div class="step-icon ${step.icon}"></div>
-                        <div class="step-details">
-                            <div class="step-text">${step.text}</div>
-                            <div class="step-dist">${step.distance < 1000 ? Math.round(step.distance) + ' m' : (step.distance/1000).toFixed(1) + ' km'}</div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        listHtml += `</div>`;
-        listCard.innerHTML = listHtml;
-
-        const btnFn = document.createElement('button');
-        btnFn.id = 'btn-follow-user';
-        btnFn.className = 'btn-wide-action';
-        btnFn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            <span>Start Navigation</span>
-        `;
-
-        this.panel?.appendChild(headerCard);
-        this.panel?.appendChild(listCard);
-        this.panel?.appendChild(btnFn);
-        btnFn.addEventListener('click', () => {
+        btnFollow.addEventListener('click', () => {
             if (this.isNavigating) {
                 this.stopRealTimeNavigation();
             } else {
                 this.startRealTimeNavigation();
             }
         });
+        origBtn?.parentElement?.appendChild(btnFollow);
     }
 
-    private async startRealTimeNavigation(): Promise<void> {
-        if (!navigator.geolocation) {
-            notify.show("Geolocation not supported", 'error');
+    private createHUD(): void {
+        if (this.hudPanel) return;
+
+        const hud = document.createElement('div');
+        hud.id = 'nav-hud';
+        hud.className = 'nav-hud hidden';
+        hud.innerHTML = `
+            <div class="nav-hud-instruction"></div>
+            <div class="nav-hud-distance"></div>
+        `;
+        document.body.appendChild(hud);
+        this.hudPanel = hud;
+    }
+
+    private updateHUD(step: any, distanceToStep: number): void {
+        if (!this.hudPanel) return;
+
+        const instrEl = this.hudPanel.querySelector('.nav-hud-instruction');
+        const distEl = this.hudPanel.querySelector('.nav-hud-distance');
+
+        if (instrEl) instrEl.textContent = step.text || 'Continue';
+        if (distEl) distEl.textContent = `${Math.round(distanceToStep)} m`;
+    }
+
+    private startRealTimeNavigation(): void {
+        if (!this.activeRoute) {
+            notify.show("No active route", 'error');
             return;
         }
 
-        if (this.watchId) navigator.geolocation.clearWatch(this.watchId);
-        
+        if (this.map.geolocateControl) {
+            const isTracking = this.map.geolocateControl._watchState !== 'OFF';
+            if (isTracking) {
+                this.map.geolocateControl.trigger();
+            }
+        }
+
+        this.map.map.getContainer().classList.add('nav-active');
+
         this.isNavigating = true;
         this.createHUD();
         this.hudPanel?.classList.remove('hidden');
@@ -392,6 +382,12 @@ export class Navigation {
         }
 
         if (!this.navMarker) {
+            if (typeof maptilersdk === 'undefined') {
+                console.error("MapTiler SDK not loaded");
+                notify.show("MapTiler SDK Error", "error");
+                return;
+            }
+
             const el = document.createElement('div');
             el.className = 'nav-puck-wrapper';
             el.innerHTML = `
@@ -413,16 +409,79 @@ export class Navigation {
             this.navPuckEl = el.querySelector('.nav-puck');
         }
 
+        if (window.DeviceOrientationEvent) {
+             this.orientationHandler = (event: DeviceOrientationEvent) => {
+                 if (event.alpha !== null) {
+                     let heading: number | null = null;
+                     
+                     if ((event as any).webkitCompassHeading) {
+                         heading = (event as any).webkitCompassHeading;
+                     } else {
+                         heading = 360 - (event.alpha || 0);
+                     }
+                     
+                     if (heading !== null) {
+                         this.deviceHeading = heading % 360;
+                     }
+                 }
+             };
+             window.addEventListener('deviceorientation', this.orientationHandler, true);
+        }
+
         notify.show("Starting Real-Time Navigation...", 'success');
+
+        const watchOptions = {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000
+        };
 
         this.watchId = navigator.geolocation.watchPosition(
             (pos) => {
                 if (!this.isNavigating) return;
 
-                const { longitude, latitude, heading, speed } = pos.coords;
+                const { longitude, latitude, heading, speed, accuracy } = pos.coords;
+                
+                if (accuracy > 50) {
+                    console.warn(`Navigation with low accuracy: ${accuracy}m`);
+                }
+                
                 const coords: [number, number] = [longitude, latitude];
-                const currentSpeed = speed || 0;
-                const bearing = heading || 0;
+                const timestamp = pos.timestamp;
+
+                let currentSpeed = speed;
+                if (currentSpeed === null && this.lastCoords && this.lastTimestamp) {
+                    const dist = this.getDist(this.lastCoords[1], this.lastCoords[0], latitude, longitude);
+                    const timeDiff = (timestamp - this.lastTimestamp) / 1000;
+                    if (timeDiff > 0) {
+                        currentSpeed = dist / timeDiff;
+                    }
+                }
+                currentSpeed = currentSpeed || 0;
+
+                let bearing = heading;
+                
+                if (!bearing && this.lastCoords) {
+                     const dist = this.getDist(this.lastCoords[1], this.lastCoords[0], latitude, longitude);
+                     if (dist > 2) {
+                         bearing = this.calculateBearing(this.lastCoords[1], this.lastCoords[0], latitude, longitude);
+                     }
+                }
+
+                // Fallback to compass if stationary or no GPS bearing
+                if ((bearing === null || bearing === undefined || isNaN(bearing)) && currentSpeed < 1) { // < 1 m/s (~3.6 km/h)
+                    if (this.deviceHeading !== null) {
+                        bearing = this.deviceHeading;
+                    }
+                }
+
+                if (bearing === null || bearing === undefined || isNaN(bearing)) {
+                    bearing = this.lastBearing;
+                }
+                
+                this.lastBearing = bearing;
+                this.lastCoords = coords;
+                this.lastTimestamp = timestamp;
 
                 if (this.navMarker) this.navMarker.setLngLat(coords);
                 if (this.navPuckEl) this.navPuckEl.style.transform = `rotate(${bearing}deg)`;
@@ -469,8 +528,11 @@ export class Navigation {
                          this.updateHUD(step, minDist);
 
                          if (minDist < 50 && closestStepIndex > this.lastAnnouncedStepIndex) {
-                             const utterance = new SpeechSynthesisUtterance(`In 50 meters, ${step.text}`);
-                             window.speechSynthesis.speak(utterance);
+                             if ('speechSynthesis' in window) {
+                                 const utterance = new SpeechSynthesisUtterance(`In 50 meters, ${step.text}`);
+                                 window.speechSynthesis.speak(utterance);
+                             }
+
                              
                              notify.show(`Turn: ${step.text}`, 'info');
                              this.lastAnnouncedStepIndex = closestStepIndex;
@@ -478,9 +540,42 @@ export class Navigation {
                     }
                 }
             },
-            (err) => console.error(err),
-            { enableHighAccuracy: true, maximumAge: 2000 }
+            (err) => {
+                console.error('Navigation Geolocation Error:', err);
+                
+                let errorMessage = "GPS error during navigation: ";
+                switch(err.code) {
+                    case err.PERMISSION_DENIED:
+                        errorMessage += "Location access denied";
+                        break;
+                    case err.POSITION_UNAVAILABLE:
+                        errorMessage += "GPS signal lost";
+                        break;
+                    case err.TIMEOUT:
+                        errorMessage += "GPS timeout";
+                        break;
+                    default:
+                        errorMessage += "Unknown error";
+                }
+                notify.show(errorMessage, 'error');
+            },
+            watchOptions
         );
+    }
+
+    private calculateBearing(startLat: number, startLng: number, destLat: number, destLng: number): number {
+        const startLatRad = startLat * Math.PI / 180;
+        const startLngRad = startLng * Math.PI / 180;
+        const destLatRad = destLat * Math.PI / 180;
+        const destLngRad = destLng * Math.PI / 180;
+
+        const y = Math.sin(destLngRad - startLngRad) * Math.cos(destLatRad);
+        const x = Math.cos(startLatRad) * Math.sin(destLatRad) -
+                  Math.sin(startLatRad) * Math.cos(destLatRad) * Math.cos(destLngRad - startLngRad);
+        
+        let brng = Math.atan2(y, x);
+        brng = brng * 180 / Math.PI;
+        return (brng + 360) % 360;
     }
 
     private getDist(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -503,6 +598,11 @@ export class Navigation {
             this.watchId = null;
         }
 
+        if (this.orientationHandler && window.DeviceOrientationEvent) {
+             window.removeEventListener('deviceorientation', this.orientationHandler, true);
+             this.orientationHandler = null;
+        }
+
         if (this.navMarker) {
             try {
                 this.navMarker.remove();
@@ -512,6 +612,8 @@ export class Navigation {
             this.navMarker = null;
         }
         
+        this.map.map.getContainer().classList.remove('nav-active');
+
         this.hudPanel?.classList.add('hidden');
 
         const btnFollow = document.getElementById('btn-follow-user');

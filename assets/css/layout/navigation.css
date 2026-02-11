@@ -213,6 +213,13 @@
   justify-content: center;
 }
 
+/* HIDE DEFAULT USER LOCATION DOT WHEN NAVIGATION IS ACTIVE */
+.nav-active .maplibregl-user-location-dot,
+.nav-active .mapboxgl-user-location-dot {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 /* =========================
    DARK MODE OVERRIDES (NAVIGATION)
    ========================= */

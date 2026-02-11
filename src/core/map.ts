@@ -1,4 +1,3 @@
-// Replace this with your MapTiler API Key!
 const MAPTILER_KEY = 'bdQDjDEtrztzKNBE2KZO';
 
 import { notify } from '../components/notifications.js';
@@ -19,7 +18,6 @@ import type {
     Coordinates
 } from '../types/types';
 
-// Declare global maptilersdk (loaded from CDN)
 declare const maptilersdk: any;
 
 export class MapEngine {
@@ -40,7 +38,6 @@ export class MapEngine {
     // Helper for markers (already defined above)
     // private markers: Record<string, MapTilerMarker> = {};
 
-    // Style IDs untuk MapTiler
     private readonly STYLE_IDS = {
         STREETS: 'streets-v2',           // Streets Light
         STREETS_DARK: 'streets-v2-dark', // Streets Dark (OFFICIAL MAPTILER DARK)
@@ -48,6 +45,8 @@ export class MapEngine {
         HYBRID: 'hybrid',                // Hybrid
         DATAVIZ_DARK: 'dataviz-dark',   // Alternative Dark (lebih kontras)
     };
+
+    geolocateControl: any;
 
     constructor(containerId: string) {
         if (typeof maptilersdk === 'undefined') {
@@ -57,26 +56,23 @@ export class MapEngine {
 
         maptilersdk.config.apiKey = MAPTILER_KEY;
 
-        // Deteksi dark mode dari localStorage
         this.isDarkMode = this.getDarkModePreference();
         
-        // Set initial style berdasarkan dark mode
         const initialStyle = this.getEffectiveStyleUrl(this.currentBaseStyle);
 
         this.map = new maptilersdk.Map({
             container: containerId,
             style: initialStyle,
-            center: [106.8456, -6.2088], // Jakarta
+            center: [106.8456, -6.2088],
             zoom: 15.5,
             pitch: 45,
             bearing: -17.6,
-            geolocate: true,
+            geolocate: false,
             terrainControl: true,
             scaleControl: true,
             navigationControl: true,
             logoControl: false
         });
-
         this.init();
     }
 
@@ -95,62 +91,40 @@ export class MapEngine {
         return localStorage.getItem('theme') === 'dark';
     }
 
-    /**
-     * CORE LOGIC: Menentukan style URL yang sesuai berdasarkan base style dan dark mode
-     */
     private getEffectiveStyleUrl(baseStyle: string): string {
         let targetStyle = baseStyle;
 
-        // Jika dark mode aktif DAN style adalah streets, gunakan versi dark
         if (this.isDarkMode && baseStyle === this.STYLE_IDS.STREETS) {
             targetStyle = this.STYLE_IDS.STREETS_DARK;
         }
         
-        // Jika dark mode non-aktif DAN style adalah dark streets, kembalikan ke light
         if (!this.isDarkMode && baseStyle === this.STYLE_IDS.STREETS_DARK) {
             targetStyle = this.STYLE_IDS.STREETS;
         }
-
-        // Build URL dengan MapTiler API Key
         return `https://api.maptiler.com/maps/${targetStyle}/style.json?key=${MAPTILER_KEY}`;
     }
-
-    /**
-     * Update map style (dipanggil saat style berubah)
-     */
     private updateMapStyle(): void {
         const newStyleUrl = this.getEffectiveStyleUrl(this.currentBaseStyle);
-        const cachedRoute = this.lastRouteData; // Simpan data rute sebelum ganti style
+        const cachedRoute = this.lastRouteData;
 
 
         
         this.map.setStyle(newStyleUrl);
         
-        // 2. Gunakan 'idle' (Map Selesai Loading Sepenuhnya)
-        // Ini lebih aman daripada 'style.load' untuk mencegah layer hilang
         this.map.once('idle', () => {
-            // Restore 3D Buildings
             this.add3DBuildings();
 
-            // Restore Route jika ada data tersimpan
             if (cachedRoute && cachedRoute.routes) {
 
-                // Pass 'true' agar kamera tidak reset/zoom-out
                 this.drawRoutes(cachedRoute.routes, cachedRoute.activeIndex, true);
             }
         });
     }
 
-    /**
-     * PUBLIC METHOD: Sinkronisasi dengan dark mode dari UI
-     * Dipanggil dari app.ts saat user toggle dark mode
-     */
     syncWithDarkMode(isDark: boolean): void {
 
         
         this.isDarkMode = isDark;
-
-        // Update map container class untuk styling tambahan
         const container = this.map.getContainer();
         if (isDark) {
             container.classList.add('map-dark-mode');
@@ -158,21 +132,13 @@ export class MapEngine {
             container.classList.remove('map-dark-mode');
         }
 
-        // Update map style
         this.updateMapStyle();
     }
-
-    /**
-     * PUBLIC METHOD: Set base style (dipanggil dari Layer Switcher)
-     * @param styleId - ID style yang dipilih user (STREETS, SATELLITE, HYBRID)
-     */
     setStyle(styleId: string): void {
 
         
-        // Normalisasi style ID
         const normalizedStyleId = styleId.toUpperCase();
         
-        // Map user-friendly names ke actual style IDs
         const styleMapping: Record<string, string> = {
             'STREETS': this.STYLE_IDS.STREETS,
             'STREETS-V2': this.STYLE_IDS.STREETS,
@@ -182,7 +148,6 @@ export class MapEngine {
 
         this.currentBaseStyle = styleMapping[normalizedStyleId] || this.STYLE_IDS.STREETS;
         
-        // Update style dengan mempertimbangkan dark mode
         this.updateMapStyle();
     }
 
@@ -277,17 +242,14 @@ export class MapEngine {
             this.map.setPitch(60);
             this.applyCustomTooltipsToControls();
             
-            // Add 3D buildings
             this.add3DBuildings();
             
-            // Apply dark theme if dark mode is active
             const isDarkMode = this.getDarkModePreference();
             if (isDarkMode) {
                 this.syncWithDarkMode(true);
             }
         });
 
-        // POI Interaction (Cursor)
         this.map.on('mouseenter', (e: any) => {
             const features = this.map.queryRenderedFeatures(e.point);
             const isPoi = features.some((f: any) => f.properties && f.properties.name && f.source !== 'route');
@@ -300,19 +262,16 @@ export class MapEngine {
             }
         });
 
-        // Initialize Click Listeners
         this.map.on('click', (e: any) => {
-            // Generic POI detection (works across different styles/layers)
             const features = this.map.queryRenderedFeatures(e.point);
             const viableFeature = features.find((f: any) => 
                 f.properties && 
                 f.properties.name && 
-                (f.layer.type === 'symbol' || f.layer.id.includes('label')) // Flexible check
+                (f.layer.type === 'symbol' || f.layer.id.includes('label'))
             );
 
             if (viableFeature) {
                 if (this.poiClickCallback) {
-                    // Fly to location
                     this.map.flyTo({
                         center: e.lngLat,
                         zoom: 17,
@@ -322,7 +281,6 @@ export class MapEngine {
                         duration: 1500
                     });
 
-                     // Normalize POI data
                      const category = (viableFeature.properties.class || 'Place')
                         .replace(/_/g, ' ')
                         .replace(/\b\w/g, (l: string) => l.toUpperCase());
@@ -343,10 +301,8 @@ export class MapEngine {
             }
         });
 
-        // Handle Map Errors
         this.map.on('error', (e) => {
             if (e && e.error && e.error.message) {
-                // Suppress image loading errors (not critical)
                 if (e.error.message.includes('Image') || e.error.message.includes('sprite')) {
                     console.debug("Map image warning (non-critical):", e.error.message);
                     return;
@@ -362,20 +318,13 @@ export class MapEngine {
     }
 
     private applyCustomTooltipsToControls(): void {
-        // Custom tooltips logic here
-        // ... (keep existing implementation)
     }
-
-    // ========================================
-    // MARKER METHODS
-    // ========================================
     
     addMarker(id: string, lngLat: LngLat, options?: { onClick?: () => void }): void {
         if (this.markers[id]) {
             this.markers[id].remove();
         }
 
-        // Create container for custom styling (mirroring backup)
         const container = document.createElement('div');
         container.className = 'marker-wrapper';
 
@@ -416,10 +365,6 @@ export class MapEngine {
         this.markers = {};
     }
 
-    // ========================================
-    // EVENT CALLBACK REGISTRATION
-    // ========================================
-
     onClick(callback: MapClickCallback): void {
         this.clickCallback = callback;
     }
@@ -427,10 +372,6 @@ export class MapEngine {
     onPOIClick(callback: POIClickCallback): void {
         this.poiClickCallback = callback;
     }
-
-    // ========================================
-    // MAP ACTIONS
-    // ========================================
 
     flyTo(lngOrOptions: number | any, lat?: number): void {
         const cinematicDefaults = {
@@ -446,26 +387,20 @@ export class MapEngine {
                 center: [lngOrOptions, lat]
             });
         } else if (typeof lngOrOptions === 'object') {
-            // Handle case where app passes {lng, lat} directly
             if ('lng' in lngOrOptions && 'lat' in lngOrOptions && !lngOrOptions.center) {
                  this.map.flyTo({
                     ...cinematicDefaults,
                     center: lngOrOptions,
-                    ...lngOrOptions // Allow overrides if any (e.g. duration)
+                    ...lngOrOptions
                 });
             } else {
-                // Standard options object
                 this.map.flyTo({
-                    ...cinematicDefaults, // Apply defaults first
-                    ...lngOrOptions // Allow explicit overrides
+                    ...cinematicDefaults,
+                    ...lngOrOptions
                 });
             }
         }
     }
-
-    // ========================================
-    // ROUTE METHODS
-    // ========================================
 
     async getRoute(start: Coordinates | LngLat, end: Coordinates | LngLat): Promise<RouteResponse | null> {
         try {
@@ -474,8 +409,6 @@ export class MapEngine {
             const endLng = 'lng' in end ? end.lng : (end as any).longitude || 0;
             const endLat = 'lat' in end ? end.lat : (end as any).latitude || 0;
             
-            // OSRM Public Server (Gratis & Stabil)
-            // PENTING: geometries=geojson wajib ada untuk animasi kamera!
             const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&steps=true&geometries=geojson`;
             
 
@@ -494,7 +427,7 @@ export class MapEngine {
                 routes: data.routes.map((r: any) => ({
                     distance: r.distance,
                     duration: r.duration,
-                    geometry: r.geometry, // Ini sekarang pasti GeoJSON Object
+                    geometry: r.geometry,
                     legs: r.legs,
                     instructions: this.parseInstructions(r.legs[0])
                 }))
@@ -510,13 +443,11 @@ export class MapEngine {
         if (!leg || !leg.steps) return [];
         
         return leg.steps.map((step: any) => {
-            let icon = 'arrow-up'; // Default (green)
+            let icon = 'arrow-up';
             
             if (step.maneuver) {
                 const type = step.maneuver.type;
                 const modifier = step.maneuver.modifier;
-
-                // Priority: Destination -> Turns -> Default
                 if (type === 'arrive' || type === 'destination') {
                     icon = 'map-pin';
                 } else if (modifier) {
@@ -536,7 +467,6 @@ export class MapEngine {
     }
 
     drawRoutes(routes: Route[], activeIndex: number = 0, isRedraw: boolean = false): void {
-        // 1. Bersihkan route lama dengan sangat teliti
         if (this.map.getLayer('route-line')) this.map.removeLayer('route-line');
         if (this.map.getLayer('route-casing')) this.map.removeLayer('route-casing');
         if (this.map.getSource('route')) this.map.removeSource('route');
@@ -553,9 +483,6 @@ export class MapEngine {
             return;
         }
 
-
-
-        // 2. Add Source
         this.map.addSource('route', {
             'type': 'geojson',
             'data': {
@@ -565,8 +492,6 @@ export class MapEngine {
             }
         });
 
-        // 3. Layer 1: Casing (Outline Putih - Agar kontras dengan peta satelit/gelap)
-        // Kita tidak pakai 'beforeId', biarkan dia di paling atas stack
         this.map.addLayer({
             'id': 'route-casing',
             'type': 'line',
@@ -576,13 +501,11 @@ export class MapEngine {
                 'line-cap': 'round'
             },
             'paint': {
-                'line-color': '#FFFFFF', // Warna outline putih
-                'line-width': 10,        // Lebih tebal dari garis utama
+                'line-color': '#FFFFFF',
+                'line-width': 10,
                 'line-opacity': 0.8
             }
         });
-
-        // 4. Layer 2: Main Line (Garis Biru Navigasi)
         this.map.addLayer({
             'id': 'route-line',
             'type': 'line',
@@ -592,23 +515,20 @@ export class MapEngine {
                 'line-cap': 'round'
             },
             'paint': {
-                'line-color': '#007AFF', // Biru iOS
+                'line-color': '#007AFF',
                 'line-width': 6,
                 'line-opacity': 1
             }
         });
 
-        // 5. Fit Bounds (Animasi Kamera)
-        // HANYA jika bukan redraw ulang (ganti tema)
         if (!isRedraw && typeof maptilersdk !== 'undefined') {
              const coordinates = route.geometry.coordinates;
              if (Array.isArray(coordinates) && coordinates.length > 0) {
-                 // Convert bounds
                  const bounds = new maptilersdk.LngLatBounds(coordinates[0], coordinates[0]);
                  coordinates.forEach((coord: any) => bounds.extend(coord));
                  
                  this.map.fitBounds(bounds, {
-                     padding: { top: 150, bottom: 150, left: 50, right: 50 }, // Padding besar agar tidak tertutup panel
+                     padding: { top: 150, bottom: 150, left: 50, right: 50 },
                      maxZoom: 16,
                      duration: 1500
                  });
@@ -621,22 +541,16 @@ export class MapEngine {
     }
 
     clearRoute(): void {
-        // 1. Hapus Layer Utama (Garis Biru)
         if (this.map.getLayer('route-line')) {
             this.map.removeLayer('route-line');
         }
-
-        // 2. Hapus Layer Casing (Garis Putih/Abu - INI YANG KETINGGALAN)
         if (this.map.getLayer('route-casing')) {
             this.map.removeLayer('route-casing');
         }
 
-        // 3. Hapus Source Data
         if (this.map.getSource('route')) {
             this.map.removeSource('route');
         }
-
-        // 4. Bersihkan Cache Data agar tidak digambar ulang oleh 'idle' listener
         this.routes = [];
         this.lastRouteData = null;
         this.activeRouteIndex = 0;
@@ -645,10 +559,6 @@ export class MapEngine {
     onRouteChanged(callback: RouteChangedCallback): void {
         this.onRouteChangedCallback = callback;
     }
-
-    // ========================================
-    // SEARCH METHODS
-    // ========================================
     
     async searchPlaces(query: string): Promise<SearchFeature[]> {
         if (!query || query.length < 3) return [];
@@ -681,10 +591,6 @@ export class MapEngine {
             return null;
         }
     }
-
-    // ========================================
-    // POPUP METHODS (keep existing)
-    // ========================================
     
     showPopup(lngLat: LngLat, html: string, onClose?: () => void): void {
         if (this.currentPopup) {
@@ -782,7 +688,7 @@ export class MapEngine {
 
     resetCamera(): void {
         this.map.flyTo({
-            center: [106.8456, -6.2088], // Jakarta Default
+            center: [106.8456, -6.2088],
             zoom: 15.5,
             pitch: 45,
             bearing: -17.6,

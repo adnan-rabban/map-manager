@@ -1,9 +1,3 @@
-// ===================================
-// TYPE DEFINITIONS
-// Global types untuk Map Manager App
-// ===================================
-
-// Location/Place Types
 export interface Location {
   id: string;
   name: string;
@@ -11,7 +5,7 @@ export interface Location {
   lng: number;
   lat: number;
   hidden?: boolean;
-  groupId?: string; // New: Link to a group
+  groupId?: string;
 }
 
 export interface Group {
@@ -31,7 +25,6 @@ export interface LngLat {
   lat: number;
 }
 
-// POI (Point of Interest) Types
 export interface POI {
   id: string | number;
   name: string;
@@ -39,10 +32,9 @@ export interface POI {
   lngLat: LngLat;
 }
 
-// Search Result Types
 export interface SearchFeature {
   id: string;
-  center: [number, number]; // [lng, lat]
+  center: [number, number];
   place_name: string;
   text: string;
   category?: string;
@@ -54,8 +46,6 @@ export interface SearchFeature {
   context?: Array<{ text: string }>;
 }
 
-// Route Types
-// OSRM Step Types
 export interface OSRMStep {
   distance: number;
   duration: number;
@@ -72,7 +62,7 @@ export interface RouteInstruction {
   text: string;
   distance: number;
   icon: string;
-  maneuver: { // Add maneuver for logic
+  maneuver: {
       location: [number, number];
       type: string;
       modifier?: string;
@@ -80,21 +70,20 @@ export interface RouteInstruction {
 }
 
 export interface Route {
-  distance: number; // meters
-  duration: number; // seconds
+  distance: number;
+  duration: number;
   geometry: {
     type: 'LineString';
     coordinates: [number, number][];
   };
-  legs?: { steps: OSRMStep[] }[]; // OSRM structure
-  instructions?: RouteInstruction[]; // Parsed instructions
+  legs?: { steps: OSRMStep[] }[];
+  instructions?: RouteInstruction[];
 }
 
 export interface RouteResponse {
   routes: Route[];
 }
 
-// Notification Types
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
 export interface NotificationConfig {
@@ -109,7 +98,6 @@ export interface NotificationConfigMap {
   [key: string]: NotificationConfig;
 }
 
-// MapTiler SDK Types (simplified - for real app use @types/maptiler-sdk)
 export interface MapTilerMarker {
   remove(): void;
   setLngLat(coords: [number, number] | LngLat): MapTilerMarker;
@@ -154,9 +142,10 @@ export interface MapTilerMap {
   fitBounds(bounds: any, options?: any): void;
   getStyle(): any;
   _controls?: any[];
+  addControl(control: any, position?: string): any;
+  removeControl(control: any): any;
 }
 
-// Event Types
 export interface MapClickEvent {
   lngLat: LngLat;
   point: { x: number; y: number };
@@ -183,12 +172,10 @@ export interface GeolocationError {
   TIMEOUT: number;
 }
 
-// Callback Types
 export type MarkerClickCallback = (location: Location) => void;
 export type POIClickCallback = (poi: POI) => void;
 export type MapClickCallback = (lngLat: LngLat) => void;
 export type RouteChangedCallback = (route: Route) => void;
 export type CoordinatesCallback = (coords: Coordinates | null) => void;
 
-// Store Export Data
 export type LocationsExport = Location[];

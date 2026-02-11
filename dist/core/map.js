@@ -41,7 +41,7 @@ export class MapEngine {
             zoom: 15.5,
             pitch: 45,
             bearing: -17.6,
-            geolocate: true,
+            geolocate: false, // We will add custom control
             terrainControl: true,
             scaleControl: true,
             navigationControl: true,
