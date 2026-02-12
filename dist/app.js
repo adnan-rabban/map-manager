@@ -748,7 +748,10 @@ class App {
                 notify.show('Location hidden', 'info');
             }
             else {
-                this.map.addMarker(loc.id, { lng: loc.lng, lat: loc.lat }, { onClick: () => this.onMarkerClick(loc) });
+                this.map.addMarker(loc.id, { lng: loc.lng, lat: loc.lat }, {
+                    onClick: () => this.onMarkerClick(loc),
+                    color: loc.color
+                });
                 notify.show('Location visible', 'success');
             }
             this.renderList(); // Force React update to show eye icon change

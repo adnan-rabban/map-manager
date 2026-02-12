@@ -899,7 +899,10 @@ class App {
                 this.map.addMarker(
                     loc.id,
                     { lng: loc.lng, lat: loc.lat },
-                    { onClick: () => this.onMarkerClick(loc) }
+                    { 
+                        onClick: () => this.onMarkerClick(loc),
+                        color: loc.color
+                    }
                 );
                 notify.show('Location visible', 'success');
             }
