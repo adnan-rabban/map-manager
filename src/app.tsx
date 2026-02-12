@@ -107,7 +107,10 @@ class App {
                     this.map.addMarker(
                         loc.id,
                         { lng: loc.lng, lat: loc.lat },
-                        { onClick: () => this.onMarkerClick(loc) }
+                        { 
+                            onClick: () => this.onMarkerClick(loc),
+                            color: loc.color
+                        }
                     );
                 }
             });
@@ -165,8 +168,26 @@ class App {
                         notify.show(`Viewing ${loc.name}`, 'info');
                     }
                 }}
-                onEdit={(id) => {
-                    this.editLocation(id);
+                onEdit={(id, updates) => {
+                    if (updates) {
+                        // Direct update (e.g. color change)
+                        this.store.update(id, updates);
+                        const updatedLoc = this.store.getAll().find(l => l.id === id);
+                        if (updatedLoc) {
+                            this.map.addMarker(
+                                updatedLoc.id,
+                                { lng: updatedLoc.lng, lat: updatedLoc.lat },
+                                { 
+                                    onClick: () => this.onMarkerClick(updatedLoc),
+                                    color: updatedLoc.color 
+                                }
+                            );
+                            this.renderList();
+                        }
+                    } else {
+                        // Open Edit Modal
+                        this.editLocation(id);
+                    }
                 }}
                 onDelete={(id) => {
                     const loc = this.store.getAll().find(l => l.id === id);
@@ -545,7 +566,10 @@ class App {
                  this.map.addMarker(
                         newLoc.id, 
                         { lng: newLoc.lng, lat: newLoc.lat }, 
-                        { onClick: () => this.onMarkerClick(newLoc) }
+                        { 
+                            onClick: () => this.onMarkerClick(newLoc),
+                            color: newLoc.color
+                        }
                     );
                  notify.show('Location saved successfully', 'success');
 
@@ -561,7 +585,10 @@ class App {
                  this.map.addMarker(
                     location.id,
                     { lng, lat },
-                    { onClick: () => this.onMarkerClick({ ...location, lat, lng, name, desc }) }
+                    { 
+                        onClick: () => this.onMarkerClick({ ...location, lat, lng, name, desc }),
+                        color: location.color
+                    }
                  );
 
                  notify.show('Location updated successfully', 'success');

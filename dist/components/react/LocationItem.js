@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@dnd-kit/core";
-import { Eye, EyeOff, MoreVertical, Edit, Trash2, ChevronRight, Folder, Plus } from "lucide-react";
+import { Eye, EyeOff, MoreVertical, Edit, Trash2, ChevronRight, Folder, Plus, Palette } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 const MenuItem = ({ id, icon: Icon, label, onClick, isDanger = false, hasSubmenu = false, isHovered, onMouseEnter, children, layoutId }) => {
     return (_jsxs("div", { className: "dropdown-item-wrapper", onMouseEnter: onMouseEnter, style: { position: 'relative' }, children: [_jsxs("button", { className: `dropdown-item ${isDanger ? 'delete' : ''}`, onClick: (e) => {
@@ -137,7 +137,36 @@ export const LocationItem = ({ location, isOverlay, width, onFlyTo, onEdit, onDe
                     }, onMouseLeave: () => {
                         setHoveredMainItem(null);
                         setHoveredSubItem(null);
-                    }, onPointerDown: (e) => e.stopPropagation(), onMouseDown: (e) => e.stopPropagation(), onClick: (e) => e.stopPropagation(), children: _jsxs("div", { style: { position: 'relative' }, children: [_jsx(MenuItem, { id: "edit", icon: Edit, label: "Edit", onClick: () => {
+                    }, onPointerDown: (e) => e.stopPropagation(), onMouseDown: (e) => e.stopPropagation(), onClick: (e) => e.stopPropagation(), children: _jsxs("div", { style: { position: 'relative' }, children: [_jsx(MenuItem, { id: "color", icon: Palette, label: "Change Color", hasSubmenu: true, isHovered: hoveredMainItem === "color", onMouseEnter: () => setHoveredMainItem("color"), layoutId: `main-menu-highlight-${location.id}`, children: _jsx(motion.div, { initial: { opacity: 0, x: -10 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -10 }, transition: { duration: 0.15 }, style: {
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: '100%',
+                                        paddingLeft: '8px',
+                                        zIndex: 10000,
+                                        height: '100%',
+                                    }, children: _jsx("div", { className: "location-submenu-card", style: { minWidth: '160px', padding: '8px' }, children: _jsx("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }, children: [
+                                                "#007AFF", // Blue (Default)
+                                                "#FF3B30", // Red
+                                                "#34C759", // Green
+                                                "#FF9500", // Orange
+                                                "#AF52DE", // Purple
+                                                "#5856D6", // Indigo
+                                                "#FF2D55", // Pink
+                                                "#5AC8FA", // Teal
+                                            ].map((color) => (_jsx("button", { onClick: (e) => {
+                                                    e.stopPropagation();
+                                                    onEdit?.(location.id, { color }); // Re-using onEdit for now or add specific prop
+                                                    closeMenu();
+                                                }, style: {
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: color,
+                                                    border: location.color === color ? '2px solid white' : 'none',
+                                                    boxShadow: location.color === color ? '0 0 0 2px #007AFF' : 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                                                    cursor: 'pointer',
+                                                    padding: 0,
+                                                }, title: color }, color))) }) }) }) }), _jsx(MenuItem, { id: "edit", icon: Edit, label: "Edit", onClick: () => {
                                     closeMenu();
                                     onEdit?.(location.id);
                                 }, isHovered: hoveredMainItem === "edit", onMouseEnter: () => setHoveredMainItem("edit"), layoutId: `main-menu-highlight-${location.id}` }), _jsx(MenuItem, { id: "move-to", icon: Folder, label: "Move to", hasSubmenu: true, isHovered: hoveredMainItem === "move-to", onMouseEnter: () => setHoveredMainItem("move-to"), layoutId: `main-menu-highlight-${location.id}`, children: _jsx(motion.div, { initial: { opacity: 0, x: -10 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -10 }, transition: { duration: 0.15 }, style: {

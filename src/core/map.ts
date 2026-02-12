@@ -328,7 +328,7 @@ export class MapEngine {
     private applyCustomTooltipsToControls(): void {
     }
     
-    addMarker(id: string, lngLat: LngLat, options?: { onClick?: () => void }): void {
+    addMarker(id: string, lngLat: LngLat, options?: { onClick?: () => void; color?: string }): void {
         if (this.markers[id]) {
             this.markers[id].remove();
         }
@@ -337,8 +337,14 @@ export class MapEngine {
         container.className = 'marker-wrapper';
 
         const el = document.createElement('div');
-        el.className = 'custom-marker';
+        el.className = 'custom-marker-dot'; // Changed class name to match CSS
         
+        if (options?.color) {
+            el.style.backgroundColor = options.color;
+            // Add a subtle border for better visibility on dark/light maps if needed
+            // el.style.borderColor = ... 
+        }
+
         container.appendChild(el);
 
         const marker = new maptilersdk.Marker({

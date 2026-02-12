@@ -8,7 +8,7 @@ interface LocationListProps {
     groups: Group[];
     locations: Location[];
     onFlyTo: (id: string) => void;
-    onEdit: (id: string) => void;
+    onEdit: (id: string, updates?: Partial<Location>) => void;
     onDelete: (id: string) => void;
     onToggleVisibility: (id: string) => void;
     onDeleteGroup: (group: Group) => void;

@@ -257,7 +257,12 @@ export class MapEngine {
         const container = document.createElement('div');
         container.className = 'marker-wrapper';
         const el = document.createElement('div');
-        el.className = 'custom-marker';
+        el.className = 'custom-marker-dot'; // Changed class name to match CSS
+        if (options?.color) {
+            el.style.backgroundColor = options.color;
+            // Add a subtle border for better visibility on dark/light maps if needed
+            // el.style.borderColor = ... 
+        }
         container.appendChild(el);
         const marker = new maptilersdk.Marker({
             element: container,

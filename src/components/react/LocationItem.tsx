@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@dnd-kit/core";
 import { Location, Group } from "../../types/types";
-import { Eye, EyeOff, MoreVertical, Edit, Trash2, ChevronRight, Folder, Plus } from "lucide-react";
+import { Eye, EyeOff, MoreVertical, Edit, Trash2, ChevronRight, Folder, Plus, Palette } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface LocationItemProps {
@@ -10,7 +10,7 @@ interface LocationItemProps {
   isOverlay?: boolean;
   width?: number;
   onFlyTo?: (id: string) => void;
-  onEdit?: (id: string) => void;
+  onEdit?: (id: string, updates?: Partial<Location>) => void;
   onDelete?: (id: string) => void;
   onToggleVisibility?: (id: string) => void;
   groups?: Group[];
@@ -279,6 +279,69 @@ export const LocationItem: React.FC<LocationItemProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ position: 'relative' }}>
+              <MenuItem
+                id="color"
+                icon={Palette}
+                label="Change Color"
+                hasSubmenu={true}
+                isHovered={hoveredMainItem === "color"}
+                onMouseEnter={() => setHoveredMainItem("color")}
+                layoutId={`main-menu-highlight-${location.id}`}
+              >
+                  <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: '100%',
+                    paddingLeft: '8px',
+                    zIndex: 10000,
+                    height: '100%',
+                  }}
+                >
+                  <div 
+                    className="location-submenu-card"
+                    style={{ minWidth: '160px', padding: '8px' }}
+                  >
+                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                        {[
+                            "#007AFF", // Blue (Default)
+                            "#FF3B30", // Red
+                            "#34C759", // Green
+                            "#FF9500", // Orange
+                            "#AF52DE", // Purple
+                            "#5856D6", // Indigo
+                            "#FF2D55", // Pink
+                            "#5AC8FA", // Teal
+                        ].map((color) => (
+                            <button
+                                key={color}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit?.(location.id, { color }); // Re-using onEdit for now or add specific prop
+                                    closeMenu();
+                                }}
+                                style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    backgroundColor: color,
+                                    border: location.color === color ? '2px solid white' : 'none',
+                                    boxShadow: location.color === color ? '0 0 0 2px #007AFF' : 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                                    cursor: 'pointer',
+                                    padding: 0,
+                                }}
+                                title={color}
+                            />
+                        ))}
+                     </div>
+                  </div>
+                </motion.div>
+              </MenuItem>
+            
               <MenuItem
                 id="edit"
                 icon={Edit}

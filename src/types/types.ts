@@ -6,6 +6,7 @@ export interface Location {
   lat: number;
   hidden?: boolean;
   groupId?: string;
+  color?: string;
 }
 
 export interface Group {

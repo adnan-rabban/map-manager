@@ -19,7 +19,7 @@ interface AppProps {
     initialLocations: Location[];
     onAssignLocationToGroup: (item: Location, groupId: string | null) => void;
     onFlyTo: (id: string) => void;
-    onEdit: (id: string) => void;
+    onEdit: (id: string, updates?: Partial<Location>) => void;
     onDelete: (id: string) => void;
     onToggleVisibility: (id: string) => void;
     onDeleteGroup: (group: Group) => void;
