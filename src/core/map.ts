@@ -35,9 +35,6 @@ export class MapEngine {
     private isReady: boolean = false;
     private onPopupCloseCallback: (() => void) | null = null;
 
-    // Helper for markers (already defined above)
-    // private markers: Record<string, MapTilerMarker> = {};
-
     private readonly STYLE_IDS = {
         STREETS: 'streets-v2',           // Streets Light
         STREETS_DARK: 'streets-v2-dark', // Streets Dark (OFFICIAL MAPTILER DARK)
@@ -73,6 +70,17 @@ export class MapEngine {
             navigationControl: true,
             logoControl: false
         });
+
+        const geolocateControl = new maptilersdk.GeolocateControl({
+            positionOptions: {
+                enableHighAccuracy: true
+            },
+            trackUserLocation: true,
+            showUserHeading: true,
+            showAccuracyCircle: false
+        });
+
+        this.map.addControl(geolocateControl, 'top-right');
         this.init();
     }
 

@@ -298,6 +298,12 @@
   backdrop-filter: blur(12px);
 }
 
+[data-theme="dark"] .location-item.overlay-item {
+  background-color: var(--card-bg) !important;
+  opacity: 1 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
 .btn {
   border: none;
   cursor: pointer;

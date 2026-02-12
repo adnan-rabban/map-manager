@@ -220,7 +220,7 @@ export const LocationItem: React.FC<LocationItemProps> = ({
   return (
     <>
       <motion.div
-        layoutId={location.id}
+        layoutId={isOverlay ? undefined : location.id}
         ref={!isOverlay ? setNodeRef : undefined}
         {...(!isOverlay ? listeners : {})}
         {...(!isOverlay ? attributes : {})}
