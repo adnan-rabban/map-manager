@@ -213,6 +213,9 @@ class App {
                 onRenameGroup={(group) => {
                     this.showRenameGroupModal(group);
                 }}
+                onExportGroup={(group) => {
+                    this.exportGroup(group);
+                }}
             />
         );
     }
@@ -416,6 +419,113 @@ class App {
                 this.renderList();
                 notify.show('Folder deleted', 'success');
             }, 'Delete', true);
+    }
+
+    private exportGroup(group: Group): void {
+        const locations = this.store.getAll().filter(l => l.groupId === group.id);
+        
+        if (locations.length === 0) {
+            notify.show('Folder is empty', 'warning');
+            return;
+        }
+
+        this.showExportOptionsModal(group, locations);
+    }
+
+    private showExportOptionsModal(group: Group, locations: Location[]): void {
+        const content = document.createElement('div');
+        content.style.marginTop = '16px';
+        content.innerHTML = `
+            <div class="form-group">
+                <label>Select Format</label>
+                <div class="radio-group" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="export-format" value="json" checked>
+                        <span>JSON (Native)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="export-format" value="csv">
+                        <span>CSV</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="export-format" value="xlsx">
+                        <span>Excel (XLSX)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="export-format" value="xls">
+                        <span>Excel Legacy (XLS)</span>
+                    </label>
+                </div>
+            </div>
+        `;
+
+        this.createModal(`Export ${group.name}`, content, () => {
+             const selected = content.querySelector('input[name="export-format"]:checked') as HTMLInputElement;
+             const format = selected ? selected.value : 'json';
+             this.performExport(group, locations, format);
+        }, 'Export');
+    }
+
+    private async performExport(group: Group, locations: Location[], format: string): Promise<void> {
+        const groupName = group.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const dateStr = new Date().toISOString().slice(0,10);
+        const filename = `locations-${groupName}-${dateStr}`;
+
+        if (format === 'json') {
+            const data = JSON.stringify(locations, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            this.downloadBlob(blob, `${filename}.json`);
+            notify.show(`Exported ${locations.length} locations as JSON`, 'success');
+            return;
+        }
+
+        try {
+            // Dynamic import to avoid loading heavy library if not used
+            // @ts-ignore
+            const XLSX = await import('xlsx');
+            
+            // Prepare flat data for spreadsheet
+            const flatData = locations.map(loc => ({
+                Name: loc.name,
+                Description: loc.desc || '',
+                Latitude: loc.lat,
+                Longitude: loc.lng,
+                GoogleMaps: `https://www.google.com/maps?q=${loc.lat},${loc.lng}`,
+                ID: loc.id // Optional, keeping for reference
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(flatData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Locations");
+
+            if (format === 'csv') {
+                const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+                const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+                this.downloadBlob(blob, `${filename}.csv`);
+                notify.show(`Exported ${locations.length} locations as CSV`, 'success');
+            } else if (format === 'xlsx') {
+                XLSX.writeFile(workbook, `${filename}.xlsx`);
+                notify.show(`Exported ${locations.length} locations as XLSX`, 'success');
+            } else if (format === 'xls') {
+                XLSX.writeFile(workbook, `${filename}.xls`);
+                notify.show(`Exported ${locations.length} locations as XLS`, 'success');
+            }
+
+        } catch (error) {
+            console.error('Export failed:', error);
+            notify.show('Failed to export data. Please try again.', 'error');
+        }
+    }
+
+    private downloadBlob(blob: Blob, filename: string): void {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
     
     private showLocationModal(mode: 'add'|'edit', location?: Location): void {

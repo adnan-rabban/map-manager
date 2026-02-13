@@ -3,7 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { Group, Location } from '../../types/types';
 import { LocationItem } from './LocationItem.js';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Folder, FolderOpen, Edit, Trash2 } from 'lucide-react';
+import { ChevronDown, Folder, FolderOpen, Edit, Trash2, Download } from 'lucide-react';
 
 interface GroupItemProps {
     group: Group;
@@ -14,6 +14,7 @@ interface GroupItemProps {
     onToggleVisibility: (id: string) => void;
     onDeleteGroup: (group: Group) => void;
     onRenameGroup: (group: Group) => void;
+    onExportGroup: (group: Group) => void;
     groups: Group[];
     onAssignLocationToGroup: (location: Location, groupId: string | null) => void;
 }
@@ -27,6 +28,7 @@ export const GroupItem: React.FC<GroupItemProps> = ({
     onToggleVisibility,
     onDeleteGroup,
     onRenameGroup,
+    onExportGroup,
     groups,
     onAssignLocationToGroup
 }) => {
@@ -87,12 +89,19 @@ return (
             </div>
             
             <div className="group-actions">
-                 <button 
+                <button 
                     className="btn-icon-sm"
                     onClick={(e) => { e.stopPropagation(); onRenameGroup(group); }}
                     data-tooltip="Rename Folder"
                 >
                     <Edit size={14} />
+                </button>
+                <button 
+                    className="btn-icon-sm"
+                    onClick={(e) => { e.stopPropagation(); onExportGroup(group); }}
+                    data-tooltip="Export Folder"
+                >
+                    <Download size={14} />
                 </button>
                 <button 
                     className="btn-icon-sm"

@@ -24,6 +24,7 @@ interface AppProps {
     onToggleVisibility: (id: string) => void;
     onDeleteGroup: (group: Group) => void;
     onRenameGroup: (group: Group) => void;
+    onExportGroup: (group: Group) => void;
 }
 
 export const App: React.FC<AppProps> = ({
@@ -35,7 +36,8 @@ export const App: React.FC<AppProps> = ({
     onDelete,
     onToggleVisibility,
     onDeleteGroup,
-    onRenameGroup
+    onRenameGroup,
+    onExportGroup
 }) => {
     const [activeId, setActiveId] = useState<string | null>(null);
     const [dragWidth, setDragWidth] = useState<number | undefined>(undefined);
@@ -116,6 +118,7 @@ export const App: React.FC<AppProps> = ({
                 onToggleVisibility={onToggleVisibility}
                 onDeleteGroup={onDeleteGroup}
                 onRenameGroup={onRenameGroup}
+                onExportGroup={onExportGroup}
                 onAssignLocationToGroup={onAssignLocationToGroup}
             />
 

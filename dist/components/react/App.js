@@ -4,7 +4,7 @@ import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSen
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { LocationList } from './LocationList.js';
 import { LocationItem } from './LocationItem.js';
-export const App = ({ initialGroups, initialLocations, onAssignLocationToGroup, onFlyTo, onEdit, onDelete, onToggleVisibility, onDeleteGroup, onRenameGroup }) => {
+export const App = ({ initialGroups, initialLocations, onAssignLocationToGroup, onFlyTo, onEdit, onDelete, onToggleVisibility, onDeleteGroup, onRenameGroup, onExportGroup }) => {
     const [activeId, setActiveId] = useState(null);
     const [dragWidth, setDragWidth] = useState(undefined);
     const sensors = useSensors(useSensor(PointerSensor, {
@@ -53,5 +53,5 @@ export const App = ({ initialGroups, initialLocations, onAssignLocationToGroup, 
         }
     };
     const activeLocation = activeId ? initialLocations.find(l => l.id === activeId) : null;
-    return (_jsxs(DndContext, { sensors: sensors, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsx(LocationList, { groups: initialGroups, locations: initialLocations, onFlyTo: onFlyTo, onEdit: onEdit, onDelete: onDelete, onToggleVisibility: onToggleVisibility, onDeleteGroup: onDeleteGroup, onRenameGroup: onRenameGroup, onAssignLocationToGroup: onAssignLocationToGroup }), _jsx(DragOverlay, { modifiers: [restrictToWindowEdges], children: activeId && activeLocation ? (_jsx(LocationItem, { location: activeLocation, isOverlay: true, width: dragWidth })) : null })] }));
+    return (_jsxs(DndContext, { sensors: sensors, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsx(LocationList, { groups: initialGroups, locations: initialLocations, onFlyTo: onFlyTo, onEdit: onEdit, onDelete: onDelete, onToggleVisibility: onToggleVisibility, onDeleteGroup: onDeleteGroup, onRenameGroup: onRenameGroup, onExportGroup: onExportGroup, onAssignLocationToGroup: onAssignLocationToGroup }), _jsx(DragOverlay, { modifiers: [restrictToWindowEdges], children: activeId && activeLocation ? (_jsx(LocationItem, { location: activeLocation, isOverlay: true, width: dragWidth })) : null })] }));
 };
