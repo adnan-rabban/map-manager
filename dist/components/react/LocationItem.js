@@ -1,9 +1,33 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@dnd-kit/core";
 import { Eye, EyeOff, MoreVertical, Edit, Trash2, ChevronRight, Folder, Plus, Palette } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+const SmartSubmenu = ({ children }) => {
+    const ref = useRef(null);
+    const [isFlipped, setIsFlipped] = useState(false);
+    useLayoutEffect(() => {
+        if (ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.top;
+            if (spaceBelow < (rect.height || 200)) {
+                setIsFlipped(true);
+            }
+        }
+    }, []);
+    return (_jsx(motion.div, { ref: ref, initial: { opacity: 0, x: -10 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -10 }, transition: { duration: 0.15 }, style: {
+            position: 'absolute',
+            [isFlipped ? 'bottom' : 'top']: 0,
+            left: '100%',
+            paddingLeft: '8px',
+            zIndex: 10000,
+            height: isFlipped ? 'auto' : '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: isFlipped ? 'flex-end' : 'flex-start'
+        }, children: children }));
+};
 const MenuItem = ({ id, icon: Icon, label, onClick, isDanger = false, hasSubmenu = false, isHovered, onMouseEnter, children, layoutId }) => {
     return (_jsxs("div", { className: "dropdown-item-wrapper", onMouseEnter: onMouseEnter, style: { position: 'relative' }, children: [_jsxs("button", { className: `dropdown-item ${isDanger ? 'delete' : ''}`, onClick: (e) => {
                     if (!hasSubmenu) {
@@ -182,14 +206,7 @@ export const LocationItem = ({ location, isOverlay, width, onFlyTo, onEdit, onDe
                                                 }, title: color }, color))) }) }) }) }), _jsx(MenuItem, { id: "edit", icon: Edit, label: "Edit", onClick: () => {
                                     closeMenu();
                                     onEdit?.(location.id);
-                                }, isHovered: hoveredMainItem === "edit", onMouseEnter: () => setHoveredMainItem("edit"), layoutId: `main-menu-highlight-${location.id}` }), _jsx(MenuItem, { id: "move-to", icon: Folder, label: "Move to", hasSubmenu: true, isHovered: hoveredMainItem === "move-to", onMouseEnter: () => setHoveredMainItem("move-to"), layoutId: `main-menu-highlight-${location.id}`, children: _jsx(motion.div, { initial: { opacity: 0, x: -10 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -10 }, transition: { duration: 0.15 }, style: {
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: '100%',
-                                        paddingLeft: '8px',
-                                        zIndex: 10000,
-                                        height: '100%',
-                                    }, children: _jsxs("div", { className: "location-submenu-card", style: { minWidth: '180px' }, children: [_jsxs("div", { className: "submenu-grid", children: [_jsxs("div", { style: { position: 'relative' }, onMouseEnter: () => setHoveredSubItem('uncategorized'), children: [_jsxs("button", { className: "dropdown-item", onClick: (e) => {
+                                }, isHovered: hoveredMainItem === "edit", onMouseEnter: () => setHoveredMainItem("edit"), layoutId: `main-menu-highlight-${location.id}` }), _jsx(MenuItem, { id: "move-to", icon: Folder, label: "Move to", hasSubmenu: true, isHovered: hoveredMainItem === "move-to", onMouseEnter: () => setHoveredMainItem("move-to"), layoutId: `main-menu-highlight-${location.id}`, children: _jsx(SmartSubmenu, { children: _jsxs("div", { className: "location-submenu-card", style: { minWidth: '180px' }, children: [_jsxs("div", { className: "submenu-grid", children: [_jsxs("div", { style: { position: 'relative' }, onMouseEnter: () => setHoveredSubItem('uncategorized'), children: [_jsxs("button", { className: "dropdown-item", onClick: (e) => {
                                                                     e.stopPropagation();
                                                                     handleMoveToGroup(null);
                                                                 }, style: { position: 'relative', zIndex: 10, width: '100%', background: 'transparent', color: 'var(--text-primary)' }, children: [_jsx(Folder, { size: 14, style: { marginRight: "8px", opacity: 0.5 } }), "Uncategorized"] }), hoveredSubItem === 'uncategorized' && (_jsx(motion.div, { layoutId: `submenu-highlight-${location.id}`, style: {

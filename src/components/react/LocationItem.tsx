@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@dnd-kit/core";
 import { Location, Group } from "../../types/types";
@@ -17,6 +17,45 @@ interface LocationItemProps {
   onAssignLocationToGroup?: (location: Location, groupId: string | null) => void;
   selectedLocationId?: string | null;
 }
+
+const SmartSubmenu = ({ children }: { children: React.ReactNode }) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [isFlipped, setIsFlipped] = useState(false);
+
+    useLayoutEffect(() => {
+        if (ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.top;
+            
+            if (spaceBelow < (rect.height || 200)) {
+                setIsFlipped(true);
+            }
+        }
+    }, []);
+
+    return (
+        <motion.div
+            ref={ref}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.15 }}
+            style={{
+                position: 'absolute',
+                [isFlipped ? 'bottom' : 'top']: 0,
+                left: '100%',
+                paddingLeft: '8px',
+                zIndex: 10000,
+                height: isFlipped ? 'auto' : '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: isFlipped ? 'flex-end' : 'flex-start'
+            }}
+        >
+            {children}
+        </motion.div>
+    );
+};
 
 const MenuItem = ({
   id,
@@ -360,7 +399,7 @@ export const LocationItem: React.FC<LocationItemProps> = ({
                   </div>
                 </motion.div>
               </MenuItem>
-            
+              
               <MenuItem
                 id="edit"
                 icon={Edit}
@@ -383,20 +422,7 @@ export const LocationItem: React.FC<LocationItemProps> = ({
                 onMouseEnter={() => setHoveredMainItem("move-to")}
                 layoutId={`main-menu-highlight-${location.id}`}
               >
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.15 }}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: '100%',
-                    paddingLeft: '8px',
-                    zIndex: 10000,
-                    height: '100%',
-                  }}
-                >
+                <SmartSubmenu>
                   <div 
                     className="location-submenu-card"
                     style={{ minWidth: '180px' }}
@@ -500,7 +526,7 @@ export const LocationItem: React.FC<LocationItemProps> = ({
                     </motion.button>
 
                   </div>
-                </motion.div>
+                </SmartSubmenu>
               </MenuItem>
 
               <div className="dropdown-divider" style={{ margin: '4px 0' }} />
