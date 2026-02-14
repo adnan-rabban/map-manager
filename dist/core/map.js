@@ -35,21 +35,12 @@ export class MapEngine {
             zoom: 15.5,
             pitch: 45,
             bearing: -17.6,
-            geolocate: false,
+            geolocate: true,
             terrainControl: true,
             scaleControl: true,
             navigationControl: true,
             logoControl: false
         });
-        const geolocateControl = new maptilersdk.GeolocateControl({
-            positionOptions: {
-                enableHighAccuracy: true
-            },
-            trackUserLocation: true,
-            showUserHeading: true,
-            showAccuracyCircle: false
-        });
-        this.map.addControl(geolocateControl, 'top-right');
         this.init();
     }
     onReady(callback) {
@@ -257,11 +248,10 @@ export class MapEngine {
         const container = document.createElement('div');
         container.className = 'marker-wrapper';
         const el = document.createElement('div');
-        el.className = 'custom-marker-dot'; // Changed class name to match CSS
+        el.className = 'custom-marker-dot';
         if (options?.color) {
             el.style.backgroundColor = options.color;
-            // Add a subtle border for better visibility on dark/light maps if needed
-            // el.style.borderColor = ... 
+            el.style.borderColor = 'white';
         }
         container.appendChild(el);
         const marker = new maptilersdk.Marker({
