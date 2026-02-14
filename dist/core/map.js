@@ -251,7 +251,7 @@ export class MapEngine {
         el.className = 'custom-marker-dot';
         if (options?.color) {
             el.style.backgroundColor = options.color;
-            el.style.borderColor = 'white';
+            // Border color is handled by CSS (.custom-marker-dot)
         }
         container.appendChild(el);
         const marker = new maptilersdk.Marker({

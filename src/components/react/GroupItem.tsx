@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Group, Location } from '../../types/types';
 import { LocationItem } from './LocationItem.js';
@@ -17,6 +17,7 @@ interface GroupItemProps {
     onExportGroup: (group: Group) => void;
     groups: Group[];
     onAssignLocationToGroup: (location: Location, groupId: string | null) => void;
+    selectedLocationId?: string | null;
 }
 
 export const GroupItem: React.FC<GroupItemProps> = ({ 
@@ -30,7 +31,8 @@ export const GroupItem: React.FC<GroupItemProps> = ({
     onRenameGroup,
     onExportGroup,
     groups,
-    onAssignLocationToGroup
+    onAssignLocationToGroup,
+    selectedLocationId
 }) => {
     const { setNodeRef, isOver } = useDroppable({
         id: group.id,
@@ -41,6 +43,12 @@ export const GroupItem: React.FC<GroupItemProps> = ({
     });
 
     const [isCollapsed, setIsCollapsed] = useState(group.isCollapsed || false);
+
+    useEffect(() => {
+        if (selectedLocationId && locations.some(loc => loc.id === selectedLocationId)) {
+            setIsCollapsed(false);
+        }
+    }, [selectedLocationId, locations]);
 
     const style: React.CSSProperties = {
         border: isOver ? '2px solid var(--accent-color)' : '1px solid transparent',
@@ -137,6 +145,7 @@ return (
                                         onToggleVisibility={onToggleVisibility}
                                         groups={groups}
                                         onAssignLocationToGroup={onAssignLocationToGroup}
+                                        selectedLocationId={selectedLocationId}
                                     />
                                 ))
                             ) : (

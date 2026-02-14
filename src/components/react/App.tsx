@@ -25,6 +25,7 @@ interface AppProps {
     onDeleteGroup: (group: Group) => void;
     onRenameGroup: (group: Group) => void;
     onExportGroup: (group: Group) => void;
+    selectedLocationId?: string | null;
 }
 
 export const App: React.FC<AppProps> = ({
@@ -37,7 +38,8 @@ export const App: React.FC<AppProps> = ({
     onToggleVisibility,
     onDeleteGroup,
     onRenameGroup,
-    onExportGroup
+    onExportGroup,
+    selectedLocationId
 }) => {
     const [activeId, setActiveId] = useState<string | null>(null);
     const [dragWidth, setDragWidth] = useState<number | undefined>(undefined);
@@ -59,7 +61,7 @@ export const App: React.FC<AppProps> = ({
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
         setActiveId(active.id as string);
-        
+
         if (active.data.current?.type === 'LOCATION') {
              const element = document.querySelector(`[data-id="${active.id}"]`) as HTMLElement;
              if (element) {
@@ -72,7 +74,6 @@ export const App: React.FC<AppProps> = ({
         const { active, over } = event;
         setActiveId(null);
         setDragWidth(undefined);
-        
 
 
         if (!over) return;
@@ -100,16 +101,16 @@ export const App: React.FC<AppProps> = ({
 
         }
     };
-    
+
     const activeLocation = activeId ? initialLocations.find(l => l.id === activeId) : null;
 
     return (
-        <DndContext 
+        <DndContext
             sensors={sensors}
-            onDragStart={handleDragStart} 
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
-            <LocationList 
+            <LocationList
                 groups={initialGroups}
                 locations={initialLocations}
                 onFlyTo={onFlyTo}
@@ -120,6 +121,7 @@ export const App: React.FC<AppProps> = ({
                 onRenameGroup={onRenameGroup}
                 onExportGroup={onExportGroup}
                 onAssignLocationToGroup={onAssignLocationToGroup}
+                selectedLocationId={selectedLocationId}
             />
 
             <DragOverlay modifiers={[restrictToWindowEdges]}>

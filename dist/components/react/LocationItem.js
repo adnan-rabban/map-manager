@@ -27,7 +27,7 @@ const MenuItem = ({ id, icon: Icon, label, onClick, isDanger = false, hasSubmenu
                     zIndex: 0
                 }, transition: { type: "spring", stiffness: 300, damping: 30 } })), _jsx(AnimatePresence, { children: hasSubmenu && isHovered && children })] }));
 };
-export const LocationItem = ({ location, isOverlay, width, onFlyTo, onEdit, onDelete, onToggleVisibility, groups = [], onAssignLocationToGroup, }) => {
+export const LocationItem = ({ location, isOverlay, width, onFlyTo, onEdit, onDelete, onToggleVisibility, groups = [], onAssignLocationToGroup, selectedLocationId }) => {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: location.id,
         disabled: isOverlay,
@@ -122,7 +122,20 @@ export const LocationItem = ({ location, isOverlay, width, onFlyTo, onEdit, onDe
         onAssignLocationToGroup?.(location, groupId);
         closeMenu();
     };
-    return (_jsxs(_Fragment, { children: [_jsxs(motion.div, { layoutId: isOverlay ? undefined : location.id, ref: !isOverlay ? setNodeRef : undefined, ...(!isOverlay ? listeners : {}), ...(!isOverlay ? attributes : {}), className: `location-item ${isOverlay ? "overlay-item" : ""}`, style: style, "data-id": location.id, children: [_jsxs("div", { className: "location-info", onClick: () => onFlyTo?.(location.id), children: [_jsx("h3", { children: location.name }), location.desc && _jsx("p", { children: location.desc })] }), _jsxs("div", { className: "location-actions", children: [_jsx("button", { className: "btn-icon-sm", onClick: (e) => {
+    const elementRef = useRef(null);
+    const setCombinedRef = (node) => {
+        if (!isOverlay) {
+            setNodeRef(node);
+        }
+        elementRef.current = node;
+    };
+    const isSelected = selectedLocationId === location.id;
+    useEffect(() => {
+        if (isSelected && elementRef.current) {
+            elementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [isSelected]);
+    return (_jsxs(_Fragment, { children: [_jsxs(motion.div, { layoutId: isOverlay ? undefined : location.id, ref: setCombinedRef, ...(!isOverlay ? listeners : {}), ...(!isOverlay ? attributes : {}), className: `location-item ${isOverlay ? "overlay-item" : ""} ${isSelected ? "active" : ""}`, style: style, "data-id": location.id, children: [_jsxs("div", { className: "location-info", onClick: () => onFlyTo?.(location.id), children: [_jsx("h3", { children: location.name }), location.desc && _jsx("p", { children: location.desc })] }), _jsxs("div", { className: "location-actions", children: [_jsx("button", { className: "btn-icon-sm", onClick: (e) => {
                                     e.stopPropagation();
                                     onToggleVisibility?.(location.id);
                                 }, "data-tooltip": location.hidden ? "Show on map" : "Hide from map", children: location.hidden ? _jsx(EyeOff, { size: 14 }) : _jsx(Eye, { size: 14 }) }), _jsx("button", { ref: triggerRef, className: `dropdown-btn ${isMenuOpen ? "active" : ""}`, onClick: toggleMenu, "data-tooltip": "More options", children: _jsx(MoreVertical, { size: 16 }) })] })] }), isMenuOpen &&

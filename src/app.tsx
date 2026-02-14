@@ -216,6 +216,7 @@ class App {
                 onExportGroup={(group) => {
                     this.exportGroup(group);
                 }}
+                selectedLocationId={this.selectedLocation?.id || null}
             />
         );
     }
@@ -1022,6 +1023,7 @@ class App {
 
     private onMarkerClick(location: Location): void {
         this.selectedLocation = location;
+        this.renderList();
         this.map.flyTo({ lng: location.lng, lat: location.lat });
         
         const popupHtml = `
@@ -1051,10 +1053,7 @@ class App {
         
         const handleClosePopup = () => {
             this.selectedLocation = null;
-            // React app handles active state, but here we might want to tell React somehow?
-            // For now, React doesn't know about selection changes initiated by Map.
-            // OPTIONAL: We could pass a prop `selectedId` to ReactApp if we wanted list to highlight.
-            // But we don't have that plumbing yet.
+            this.renderList();
         };
 
         this.map.showPopup(

@@ -15,6 +15,7 @@ interface LocationItemProps {
   onToggleVisibility?: (id: string) => void;
   groups?: Group[];
   onAssignLocationToGroup?: (location: Location, groupId: string | null) => void;
+  selectedLocationId?: string | null;
 }
 
 const MenuItem = ({
@@ -103,6 +104,7 @@ export const LocationItem: React.FC<LocationItemProps> = ({
   onToggleVisibility,
   groups = [],
   onAssignLocationToGroup,
+  selectedLocationId
 }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: location.id,
@@ -217,14 +219,31 @@ export const LocationItem: React.FC<LocationItemProps> = ({
     closeMenu();
   };
 
+  const elementRef = useRef<HTMLDivElement | null>(null);
+
+  const setCombinedRef = (node: HTMLDivElement | null) => {
+    if (!isOverlay) {
+        setNodeRef(node);
+    }
+    elementRef.current = node;
+  };
+
+  const isSelected = selectedLocationId === location.id;
+
+  useEffect(() => {
+    if (isSelected && elementRef.current) {
+        elementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isSelected]);
+
   return (
     <>
       <motion.div
         layoutId={isOverlay ? undefined : location.id}
-        ref={!isOverlay ? setNodeRef : undefined}
+        ref={setCombinedRef}
         {...(!isOverlay ? listeners : {})}
         {...(!isOverlay ? attributes : {})}
-        className={`location-item ${isOverlay ? "overlay-item" : ""}`}
+        className={`location-item ${isOverlay ? "overlay-item" : ""} ${isSelected ? "active" : ""}`}
         style={style}
         data-id={location.id}
       >
