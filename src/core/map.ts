@@ -332,7 +332,6 @@ export class MapEngine {
         
         if (options?.color) {
             el.style.backgroundColor = options.color;
-            // Border color is handled by CSS (.custom-marker-dot)
         }
         
         container.appendChild(el);

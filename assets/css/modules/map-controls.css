@@ -407,6 +407,6 @@ a.maplibregl-ctrl-logo,
 
 /* Dark Mode support for markers */
 [data-theme="dark"] .custom-marker-dot {
-    border-color: #1f2937; /* Dark Gray to blend with map */
+    border-color: #1f2937;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
