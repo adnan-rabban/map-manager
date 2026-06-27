@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useMapStore } from '../../store/useMapStore.js';
-import { notify } from '../notifications.js';
-import type { SearchFeature, Route, Coordinates } from '../../types/types';
+import { useMapStore } from '../../../store/useMapStore.js';
+import { notify } from '../../../components/notifications.js';
+import type { SearchFeature, Route, Coordinates } from '../../../types/types';
 
 export const DirectionsPanel: React.FC = () => {
   const {

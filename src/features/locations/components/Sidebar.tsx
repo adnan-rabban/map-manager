@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useMapStore } from '../../store/useMapStore.js';
+import { useMapStore } from '../../../store/useMapStore.js';
 import { LocationList } from './LocationList.js';
-import { notify } from '../notifications.js';
-import type { SearchFeature } from '../../types/types';
+import { notify } from '../../../components/notifications.js';
+import type { SearchFeature } from '../../../types/types';
 
 export const Sidebar: React.FC = () => {
   const {

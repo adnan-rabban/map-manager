@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMapStore } from '../../store/useMapStore.js';
+import { useMapStore } from '../../../store/useMapStore.js';
 
 export const LayerPanel: React.FC = () => {
   const {

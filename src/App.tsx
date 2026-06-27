@@ -10,15 +10,15 @@ import {
     TouchSensor
 } from '@dnd-kit/core';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
-import { useMapStore } from '../../store/useMapStore.js';
-import { MapViewer } from './MapViewer.js';
-import { Sidebar } from './Sidebar.js';
-import { DirectionsPanel } from './DirectionsPanel.js';
-import { ModalOverlay } from './ModalOverlay.js';
-import { SettingsMenu } from './SettingsMenu.js';
-import { LayerPanel } from './LayerPanel.js';
-import { LocationItem } from './LocationItem.js';
-import { CustomTooltip } from '../tooltip.js';
+import { useMapStore } from './store/useMapStore.js';
+import { MapViewer } from './features/map/components/MapViewer.js';
+import { Sidebar } from './features/locations/components/Sidebar.js';
+import { DirectionsPanel } from './features/navigation/components/DirectionsPanel.js';
+import { ModalOverlay } from './features/locations/components/ModalOverlay.js';
+import { SettingsMenu } from './features/map/components/SettingsMenu.js';
+import { LayerPanel } from './features/map/components/LayerPanel.js';
+import { LocationItem } from './features/locations/components/LocationItem.js';
+import { CustomTooltip } from './components/tooltip.js';
 
 export const App: React.FC = () => {
   const {

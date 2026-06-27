@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { Group, Location } from '../../types/types';
+import { Group, Location } from '../../../types/types';
 import { LocationItem } from './LocationItem.js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Folder, FolderOpen, Edit, Trash2, Download } from 'lucide-react';

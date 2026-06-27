@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useMapStore } from '../../store/useMapStore.js';
-import { notify } from '../notifications.js';
+import { useMapStore } from '../../../store/useMapStore.js';
+import { notify } from '../../../components/notifications.js';
 
 export const ModalOverlay: React.FC = () => {
   const {
