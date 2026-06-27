@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@dnd-kit/core";
-import { Location, Group } from "../../types/types";
+import { Location, Group } from "../../../types/types";
 import { Eye, EyeOff, MoreVertical, Edit, Trash2, ChevronRight, Folder, Plus, Palette } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

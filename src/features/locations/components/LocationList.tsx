@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { Group, Location } from '../../types/types';
+import { Group, Location } from '../../../types/types';
 import { GroupItem } from './GroupItem.js';
 import { LocationItem } from './LocationItem.js';
 
