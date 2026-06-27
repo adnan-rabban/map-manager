@@ -8,3 +8,4 @@
 @import url('modules/animations.css');
 @import url('modules/settings.css');
 @import url('base/utilities.css');
+@import "tailwindcss";
