@@ -1,0 +1,281 @@
+
+
+/* ==========================================================================
+   ORBIT THEME SYSTEM & MOCK SHADCN BASE VARIABLES
+   Adapts c:\Users\dutah\OneDrive\Desktop\Syntax\Web\map-manager\vanilla_backup\auth-login looks
+   ========================================================================== */
+
+:root {
+  /* Orbit palette swatches base colors */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  --color-blue-50: #eff6ff;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-950: #172554;
+
+  --color-red-50: #fef2f2;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-950: #450a0a;
+
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-950: #064e3b;
+
+  --color-amber-50: #fffbeb;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-950: #451a03;
+
+  --color-purple-50: #faf5ff;
+  --color-violet-50: #f5f3ff;
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+  --color-violet-950: #2e1065;
+
+  /* Standard variables for light mode matching mockup */
+  --background: #fafaf9;
+  --foreground: #18181b;
+  --card: #fafaf9;
+  --card-foreground: #18181b;
+  --popover: #fafaf9;
+  --popover-foreground: #18181b;
+  
+  --primary: #18181b;
+  --primary-foreground: #fafaf9;
+  
+  --secondary: rgba(0, 0, 0, 0.03);
+  --secondary-foreground: #18181b;
+  
+  --muted: rgba(0, 0, 0, 0.03);
+  --muted-foreground: rgba(24, 24, 27, 0.6);
+  
+  --accent: rgba(0, 0, 0, 0.03);
+  --accent-foreground: #18181b;
+  
+  --destructive: #ef4444;
+  --destructive-foreground: #fafaf9;
+  
+  --border: rgba(0, 0, 0, 0.12);
+  --input: rgba(0, 0, 0, 0.03);
+  --ring: rgba(0, 0, 0, 0.12);
+  --radius: 0.5rem;
+
+  /* Dashboard light mode overrides to match Orbit */
+  --bg-color: #fafaf9;
+  --glass-bg: rgba(250, 250, 249, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  
+  --text-main: #18181b;
+  --text-secondary: rgba(24, 24, 27, 0.6);
+  
+  --modal-bg: #ffffff;
+  --input-bg: #f1f5f9;
+  --dropdown-bg: #f1f5f9;
+  --dropdown-text: #18181b;
+  --menu-bg: #ffffff;
+  --btn-cancel-bg: #e2e8f0;
+  --btn-cancel-text: #18181b;
+  --hover-highlight: #f1f5f9;
+  --btn-secondary-bg: #f1f5f9;
+  --btn-hover-bg: #e2e8f0;
+  --btn-active-bg: #cbd5e1;
+  --btn-text: #18181b;
+  --text-primary: #18181b;
+  --icon-color: #18181b;
+}
+
+/* Dark mode overrides matching mockup */
+.dark {
+  --background: #0a0c10;
+  --foreground: #f5f5f4;
+  --card: #0a0c10;
+  --card-foreground: #f5f5f4;
+  --popover: #0a0c10;
+  --popover-foreground: #f5f5f4;
+  
+  --primary: #f5f5f4;
+  --primary-foreground: #18181b;
+  
+  --secondary: rgba(255, 255, 255, 0.05);
+  --secondary-foreground: #f5f5f4;
+  
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: rgba(245, 245, 244, 0.55);
+  
+  --accent: rgba(255, 255, 255, 0.05);
+  --accent-foreground: #f5f5f4;
+  
+  --border: rgba(255, 255, 255, 0.14);
+  --input: rgba(255, 255, 255, 0.05);
+  --ring: rgba(255, 255, 255, 0.14);
+
+  /* Dashboard dark mode overrides to match Orbit */
+  --bg-color: #0a0c10;
+  --glass-bg: rgba(10, 12, 16, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  
+  --text-main: #f5f5f4;
+  --text-secondary: rgba(245, 245, 244, 0.55);
+  
+  --modal-bg: #0e111a;
+  --modal-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.08);
+  --input-text: #f5f5f4;
+  --label-text: rgba(245, 245, 244, 0.55);
+  --divider-color: rgba(255, 255, 255, 0.08);
+  
+  --dropdown-bg: #0e111a;
+  --dropdown-text: #f5f5f4;
+  --menu-bg: #0e111a;
+  --hover-highlight: rgba(255, 255, 255, 0.05);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.05);
+  --btn-hover-bg: rgba(255, 255, 255, 0.08);
+  --btn-active-bg: rgba(255, 255, 255, 0.12);
+  --btn-text: #f5f5f4;
+  --text-primary: #f5f5f4;
+  --icon-color: #f5f5f4;
+}
+
+/* Apply palettes - Active Palette variables */
+html[data-palette="graphite"] {
+  --primary: var(--color-neutral-800);
+  --primary-foreground: var(--color-neutral-50);
+  --ring: var(--color-neutral-400);
+}
+html[data-palette="graphite"].dark, .dark html[data-palette="graphite"] {
+  --primary: var(--color-neutral-100);
+  --primary-foreground: var(--color-neutral-800);
+  --ring: var(--color-neutral-500);
+}
+
+html[data-palette="indigo"] {
+  --primary: var(--color-blue-600);
+  --primary-foreground: var(--color-blue-50);
+  --ring: var(--color-blue-400);
+}
+html[data-palette="indigo"].dark, .dark html[data-palette="indigo"] {
+  --primary: var(--color-blue-400);
+  --primary-foreground: var(--color-blue-950);
+  --ring: var(--color-blue-500);
+}
+
+html[data-palette="crimson"] {
+  --primary: var(--color-red-600);
+  --primary-foreground: var(--color-red-50);
+  --ring: var(--color-red-400);
+}
+html[data-palette="crimson"].dark, .dark html[data-palette="crimson"] {
+  --primary: var(--color-red-400);
+  --primary-foreground: var(--color-red-950);
+  --ring: var(--color-red-500);
+}
+
+html[data-palette="sage"] {
+  --primary: var(--color-emerald-600);
+  --primary-foreground: var(--color-emerald-50);
+  --ring: var(--color-emerald-400);
+}
+html[data-palette="sage"].dark, .dark html[data-palette="sage"] {
+  --primary: var(--color-emerald-400);
+  --primary-foreground: var(--color-emerald-950);
+  --ring: var(--color-emerald-500);
+}
+
+html[data-palette="amber"] {
+  --primary: var(--color-amber-600);
+  --primary-foreground: var(--color-amber-50);
+  --ring: var(--color-amber-400);
+}
+html[data-palette="amber"].dark, .dark html[data-palette="amber"] {
+  --primary: var(--color-amber-400);
+  --primary-foreground: var(--color-amber-950);
+  --ring: var(--color-amber-500);
+}
+
+html[data-palette="violet"] {
+  --primary: var(--color-violet-600);
+  --primary-foreground: var(--color-violet-50);
+  --ring: var(--color-violet-400);
+}
+html[data-palette="violet"].dark, .dark html[data-palette="violet"] {
+  --primary: var(--color-violet-400);
+  --primary-foreground: var(--color-violet-950);
+  --ring: var(--color-violet-500);
+}
+
+/* ==========================================================================
+   CSS CLASSES FOR AUTH PORTAL (Tailwind compatibility)
+   ========================================================================== */
+
+/* Shaking animation for error state */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Apply CSS variables mapping to standard classes just in case utilities are not compiled */
+.bg-background { background-color: var(--background); }
+.text-foreground { color: var(--foreground); }
+.bg-primary { background-color: var(--primary); }
+.text-primary-foreground { color: var(--primary-foreground); }
+.bg-secondary { background-color: var(--secondary); }
+.text-secondary-foreground { color: var(--secondary-foreground); }
+.text-muted-foreground { color: var(--muted-foreground); }
+.border-border { border-color: var(--border); }
+
+/* Apply typography */
+.font-heading {
+  font-family: var(--font-family);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Styling changes for dashboard to match auth */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.panel-container {
+  background-color: var(--background);
+}
+
+.auth-left-column {
+  position: relative;
+  display: none;
+  flex: 1;
+  min-width: 420px;
+  overflow: hidden;
+  border-right: 0.5px solid var(--border);
+}
+
+@media (min-width: 480px) {
+  .auth-left-column {
+    display: block;
+  }
+}

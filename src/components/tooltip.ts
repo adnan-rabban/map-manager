@@ -6,6 +6,16 @@ export class CustomTooltip {
     private activeElement: Element | null = null;
     private isTooltipVisible: boolean = false;
 
+    // Bound event handlers for proper listener cleanup
+    private handleMouseOverBound = (e: MouseEvent) => this.handleMouseOver(e);
+    private handleMouseOutBound = (e: MouseEvent) => this.handleMouseOut(e);
+    private hideBound = () => this.hide();
+    private updatePositionBound = () => {
+        if (this.isTooltipVisible && this.activeElement) {
+            this.updatePosition(this.activeElement);
+        }
+    };
+
     constructor() {
         this.tooltip = document.createElement('div');
         this.tooltip.id = 'custom-tooltip';
@@ -151,15 +161,26 @@ export class CustomTooltip {
     }
 
     private init(): void {
-        document.addEventListener('mouseover', (e) => this.handleMouseOver(e));
-        document.addEventListener('mouseout', (e) => this.handleMouseOut(e));
-        document.addEventListener('mousedown', () => this.hide());
-        window.addEventListener('scroll', () => this.hide(), true);
-        window.addEventListener('resize', () => {
-            if (this.isTooltipVisible && this.activeElement) {
-                this.updatePosition(this.activeElement);
-            }
-        });
+        document.addEventListener('mouseover', this.handleMouseOverBound);
+        document.addEventListener('mouseout', this.handleMouseOutBound);
+        document.addEventListener('mousedown', this.hideBound);
+        window.addEventListener('scroll', this.hideBound, true);
+        window.addEventListener('resize', this.updatePositionBound);
+    }
+
+    public destroy(): void {
+        if (this.timer !== null) clearTimeout(this.timer);
+        if (this.hideTimer !== null) clearTimeout(this.hideTimer);
+        
+        document.removeEventListener('mouseover', this.handleMouseOverBound);
+        document.removeEventListener('mouseout', this.handleMouseOutBound);
+        document.removeEventListener('mousedown', this.hideBound);
+        window.removeEventListener('scroll', this.hideBound, true);
+        window.removeEventListener('resize', this.updatePositionBound);
+        
+        if (this.tooltip && this.tooltip.parentNode) {
+            this.tooltip.parentNode.removeChild(this.tooltip);
+        }
     }
 
     private handleMouseOver(e: MouseEvent): void {
@@ -211,14 +232,13 @@ export class CustomTooltip {
         
         this.tooltip.textContent = text;
         
-        // Remove hide class and force reflow
+        // Remove hide class
         this.tooltip.classList.remove('hide');
-        void this.tooltip.offsetWidth;
         
-        // Position first (invisible)
+        // Position first (before rendering transition)
         this.updatePosition(element);
         
-        // Then animate in with slight delay for smoother appearance
+        // Then animate in with double requestAnimationFrame to avoid layout thrashing
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 this.tooltip.classList.add('show');
@@ -235,12 +255,13 @@ export class CustomTooltip {
         setTimeout(() => {
             this.tooltip.textContent = text;
             this.tooltip.classList.remove('hide');
-            void this.tooltip.offsetWidth;
             
             this.updatePosition(element);
             
             requestAnimationFrame(() => {
-                this.tooltip.classList.add('show');
+                requestAnimationFrame(() => {
+                    this.tooltip.classList.add('show');
+                });
             });
         }, 100); // Quick fade out before switching
     }
@@ -296,3 +317,4 @@ export class CustomTooltip {
         this.tooltip.style.left = `${left}px`;
     }
 }
+

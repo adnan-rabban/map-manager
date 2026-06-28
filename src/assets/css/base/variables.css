@@ -1,6 +1,6 @@
 /* ===================================
    CSS VARIABLES
-   Apple Design System Variables
+   Industrial Enterprise Design System
    =================================== */
 
 :root {
@@ -9,21 +9,22 @@
   --primary-hover: #0062cc;
   
   /* Background Colors */
-  --bg-color: #F5F5F7; /* Apple gray bg */
-  --glass-bg: rgba(255, 255, 255, 0.72); /* Saturation boost */
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); /* Softer shadow */
+  --bg-color: #F5F5F7;
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   
   /* Text Colors */
   --text-main: #1D1D1F;
   --text-secondary: #6e6e73;
   
-  /* Border Radius */
-  --radius-lg: 24px; /* More rounded */
-  --radius-md: 14px;
+  /* Border Radius - Compact industrial */
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
   
   /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   
   /* Z-Index Layers */
   --z-map: 0;
@@ -34,58 +35,78 @@
   --color-orange: #FF9500;
   --color-purple: #AF52DE;
 
+  /* ── Industrial Status Colors ── */
+  --status-active: #22c55e;
+  --status-active-glow: rgba(34, 197, 94, 0.4);
+  --status-maintenance: #f59e0b;
+  --status-maintenance-glow: rgba(245, 158, 11, 0.4);
+  --status-critical: #ef4444;
+  --status-critical-glow: rgba(239, 68, 68, 0.45);
+  --status-offline: #94a3b8;
+  --status-offline-glow: rgba(148, 163, 184, 0.25);
+
+  /* ── Asset Category Colors ── */
+  --category-warehouse: #8b5cf6;
+  --category-vehicle: #3b82f6;
+  --category-sensor: #06b6d4;
+  --category-hub: #f97316;
+
   /* Variabel Baru untuk Modal & Form */
   --modal-bg: #FFFFFF;
   --modal-shadow: 0 20px 40px rgba(0,0,0,0.15);
-  --input-bg: #F2F2F7; /* Abu muda ala iOS Light */
+  --input-bg: #F2F2F7;
   --input-border: transparent;
   --input-text: #000000;
   --label-text: #666666;
   --divider-color: #E5E5EA;
 
   /* Light Mode Defaults (Dropdown & Buttons) */
-  --dropdown-bg: #F2F2F7;       /* Abu muda (sama dengan input) */
+  --dropdown-bg: #F2F2F7;
   --dropdown-text: #000000;
-  --menu-bg: #FFFFFF;           /* Background list dropdown saat dibuka */
-  --btn-cancel-bg: #E5E5EA;     /* Abu terang untuk tombol cancel */
+  --menu-bg: #FFFFFF;
+  --btn-cancel-bg: #E5E5EA;
   --btn-cancel-text: #000000;
   --hover-highlight: #F2F2F7;
 
   /* Card & UI Consistency */
   --card-bg: #FFFFFF;
-  --card-border: rgba(0, 0, 0, 0.05); /* Border super tipis */
-  /* Bayangan Berlapis yang Sangat Halus (Smooth Depth) */
+  --card-border: rgba(0, 0, 0, 0.06);
   --card-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.02),
-      0 8px 16px rgba(0, 0, 0, 0.03);
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(0, 0, 0, 0.03);
   
-  /* Sidebar Container Shadow (Multi-layered, macOS-style) */
-  /* Layer 1: Definisi tajam tipis, Layer 2: Sebaran luas lembut */
+  /* Sidebar Container Shadow */
   --sidebar-shadow-smooth: 
-      1px 0 4px rgba(0, 0, 0, 0.03), 
-      6px 0 24px rgba(0, 0, 0, 0.08);
+      1px 0 3px rgba(0, 0, 0, 0.04), 
+      4px 0 16px rgba(0, 0, 0, 0.06);
   
-  --btn-secondary-bg: #F2F2F7;       /* System Gray 6 */
-  --btn-hover-bg: #E5E5EA;           /* System Gray 5 (Hover) */
-  --btn-active-bg: #D1D1D6;          /* System Gray 4 (Click) */
+  --btn-secondary-bg: #F2F2F7;
+  --btn-hover-bg: #E5E5EA;
+  --btn-active-bg: #D1D1D6;
   
   --btn-text: #1D1D1F;              
-  --text-primary: #1D1D1F;           /* Hampir hitam, lebih lembut */
+  --text-primary: #1D1D1F;
   --text-secondary: #86868B;
   --icon-color: #1D1D1F;
+
+  /* ── Data-Dense Spacing ── */
+  --space-xs: 4px;
+  --space-sm: 6px;
+  --space-md: 10px;
+  --space-lg: 14px;
+  --space-xl: 18px;
 }
 
 [data-theme="dark"] {
   /* Dark Mode Colors */
   --bg-color: #000000;
-  --glass-bg: rgba(30, 30, 30, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass-bg: rgba(20, 20, 22, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   
   --text-main: #F5F5F7;
   --text-secondary: #86868B;
   
-  /* Adjust primary for dark mode visibility if needed */
   --primary: #0A84FF; 
   --primary-hover: #0077ED;
 
@@ -104,20 +125,19 @@
   --menu-bg: rgba(30, 30, 30, 0.95);
   --btn-cancel-bg: #3A3A3C;
   --btn-cancel-text: #FFFFFF;
-  --hover-highlight: rgba(255, 255, 255, 0.1);
+  --hover-highlight: rgba(255, 255, 255, 0.08);
 
   /* Card & UI Consistency */
   --card-bg: #1C1C1E;
-  --card-border: rgba(255, 255, 255, 0.1);
-  /* Bayangan Berlapis Dark Mode */
+  --card-border: rgba(255, 255, 255, 0.08);
   --card-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.2),
-      0 8px 16px rgba(0, 0, 0, 0.3);
+      0 1px 3px rgba(0, 0, 0, 0.25),
+      0 4px 12px rgba(0, 0, 0, 0.3);
   
   /* Dark Mode Sidebar Shadow */
   --sidebar-shadow-smooth: 
-      1px 0 4px rgba(0, 0, 0, 0.1), 
-      8px 0 32px rgba(0, 0, 0, 0.4);
+      1px 0 3px rgba(0, 0, 0, 0.15), 
+      4px 0 16px rgba(0, 0, 0, 0.35);
   
   --btn-secondary-bg: #2C2C2E;
   --btn-hover-bg: #3A3A3C;
@@ -127,4 +147,10 @@
   --text-primary: #FFFFFF;
   --text-secondary: #98989D;
   --icon-color: #FFFFFF;
+
+  /* Dark mode status glows are brighter */
+  --status-active-glow: rgba(34, 197, 94, 0.5);
+  --status-maintenance-glow: rgba(245, 158, 11, 0.5);
+  --status-critical-glow: rgba(239, 68, 68, 0.55);
+  --status-offline-glow: rgba(148, 163, 184, 0.3);
 }

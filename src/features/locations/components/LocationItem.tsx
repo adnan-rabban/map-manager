@@ -4,6 +4,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { Location, Group } from "../../../types/types";
 import { Eye, EyeOff, MoreVertical, Edit, Trash2, ChevronRight, Folder, Plus, Palette } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMapStore } from "../../../store/useMapStore.js";
 
 interface LocationItemProps {
   location: Location;
@@ -145,9 +146,11 @@ export const LocationItem: React.FC<LocationItemProps> = ({
   onAssignLocationToGroup,
   selectedLocationId
 }) => {
+  const currentUser = useMapStore((state) => state.currentUser);
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: location.id,
-    disabled: isOverlay,
+    disabled: isOverlay || currentUser?.role !== 'admin',
     data: {
       type: "LOCATION",
       location,
@@ -239,18 +242,20 @@ export const LocationItem: React.FC<LocationItemProps> = ({
     };
   }, [isMenuOpen]);
 
+  const [showTelemetry, setShowTelemetry] = useState(false);
+
   const style: React.CSSProperties = {
     opacity: isOverlay ? 1 : isDragging ? 0.3 : 1,
-    transform: isOverlay ? "scale(1.05)" : undefined,
+    transform: isOverlay ? "scale(1.03)" : undefined,
     boxShadow: isOverlay ? "0 8px 24px rgba(0,0,0,0.2)" : undefined,
-    cursor: isOverlay ? "grabbing" : "grab",
+    cursor: isOverlay ? "grabbing" : (currentUser?.role === 'admin' ? "grab" : "pointer"),
     zIndex: isOverlay ? 999 : undefined,
     backgroundColor: isOverlay ? "var(--card-bg)" : undefined,
     position: "relative",
     width: width ? `${width}px` : undefined,
     userSelect: isOverlay ? "none" : undefined,
     touchAction: "none",
-    borderRadius: "12px",
+    borderRadius: "var(--radius-md)",
   };
 
   const handleMoveToGroup = (groupId: string | null) => {
@@ -275,6 +280,13 @@ export const LocationItem: React.FC<LocationItemProps> = ({
     }
   }, [isSelected]);
 
+  const getTelemetryBarClass = (val: number, max: number) => {
+    const pct = (val / max) * 100;
+    if (pct >= 60) return 'good';
+    if (pct >= 30) return 'warn';
+    return 'danger';
+  };
+
   return (
     <>
       <motion.div
@@ -286,12 +298,85 @@ export const LocationItem: React.FC<LocationItemProps> = ({
         style={style}
         data-id={location.id}
       >
-        <div className="location-info" onClick={() => onFlyTo?.(location.id)}>
-          <h3>{location.name}</h3>
-          {location.desc && <p>{location.desc}</p>}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => onFlyTo?.(location.id)}>
+            <div className={`status-dot ${location.status || 'active'}`} />
+            <div className="location-info" style={{ marginRight: 0 }}>
+              <h3>{location.name}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                {location.category && (
+                  <span className={`category-badge ${location.category}`}>
+                    {location.category}
+                  </span>
+                )}
+                {location.status && location.status !== 'active' && (
+                  <span className={`status-badge ${location.status}`}>
+                    {location.status}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Expandable Telemetry */}
+          {location.telemetry && showTelemetry && (
+            <div className="telemetry-section">
+              {location.telemetry.temperature !== undefined && (
+                <div className="telemetry-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>
+                  <span className="telemetry-value">{location.telemetry.temperature}°C</span>
+                </div>
+              )}
+              {location.telemetry.battery !== undefined && (
+                <div className="telemetry-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="10" x="2" y="7" rx="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>
+                  <span className="telemetry-value">{location.telemetry.battery}%</span>
+                  <div className="telemetry-bar">
+                    <div className={`telemetry-bar-fill ${getTelemetryBarClass(location.telemetry.battery, 100)}`} style={{ width: `${location.telemetry.battery}%` }} />
+                  </div>
+                </div>
+              )}
+              {location.telemetry.speed !== undefined && (
+                <div className="telemetry-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 9V2"/></svg>
+                  <span className="telemetry-value">{location.telemetry.speed} km/h</span>
+                </div>
+              )}
+              {location.telemetry.signalStrength !== undefined && (
+                <div className="telemetry-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/></svg>
+                  <span className="telemetry-value">{location.telemetry.signalStrength}%</span>
+                  <div className="telemetry-bar">
+                    <div className={`telemetry-bar-fill ${getTelemetryBarClass(location.telemetry.signalStrength, 100)}`} style={{ width: `${location.telemetry.signalStrength}%` }} />
+                  </div>
+                </div>
+              )}
+              {location.telemetry.uptime !== undefined && (
+                <div className="telemetry-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span className="telemetry-value">{location.telemetry.uptime}%</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="location-actions">
+          {/* Telemetry expand toggle */}
+          {location.telemetry && (
+            <button
+              className="btn-icon-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTelemetry(!showTelemetry);
+              }}
+              data-tooltip={showTelemetry ? "Hide telemetry" : "Show telemetry"}
+              style={{ transition: 'transform 0.2s', transform: showTelemetry ? 'rotate(180deg)' : 'none' }}
+            >
+              <ChevronRight size={14} style={{ transform: 'rotate(90deg)' }} />
+            </button>
+          )}
+
           <button
             className="btn-icon-sm"
             onClick={(e) => {
@@ -303,14 +388,16 @@ export const LocationItem: React.FC<LocationItemProps> = ({
             {location.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
 
-          <button
-            ref={triggerRef}
-            className={`dropdown-btn ${isMenuOpen ? "active" : ""}`}
-            onClick={toggleMenu}
-            data-tooltip="More options"
-          >
-            <MoreVertical size={16} />
-          </button>
+          {currentUser?.role === 'admin' && (
+            <button
+              ref={triggerRef}
+              className={`dropdown-btn ${isMenuOpen ? "active" : ""}`}
+              onClick={toggleMenu}
+              data-tooltip="More options"
+            >
+              <MoreVertical size={16} />
+            </button>
+          )}
         </div>
       </motion.div>
 

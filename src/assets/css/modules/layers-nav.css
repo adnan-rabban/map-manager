@@ -12,7 +12,7 @@
   border: none;
   border-radius: var(--radius-md);
   box-shadow: var(--glass-shadow);
-  z-index: var(--z-ui);
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,7 +45,7 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
-  z-index: var(--z-ui);
+  z-index: 5;
   padding: 16px;
   
   opacity: 0;

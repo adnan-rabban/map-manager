@@ -25,7 +25,8 @@ export const MapViewer: React.FC = () => {
     setStartPoint,
     setDestPoint,
     setNavigationOpen,
-    setAddModalOpen
+    setAddModalOpen,
+    geofences
   } = useMapStore();
 
   const currentPopupRef = useRef<maptilersdk.Popup | null>(null);
@@ -180,8 +181,25 @@ export const MapViewer: React.FC = () => {
         existing.setLngLat([loc.lng, loc.lat]);
         const element = existing.getElement();
         const dot = element.querySelector('.custom-marker-dot') as HTMLElement;
-        if (dot && loc.color) {
-          dot.style.backgroundColor = loc.color;
+        if (dot) {
+          // Use category color or custom color
+          const categoryColors: Record<string, string> = {
+            warehouse: '#8b5cf6',
+            vehicle: '#3b82f6',
+            sensor: '#06b6d4',
+            hub: '#f97316'
+          };
+          dot.style.backgroundColor = loc.color || (loc.category ? categoryColors[loc.category] : '') || '#007AFF';
+          
+          // Status ring
+          const statusColors: Record<string, string> = {
+            active: '#22c55e',
+            maintenance: '#f59e0b',
+            critical: '#ef4444',
+            offline: '#94a3b8'
+          };
+          const ringColor = loc.status ? statusColors[loc.status] || '#22c55e' : '#22c55e';
+          dot.style.boxShadow = `0 0 0 2px ${ringColor}, 0 0 8px ${ringColor}40`;
         }
       } else {
         const container = document.createElement('div');
@@ -190,9 +208,26 @@ export const MapViewer: React.FC = () => {
 
         const dot = document.createElement('div');
         dot.className = 'custom-marker-dot';
-        if (loc.color) {
-          dot.style.backgroundColor = loc.color;
-        }
+        
+        // Category-based color
+        const categoryColors: Record<string, string> = {
+          warehouse: '#8b5cf6',
+          vehicle: '#3b82f6',
+          sensor: '#06b6d4',
+          hub: '#f97316'
+        };
+        dot.style.backgroundColor = loc.color || (loc.category ? categoryColors[loc.category] : '') || '#007AFF';
+        
+        // Status ring glow
+        const statusColors: Record<string, string> = {
+          active: '#22c55e',
+          maintenance: '#f59e0b',
+          critical: '#ef4444',
+          offline: '#94a3b8'
+        };
+        const ringColor = loc.status ? statusColors[loc.status] || '#22c55e' : '#22c55e';
+        dot.style.boxShadow = `0 0 0 2px ${ringColor}, 0 0 8px ${ringColor}40`;
+        
         container.appendChild(dot);
 
         const marker = new maptilersdk.Marker({
@@ -311,6 +346,84 @@ export const MapViewer: React.FC = () => {
       drawRouteOnMap(map, route, false);
     }
   }, [routes, activeRouteIndex]);
+
+  // 6. Render Geofence Zones
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map) return;
+
+    const renderGeofences = () => {
+      // Clear old geofence layers
+      geofences.forEach((_, i) => {
+        const layerId = `geofence-fill-${i}`;
+        const outlineId = `geofence-outline-${i}`;
+        const sourceId = `geofence-src-${i}`;
+        if (map.getLayer(layerId)) map.removeLayer(layerId);
+        if (map.getLayer(outlineId)) map.removeLayer(outlineId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+      });
+      // Also clean up any stale geofence layers
+      for (let i = 0; i < 20; i++) {
+        const layerId = `geofence-fill-${i}`;
+        const outlineId = `geofence-outline-${i}`;
+        const sourceId = `geofence-src-${i}`;
+        if (map.getLayer(layerId)) map.removeLayer(layerId);
+        if (map.getLayer(outlineId)) map.removeLayer(outlineId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+      }
+
+      geofences.forEach((geo, i) => {
+        if (geo.type === 'polygon' && geo.coordinates.length >= 3) {
+          const coords = geo.coordinates.map(c => [c.lng, c.lat]);
+          coords.push(coords[0]); // Close the polygon
+
+          const sourceId = `geofence-src-${i}`;
+          const fillLayerId = `geofence-fill-${i}`;
+          const outlineLayerId = `geofence-outline-${i}`;
+
+          map.addSource(sourceId, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              properties: { name: geo.name },
+              geometry: {
+                type: 'Polygon',
+                coordinates: [coords]
+              }
+            }
+          });
+
+          map.addLayer({
+            id: fillLayerId,
+            type: 'fill',
+            source: sourceId,
+            paint: {
+              'fill-color': geo.color || '#3b82f6',
+              'fill-opacity': 0.12
+            }
+          });
+
+          map.addLayer({
+            id: outlineLayerId,
+            type: 'line',
+            source: sourceId,
+            paint: {
+              'line-color': geo.color || '#3b82f6',
+              'line-width': 2,
+              'line-dasharray': [3, 2],
+              'line-opacity': 0.7
+            }
+          });
+        }
+      });
+    };
+
+    if (map.loaded()) {
+      renderGeofences();
+    } else {
+      map.once('idle', renderGeofences);
+    }
+  }, [geofences, theme, activeMapStyle]);
 
   // POI Popup Handler
   const showPoiPopup = (poi: POI) => {

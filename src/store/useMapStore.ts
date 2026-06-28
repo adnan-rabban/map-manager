@@ -1,11 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Location, Group, Route, Coordinates } from '../types/types';
+import type { Location, Group, Route, Coordinates, Geofence, AssetStatus, AssetCategory } from '../types/types';
 
 interface MapState {
+  // Auth State
+  isAuthenticated: boolean;
+  currentUser: { username: string; role: 'admin' | 'operator' } | null;
+  login: (username: string, password: string) => { success: boolean; error?: string };
+  logout: () => void;
+
   // Data State
   locations: Location[];
   groups: Group[];
+  geofences: Geofence[];
   selectedLocation: Location | null;
   
   // UI State
@@ -18,6 +25,8 @@ interface MapState {
   isEditModalId: string | null;
   clickedCoords: Coordinates | null;
   activeMapStyle: 'STREETS' | 'HYBRID';
+  filterStatus: AssetStatus | 'all';
+  filterCategory: AssetCategory | 'all';
   
   // Navigation State
   startCoords: Coordinates | null;
@@ -42,6 +51,10 @@ interface MapState {
   assignLocationToGroup: (locationId: string, groupId: string | null) => void;
   importData: (newLocations: unknown, targetGroupId?: string) => boolean;
 
+  // Geofence Actions
+  addGeofence: (geofence: Omit<Geofence, 'id'>) => Geofence;
+  deleteGeofence: (id: string) => void;
+
   // UI Actions
   setTheme: (theme: 'light' | 'dark') => void;
   setSidebarOpen: (isOpen: boolean) => void;
@@ -53,6 +66,8 @@ interface MapState {
   setEditModalId: (id: string | null) => void;
   setClickedCoords: (coords: Coordinates | null) => void;
   setActiveMapStyle: (style: 'STREETS' | 'HYBRID') => void;
+  setFilterStatus: (status: AssetStatus | 'all') => void;
+  setFilterCategory: (category: AssetCategory | 'all') => void;
   
   // Navigation Actions
   setStartPoint: (name: string, coords: Coordinates | null) => void;
@@ -67,16 +82,78 @@ export const useMapStore = create<MapState>()(
   persist(
     (set, get) => ({
       // Initial state
+      isAuthenticated: false,
+      currentUser: null,
       locations: [
         {
           id: "1",
-          name: "Example Location",
-          desc: "A sample point",
+          name: "Logistics Hub Alpha",
+          desc: "Main dispatch depot for logistics and sorting",
           lng: 106.8456,
           lat: -6.2088,
+          groupId: "group-hubs",
+          status: "active",
+          category: "hub",
+          telemetry: { uptime: 99.8, signalStrength: 95 },
+          lastUpdated: new Date().toISOString()
+        },
+        {
+          id: "2",
+          name: "Delivery Truck #42",
+          desc: "Transit truck carrying retail goods",
+          lng: 106.8520,
+          lat: -6.2150,
+          groupId: "group-fleet",
+          status: "active",
+          category: "vehicle",
+          telemetry: { speed: 55, temperature: 24, battery: 85, signalStrength: 80 },
+          lastUpdated: new Date().toISOString()
+        },
+        {
+          id: "3",
+          name: "IoT Temperature Sensor A",
+          desc: "Environmental monitoring inside cold storage",
+          lng: 106.8400,
+          lat: -6.2020,
+          groupId: "group-sensors",
+          status: "maintenance",
+          category: "sensor",
+          telemetry: { temperature: -18.5, battery: 12, signalStrength: 45 },
+          lastUpdated: new Date().toISOString()
+        },
+        {
+          id: "4",
+          name: "South Warehousing Complex",
+          desc: "Bulk storage facilities and loading bay",
+          lng: 106.8610,
+          lat: -6.2210,
+          groupId: "group-hubs",
+          status: "offline",
+          category: "warehouse",
+          telemetry: { uptime: 0, signalStrength: 0 },
+          lastUpdated: new Date().toISOString()
         }
       ],
-      groups: [],
+      groups: [
+        { id: "group-hubs", name: "Depots & Hubs", isCollapsed: false },
+        { id: "group-fleet", name: "Active Fleet", isCollapsed: false },
+        { id: "group-sensors", name: "Sensor Networks", isCollapsed: false }
+      ],
+      geofences: [
+        {
+          id: "geo-1",
+          name: "Depot Geofence Area",
+          type: "polygon",
+          coordinates: [
+            { lng: 106.843, lat: -6.205 },
+            { lng: 106.848, lat: -6.205 },
+            { lng: 106.848, lat: -6.210 },
+            { lng: 106.843, lat: -6.210 }
+          ],
+          color: "#3b82f6",
+          areaSize: 250000
+        }
+      ],
       selectedLocation: null,
       theme: 'light',
       isSidebarOpen: true,
@@ -87,6 +164,8 @@ export const useMapStore = create<MapState>()(
       isEditModalId: null,
       clickedCoords: null,
       activeMapStyle: 'STREETS',
+      filterStatus: 'all',
+      filterCategory: 'all',
       
       startCoords: null,
       destCoords: null,
@@ -129,7 +208,11 @@ export const useMapStore = create<MapState>()(
       addLocation: (location) => {
         const newLocation: Location = {
           ...location,
-          id: Date.now().toString()
+          id: Date.now().toString(),
+          status: location.status || 'active',
+          category: location.category || 'hub',
+          telemetry: location.telemetry || { uptime: 100, signalStrength: 100 },
+          lastUpdated: new Date().toISOString()
         };
         set((state) => ({
           locations: [...state.locations, newLocation]
@@ -138,12 +221,12 @@ export const useMapStore = create<MapState>()(
       },
       updateLocation: (id, updatedFields) => {
         set((state) => ({
-          locations: state.locations.map(l => l.id === id ? { ...l, ...updatedFields } : l)
+          locations: state.locations.map(l => l.id === id ? { ...l, ...updatedFields, lastUpdated: new Date().toISOString() } : l)
         }));
         // Update selectedLocation if it was updated
         const currentSelected = get().selectedLocation;
         if (currentSelected && currentSelected.id === id) {
-          set({ selectedLocation: { ...currentSelected, ...updatedFields } });
+          set({ selectedLocation: { ...currentSelected, ...updatedFields, lastUpdated: new Date().toISOString() } });
         }
       },
       deleteLocation: (id) => {
@@ -156,7 +239,7 @@ export const useMapStore = create<MapState>()(
         set((state) => ({
           locations: state.locations.map(l => {
             if (l.id === locationId) {
-              const updated = { ...l };
+              const updated = { ...l, lastUpdated: new Date().toISOString() };
               if (groupId) {
                 updated.groupId = groupId;
               } else {
@@ -182,7 +265,11 @@ export const useMapStore = create<MapState>()(
             lng: parseFloat(l.lng),
             lat: parseFloat(l.lat),
             hidden: l.hidden === 'true' || l.hidden === true,
-            groupId: targetGroupId
+            groupId: targetGroupId,
+            status: l.status || 'active',
+            category: l.category || 'hub',
+            telemetry: l.telemetry || { uptime: 100, signalStrength: 100 },
+            lastUpdated: l.lastUpdated || new Date().toISOString()
         })).filter(l => !isNaN(l.lng) && !isNaN(l.lat));
         
         if (valid.length === 0) return false;
@@ -203,6 +290,23 @@ export const useMapStore = create<MapState>()(
         return true;
       },
 
+      // Geofence Actions
+      addGeofence: (geofence) => {
+        const newGeo: Geofence = {
+          ...geofence,
+          id: `geo-${Date.now()}`
+        };
+        set((state) => ({
+          geofences: [...state.geofences, newGeo]
+        }));
+        return newGeo;
+      },
+      deleteGeofence: (id) => {
+        set((state) => ({
+          geofences: state.geofences.filter(g => g.id !== id)
+        }));
+      },
+
       // UI Actions
       setTheme: (theme) => set({ theme }),
       setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
@@ -214,6 +318,8 @@ export const useMapStore = create<MapState>()(
       setEditModalId: (id) => set({ isEditModalId: id }),
       setClickedCoords: (coords) => set({ clickedCoords: coords }),
       setActiveMapStyle: (style) => set({ activeMapStyle: style }),
+      setFilterStatus: (status) => set({ filterStatus: status }),
+      setFilterCategory: (category) => set({ filterCategory: category }),
 
       // Navigation Actions
       setStartPoint: (name, coords) => set({ startPlaceName: name, startCoords: coords }),
@@ -229,6 +335,36 @@ export const useMapStore = create<MapState>()(
         startPlaceName: '',
         destPlaceName: '',
         isRealTimeNavigating: false
+      }),
+
+      // Auth Actions
+      login: (username, password) => {
+        const cleanUser = username.trim().toLowerCase();
+        console.log("Zustand login action executing with cleanUser:", cleanUser);
+        if (cleanUser === 'admin' && password === 'admin123') {
+          console.log("Logging in as Administrator");
+          set({
+            isAuthenticated: true,
+            currentUser: { username: 'Administrator', role: 'admin' }
+          });
+          return { success: true };
+        } else if (cleanUser === 'operator' && password === 'operator123') {
+          console.log("Logging in as Operator Lapangan");
+          set({
+            isAuthenticated: true,
+            currentUser: { username: 'Operator Lapangan', role: 'operator' }
+          });
+          return { success: true };
+        }
+        console.log("Login credentials invalid");
+        return { success: false, error: 'Username atau Password salah!' };
+      },
+      logout: () => set({
+        isAuthenticated: false,
+        currentUser: null,
+        isSettingsOpen: false,
+        isAddModalOpen: false,
+        isEditModalId: null,
       })
     }),
     {
@@ -236,7 +372,10 @@ export const useMapStore = create<MapState>()(
       partialize: (state) => ({
         locations: state.locations,
         groups: state.groups,
+        geofences: state.geofences,
         theme: state.theme,
+        isAuthenticated: state.isAuthenticated,
+        currentUser: state.currentUser,
       }),
     }
   )
