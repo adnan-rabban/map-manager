@@ -10,7 +10,7 @@
     border: none;
     border-radius: var(--radius-md);
     box-shadow: var(--glass-shadow);
-    z-index: var(--z-ui);
+    z-index: 5;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -87,7 +87,7 @@
     border-radius: 16px;
     box-shadow: var(--glass-shadow);
     padding: 15px;
-    z-index: 1001; /* Higher than button */
+    z-index: 9; /* Higher than button, lower than panel */
     
     /* Animation States */
     opacity: 0;
