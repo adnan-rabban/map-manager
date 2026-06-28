@@ -1,3 +1,14 @@
+export type AssetStatus = 'active' | 'maintenance' | 'critical' | 'offline';
+export type AssetCategory = 'warehouse' | 'vehicle' | 'sensor' | 'hub';
+
+export interface AssetTelemetry {
+  temperature?: number;
+  battery?: number;
+  speed?: number;
+  signalStrength?: number;
+  uptime?: number;
+}
+
 export interface Location {
   id: string;
   name: string;
@@ -7,7 +18,22 @@ export interface Location {
   hidden?: boolean;
   groupId?: string;
   color?: string;
+  status?: AssetStatus;
+  category?: AssetCategory;
+  telemetry?: AssetTelemetry;
+  lastUpdated?: string;
 }
+
+export interface Geofence {
+  id: string;
+  name: string;
+  type: 'polygon' | 'circle';
+  coordinates: Coordinates[];
+  radius?: number; // in meters for circle
+  color?: string;
+  areaSize?: number; // in sq meters
+}
+
 
 export interface Group {
   id: string;
