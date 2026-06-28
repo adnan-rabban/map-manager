@@ -19,6 +19,8 @@ import { SettingsMenu } from './features/map/components/SettingsMenu.js';
 import { LayerPanel } from './features/map/components/LayerPanel.js';
 import { LocationItem } from './features/locations/components/LocationItem.js';
 import { CustomTooltip } from './components/tooltip.js';
+import { LoginScreen } from './features/auth/components/LoginScreen.js';
+import { ThemeProvider } from './features/auth/components/theme-provider.js';
 
 export const App: React.FC = () => {
   const {
@@ -34,7 +36,10 @@ export const App: React.FC = () => {
     setSettingsOpen,
     setAddModalOpen,
     theme,
-    setTheme
+    setTheme,
+    isAuthenticated,
+    currentUser,
+    logout
   } = useMapStore();
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -43,7 +48,7 @@ export const App: React.FC = () => {
   // Initialize Custom Tooltips and Local Theme on mount
   useEffect(() => {
     // Tooltips will auto-attach to [data-tooltip] elements
-    new CustomTooltip();
+    const tooltip = new CustomTooltip();
 
     // Set initial theme
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -53,6 +58,10 @@ export const App: React.FC = () => {
     } else {
       document.documentElement.removeAttribute('data-theme');
     }
+
+    return () => {
+      tooltip.destroy();
+    };
   }, []);
 
   const sensors = useSensors(
@@ -105,14 +114,59 @@ export const App: React.FC = () => {
 
   const activeLocation = activeId ? locations.find(l => l.id === activeId) : null;
 
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider>
+        <LoginScreen />
+      </ThemeProvider>
+    );
+  }
+
   return (
-    <DndContext
+    <ThemeProvider>
+      <DndContext
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div id="app" className={`panel-container ${!isSidebarOpen && isNavigationOpen ? 'collapsed-view' : ''}`}>
+      <div id="app" className={`panel-container ${!isSidebarOpen ? 'collapsed-view' : ''}`}>
         
+        {/* Floating Auth Status Bar */}
+        {currentUser && (
+          <div className="auth-status-bar">
+            <div className="auth-user-info">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span>Operator: <strong>{currentUser.username}</strong></span>
+              <span className={`auth-user-badge ${currentUser.role}`}>
+                {currentUser.role === 'admin' ? 'Administrator' : 'Operator'}
+              </span>
+            </div>
+            <button 
+              onClick={logout}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#f87171',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: '600'
+              }}
+            >
+              <span>Keluar</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         {/* Background Map Viewer */}
         <MapViewer />
 
@@ -128,23 +182,21 @@ export const App: React.FC = () => {
         <LayerPanel />
 
         {/* Sidebar Open Toggle Button (Visible when sidebar is closed) */}
-        {!isSidebarOpen && (
-          <button
-            id="btn-open-sidebar"
-            className="btn-toggle-sidebar"
-            onClick={() => setSidebarOpen(true)}
-            data-tooltip="Open Sidebar"
-            aria-label="Open Sidebar"
-          >
-            <div className="icon-panel-left-open-anim">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" className="icon-frame"></rect>
-                <path d="M9 3v18" className="icon-sidebar-line"></path>
-                <path d="m14 9 3 3-3 3" className="icon-chevron"></path>
-              </svg>
-            </div>
-          </button>
-        )}
+        <button
+          id="btn-open-sidebar"
+          className="btn-toggle-sidebar"
+          onClick={() => setSidebarOpen(true)}
+          data-tooltip="Open Sidebar"
+          aria-label="Open Sidebar"
+        >
+          <div className="icon-panel-left-open-anim">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" className="icon-frame"></rect>
+              <path d="M9 3v18" className="icon-sidebar-line"></path>
+              <path d="m14 9 3 3-3 3" className="icon-chevron"></path>
+            </svg>
+          </div>
+        </button>
 
         {/* Navigation Open Toggle Button */}
         <button
@@ -200,19 +252,21 @@ export const App: React.FC = () => {
           </svg>
         </button>
 
-        {/* Floating Add Location Button */}
-        <button
-          id="btn-add"
-          className="fab-add"
-          onClick={() => setAddModalOpen(true)}
-          data-tooltip="Add Location"
-          aria-label="Add Location"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
+        {/* Floating Add Location Button (Admin Only) */}
+        {currentUser?.role === 'admin' && (
+          <button
+            id="btn-add"
+            className="fab-add"
+            onClick={() => setAddModalOpen(true)}
+            data-tooltip="Add Location"
+            aria-label="Add Location"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        )}
 
         {/* Notification Toast Container */}
         <div id="notification-container" className="notification-container"></div>
@@ -229,6 +283,7 @@ export const App: React.FC = () => {
         ) : null}
       </DragOverlay>
     </DndContext>
+    </ThemeProvider>
   );
 };
 export default App;
